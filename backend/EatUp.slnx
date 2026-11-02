@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EatUp.Api/EatUp.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EatUp.Tests/EatUp.Tests.csproj" />
+  </Folder>
+</Solution>

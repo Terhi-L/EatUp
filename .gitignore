@@ -1,0 +1,19 @@
+# Node
+node_modules/
+web/dist/
+web/dev-dist/
+*.tsbuildinfo
+
+# .NET
+bin/
+obj/
+*.user
+.vs/
+
+# Local data: SQLite database and generated VAPID keys
+backend/data/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
