@@ -1,0 +1,78 @@
+@import 'tailwindcss';
+
+/* Design: "EatUp" canvas — ink outlines, hard offset shadows, pastel tones on grid paper. */
+@theme {
+  --font-sans: 'Shantell Sans', 'Comic Sans MS', ui-sans-serif, sans-serif;
+  --font-display: 'Caveat Brush', cursive;
+
+  --color-ink: #2b2140;
+  --color-muted: #5e5272;
+  --color-paper: #f7f4ff;
+  --color-accent: #ff9ebb;
+  --color-danger: #b42318;
+
+  /* Storage locations */
+  --color-fridge: #c4e4ff;
+  --color-freezer: #dccfff;
+  --color-pantry: #ffd6e3;
+  --color-counter: #b8ebcf;
+
+  /* Urgency */
+  --color-gone: #dccfff;
+  --color-today: #ff9ebb;
+  --color-soon: #ffc9a6;
+  --color-later: #b8ebcf;
+
+  --shadow-hard: 4px 4px 0 var(--color-ink);
+  --shadow-hard-sm: 3px 3px 0 var(--color-ink);
+}
+
+@layer base {
+  body {
+    @apply font-sans text-ink;
+    background-color: var(--color-paper);
+    background-image:
+      linear-gradient(#2b214014 1px, transparent 1px),
+      linear-gradient(90deg, #2b214014 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded border-2 border-ink bg-accent px-5 py-2 font-bold text-ink shadow-hard active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-50;
+  }
+  .btn-secondary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded border-2 border-ink bg-white px-3 py-2 text-sm font-semibold text-ink active:bg-paper disabled:opacity-50;
+  }
+  .btn-danger {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded border-2 border-ink bg-white px-3 py-2 text-sm font-bold text-danger active:bg-paper disabled:opacity-50;
+  }
+  .icon-btn {
+    @apply flex size-11 flex-none items-center justify-center rounded border-2 border-ink bg-white text-ink disabled:opacity-50;
+  }
+  .input {
+    @apply w-full rounded border-2 border-ink bg-white px-3 py-2.5 text-base text-ink focus:ring-4 focus:ring-accent/60 focus:outline-none;
+  }
+  .label {
+    @apply mb-1 block text-sm font-semibold text-ink;
+  }
+  .chip {
+    @apply inline-flex min-h-10 items-center gap-1.5 rounded border-2 border-ink px-3 text-sm font-semibold whitespace-nowrap text-ink;
+  }
+  .chip-on {
+    @apply bg-ink font-bold text-paper;
+  }
+  .chip-off {
+    @apply bg-white;
+  }
+  .card {
+    @apply rounded border-2 border-ink bg-white shadow-hard;
+  }
+  .page-title {
+    @apply font-display text-[40px] leading-none font-normal lg:text-[56px];
+  }
+  .hatch {
+    background-image: repeating-linear-gradient(-45deg, transparent 0 4px, #2b214026 4px 6px);
+  }
+}
