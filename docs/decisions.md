@@ -25,3 +25,10 @@ The product owner asked for a "simple short version" of the MVP **without login*
 - **Suggestions never use expired items**, since use-by dates may be unsafe. Expired items still show in the inventory.
 - **Partial use** reduces the quantity and keeps the item active. A partial "thrown away" amount isn't recorded as waste yet.
 - **"Meat-free"** in the UI means no meat or fish (dairy and eggs allowed). Flexitarian suggestions show at most one meat/fish option per two meat-free ones.
+
+## 2026-11-03 · Fixes from the PR #1 code review
+
+- **Writes need an `X-EatUp` header.** With no login, this stops other websites from triggering POST/PUT/DELETE on the local API (a custom header forces a CORS preflight, which the API never allows). `web/src/api.ts` always sends it.
+- **Profile updates are `PATCH /api/profile` with only the changed fields**, so overlapping edits and the time-zone sync can't overwrite each other.
+- **The daily reminder only counts as sent once a device received it.** Failed pushes keep their subscription; 401/403/404/410 remove it.
+- **Flexitarians still get one meat/fish idea** when nothing plant-based fits.

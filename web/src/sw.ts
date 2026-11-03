@@ -36,13 +36,18 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     (async () => {
       const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+      // navigate() rejects on windows this worker doesn't control (e.g. after a hard reload), so fall back to a new window.
       const existing = windows[0]
       if (existing) {
-        await existing.navigate(url)
-        await existing.focus()
-      } else {
-        await self.clients.openWindow(url)
+        try {
+          const focused = await existing.focus() // focus first, while we still have the click's user activation
+          await focused.navigate(url)
+          return
+        } catch {
+          // fall through and open a fresh window
+        }
       }
+      await self.clients.openWindow(url)
     })(),
   )
 })

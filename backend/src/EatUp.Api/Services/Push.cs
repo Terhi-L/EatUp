@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using EatUp.Api.Domain;
 using WebPush;
@@ -6,10 +7,18 @@ namespace EatUp.Api.Services;
 
 public record VapidKeys(string PublicKey, string PrivateKey);
 
+public enum PushResult
+{
+    Sent,
+    /// <summary>The push service says the subscription is invalid (expired, or tied to other VAPID keys); delete it.</summary>
+    Gone,
+    /// <summary>Delivery failed for another reason; keep the subscription.</summary>
+    Failed,
+}
+
 public interface IPushSender
 {
-    /// <returns>false when the push service says the subscription is gone and should be deleted.</returns>
-    Task<bool> SendAsync(PushSubscriptionRecord subscription, object payload, CancellationToken ct = default);
+    Task<PushResult> SendAsync(PushSubscriptionRecord subscription, object payload, CancellationToken ct = default);
 }
 
 public class WebPushSender(VapidKeys keys, ILogger<WebPushSender> logger) : IPushSender
@@ -17,18 +26,24 @@ public class WebPushSender(VapidKeys keys, ILogger<WebPushSender> logger) : IPus
     private readonly WebPushClient _client = new();
     private readonly VapidDetails _vapid = new("mailto:dev@eatup.local", keys.PublicKey, keys.PrivateKey);
 
-    public async Task<bool> SendAsync(PushSubscriptionRecord s, object payload, CancellationToken ct = default)
+    public async Task<PushResult> SendAsync(PushSubscriptionRecord s, object payload, CancellationToken ct = default)
     {
         try
         {
             var json = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web);
             await _client.SendNotificationAsync(new PushSubscription(s.Endpoint, s.P256dh, s.Auth), json, _vapid, ct);
-            return true;
+            return PushResult.Sent;
         }
-        catch (WebPushException e) when (e.StatusCode is System.Net.HttpStatusCode.NotFound or System.Net.HttpStatusCode.Gone)
+        catch (WebPushException e) when (e.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.Gone
+                                              or HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
         {
-            logger.LogInformation("Push subscription {Id} expired; removing it", s.Id);
-            return false;
+            logger.LogInformation("Push subscription {Id} is no longer valid ({Status}); removing it", s.Id, (int)e.StatusCode);
+            return PushResult.Gone;
+        }
+        catch (Exception e) when (e is WebPushException or HttpRequestException or ArgumentException)
+        {
+            logger.LogWarning(e, "Push to subscription {Id} failed", s.Id);
+            return PushResult.Failed;
         }
     }
 }
