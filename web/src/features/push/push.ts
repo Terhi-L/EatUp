@@ -27,7 +27,12 @@ export async function enablePush(): Promise<PushState> {
 
   const registration = await navigator.serviceWorker.ready
   // Drop any old subscription: it may be tied to a different VAPID key (e.g. after deleting backend data).
-  await (await registration.pushManager.getSubscription())?.unsubscribe()
+  const old = await registration.pushManager.getSubscription()
+  if (old) {
+    // Forget it on the backend too, or daily checks keep sending to the dead endpoint. Not fatal if it fails.
+    await api.unsubscribe(old.endpoint).catch(() => {})
+    await old.unsubscribe()
+  }
   const subscription = await registration.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(await api.vapidPublicKey()),

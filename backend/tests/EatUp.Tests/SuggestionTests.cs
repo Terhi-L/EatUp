@@ -108,4 +108,28 @@ public class SuggestionTests
 
         Assert.Equal(["chicken"], suggestion.MissingIngredients);
     }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(5)]
+    public void Flexitarian_still_gets_a_meat_or_fish_idea_when_nothing_plant_based_fits(int limit)
+    {
+        var catalog = new Catalog([Ing("salmon", AnimalProduct.Fish), Ing("spinach")], [Rec("salmon-spinach", "salmon", "spinach")]);
+
+        var result = SuggestionEngine.Suggest(catalog, new UserProfile { Diet = DietType.Flexitarian }, [Item("salmon", 0)], limit);
+
+        Assert.Equal(["salmon-spinach"], result.Select(s => s.Recipe.Key));
+    }
+
+    [Fact]
+    public void Soy_allergy_excludes_recipes_with_optional_soy_sauce()
+    {
+        var catalog = new Catalog(
+            [Ing("rice"), Ing("soy-sauce", AnimalProduct.None, Allergen.Soy)],
+            [Rec("fried-rice", "rice", "soy-sauce?")]);
+
+        var result = SuggestionEngine.Suggest(catalog, new UserProfile { Allergens = [Allergen.Soy] }, [Item("rice", 0)]);
+
+        Assert.Empty(result);
+    }
 }

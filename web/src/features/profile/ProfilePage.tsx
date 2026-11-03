@@ -10,10 +10,15 @@ const allergens = Object.keys(strings.allergen) as Allergen[]
 export function ProfilePage() {
   const queryClient = useQueryClient()
   const profile = useQuery({ queryKey: ['profile'], queryFn: api.profile })
+  // Each edit sends only the fields it changes, and shows them right away; the server state is refetched after.
   const save = useMutation({
     mutationFn: api.updateProfile,
-    onSuccess: (p) => {
-      queryClient.setQueryData(['profile'], p)
+    onMutate: async (changes) => {
+      await queryClient.cancelQueries({ queryKey: ['profile'] })
+      queryClient.setQueryData<Profile>(['profile'], (old) => old && { ...old, ...changes })
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
       queryClient.invalidateQueries({ queryKey: ['suggestions'] })
     },
   })
@@ -21,8 +26,8 @@ export function ProfilePage() {
   if (profile.isPending) return null
   if (profile.isError) return <p className="text-danger">{profile.error.message}</p>
 
-  const p = save.isPending && save.variables ? save.variables : profile.data
-  const update = (changes: Partial<Profile>) => save.mutate({ ...p, ...changes })
+  const p = profile.data
+  const update = (changes: Partial<Profile>) => save.mutate(changes)
 
   return (
     <div className="space-y-6 lg:max-w-2xl">

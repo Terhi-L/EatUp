@@ -165,7 +165,8 @@ function ItemForm({ existing }: { existing?: Item }) {
               <input id="used" className="input w-24" type="number" min="0" step="any" inputMode="decimal"
                 value={usedAmount} onChange={(e) => setUsedAmount(Number(e.target.value))} />
               <span className="self-center text-muted">{existing.unit}</span>
-              <button className="btn-secondary ml-auto" disabled={consume.isPending}
+              <button className="btn-secondary ml-auto"
+                disabled={consume.isPending || !Number.isFinite(usedAmount) || usedAmount <= 0}
                 onClick={() => consume.mutate({ outcome: 'Used', amount: usedAmount })}>
                 {strings.form.markUsed}
               </button>

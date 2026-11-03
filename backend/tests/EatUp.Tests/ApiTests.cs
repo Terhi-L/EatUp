@@ -31,9 +31,15 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
     }
 
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web) { Converters = { new JsonStringEnumConverter() } };
+    private readonly Factory _factory;
     private readonly HttpClient _client;
 
-    public ApiTests(Factory factory) => _client = factory.CreateClient();
+    public ApiTests(Factory factory)
+    {
+        _factory = factory;
+        _client = factory.CreateClient();
+        _client.DefaultRequestHeaders.Add(Endpoints.ClientHeader, "1");
+    }
 
     [Fact]
     public async Task Add_list_and_consume_an_item()
@@ -98,5 +104,63 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
 
         var withMeat = catalog.Recipes.Count(r => r.Ingredients.Any(i => catalog.Find(i.Key)!.Animal == AnimalProduct.Meat));
         Assert.True(withMeat * 4 < catalog.Recipes.Count, $"{withMeat} of {catalog.Recipes.Count} recipes contain meat");
+    }
+
+    [Fact]
+    public async Task Writes_without_the_client_header_are_rejected()
+    {
+        var bare = _factory.CreateClient(); // no X-EatUp header, like a request from another website
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await bare.PostAsync("/api/dev/reset-demo-data", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await bare.GetAsync("/api/profile")).StatusCode);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    public async Task Consuming_a_non_positive_amount_is_rejected(double amount)
+    {
+        var item = await (await _client.PostAsJsonAsync("/api/items",
+            new ItemInput("Test milk", null, 2, "l", StorageLocation.Fridge, null, null), Json)).Content.ReadFromJsonAsync<ItemDto>(Json);
+
+        var response = await _client.PostAsJsonAsync($"/api/items/{item!.Id}/consume", new ConsumeInput(ConsumeOutcome.Used, amount), Json);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(ItemStatus.Active, (await _client.GetFromJsonAsync<ItemDto>($"/api/items/{item.Id}", Json))!.Status);
+    }
+
+    [Fact]
+    public async Task Profile_patch_only_changes_the_fields_sent()
+    {
+        await _client.PatchAsJsonAsync("/api/profile", new { diet = "Vegan" }, Json);
+        var response = await _client.PatchAsJsonAsync("/api/profile", new { allergens = new[] { "Soy" } }, Json);
+
+        var profile = (await response.Content.ReadFromJsonAsync<ProfileDto>(Json))!;
+        Assert.Equal(DietType.Vegan, profile.Diet);
+        Assert.Equal([Allergen.Soy], profile.Allergens);
+    }
+
+    [Fact]
+    public void Recipes_that_use_soy_sauce_declare_it()
+    {
+        var catalog = Catalog.Load(Path.Combine(AppContext.BaseDirectory, "Seed", "catalog.json"));
+
+        var undeclared = catalog.Recipes
+            .Where(r => r.Steps.Any(s => s.Contains("soy sauce", StringComparison.OrdinalIgnoreCase)))
+            .Where(r => r.Ingredients.All(i => i.Key != "soy-sauce"))
+            .Select(r => r.Key);
+        Assert.Empty(undeclared);
+    }
+
+    [Theory]
+    [InlineData("Coconut milk", "coconut-milk")]
+    [InlineData("Organic coconut milk", "coconut-milk")]
+    [InlineData("Free-range eggs", "egg")]
+    [InlineData("Peanut butter", "peanut-butter")]
+    public void Free_text_matches_the_longest_alias(string name, string? expected)
+    {
+        var catalog = Catalog.Load(Path.Combine(AppContext.BaseDirectory, "Seed", "catalog.json"));
+
+        Assert.Equal(expected, catalog.Match(name)?.Key);
     }
 }

@@ -26,7 +26,7 @@ export function App() {
       .then((profile) => {
         const timeZone = browserTimeZone()
         if (profile.timeZone !== timeZone) {
-          return api.updateProfile({ ...profile, timeZone }).then((p) => queryClient.setQueryData(['profile'], p))
+          return api.updateProfile({ timeZone }).then((p) => queryClient.setQueryData(['profile'], p))
         }
       })
       .catch(() => {})

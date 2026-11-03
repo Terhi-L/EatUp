@@ -17,6 +17,9 @@ public record ConsumeInput(ConsumeOutcome Outcome, double? Amount);
 
 public record ProfileDto(DietType Diet, List<Allergen> Allergens, TimeOnly NotificationTime, string TimeZone, bool NotificationsEnabled);
 
+/// <summary>Only the fields that are set are changed, so separate edits (and the time-zone sync) can't overwrite each other.</summary>
+public record ProfileUpdate(DietType? Diet, List<Allergen>? Allergens, TimeOnly? NotificationTime, string? TimeZone, bool? NotificationsEnabled);
+
 public record SuggestionDto(
     string Key, string Title, string Description, int Minutes, string[] Steps,
     IReadOnlyList<PantryItem> UsesItems, IReadOnlyList<string> MissingIngredients, bool IsPlantBased);
@@ -29,23 +32,34 @@ public record EndpointInput(string Endpoint);
 
 public static class Endpoints
 {
+    public const string ClientHeader = "X-EatUp";
+
     public static void MapEatUpApi(this WebApplication app)
     {
-        var api = app.MapGroup("/api");
+        // No auth in the MVP: require a custom header on writes so other websites can't trigger them
+        // (a cross-origin request with a custom header needs a CORS preflight, which this API never allows).
+        var api = app.MapGroup("/api").AddEndpointFilter(async (context, next) =>
+        {
+            var request = context.HttpContext.Request;
+            return HttpMethods.IsGet(request.Method) || request.Headers.ContainsKey(ClientHeader)
+                ? await next(context)
+                : Results.Problem("Missing " + ClientHeader + " header.", statusCode: StatusCodes.Status403Forbidden);
+        });
 
         api.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
         // Profile (single user in the MVP)
         api.MapGet("/profile", async (Pantry pantry) => ToDto(await pantry.GetProfileAsync()));
-        api.MapPut("/profile", async (ProfileDto input, EatUpDb db) =>
+        api.MapPatch("/profile", async (ProfileUpdate input, EatUpDb db) =>
         {
             var p = await db.Profiles.SingleAsync();
-            if (p.TimeZone != input.TimeZone || p.NotificationTime != input.NotificationTime) p.LastNotifiedOn = null;
-            p.Diet = input.Diet;
-            p.Allergens = input.Allergens.Distinct().ToList();
-            p.NotificationTime = input.NotificationTime;
-            p.TimeZone = input.TimeZone;
-            p.NotificationsEnabled = input.NotificationsEnabled;
+            if ((input.TimeZone is not null && input.TimeZone != p.TimeZone) ||
+                (input.NotificationTime is { } t && t != p.NotificationTime)) p.LastNotifiedOn = null;
+            if (input.Diet is { } diet) p.Diet = diet;
+            if (input.Allergens is { } allergens) p.Allergens = allergens.Distinct().ToList();
+            if (input.NotificationTime is { } time) p.NotificationTime = time;
+            if (input.TimeZone is { Length: > 0 } zone) p.TimeZone = zone;
+            if (input.NotificationsEnabled is { } enabled) p.NotificationsEnabled = enabled;
             await db.SaveChangesAsync();
             return ToDto(p);
         });
@@ -89,9 +103,11 @@ public static class Endpoints
         api.MapPost("/items/{id:int}/consume", async (int id, ConsumeInput input, EatUpDb db, Pantry pantry, Catalog catalog, TimeProvider time) =>
         {
             if (await db.Items.FindAsync(id) is not { } item) return Results.NotFound();
-            if (input.Amount is { } amount && amount > 0 && amount < item.Quantity)
+            if (input.Amount is { } amount && (!double.IsFinite(amount) || amount <= 0))
+                return Results.ValidationProblem(new Dictionary<string, string[]> { ["amount"] = ["Amount must be more than zero."] });
+            if (input.Amount is { } part && part < item.Quantity)
             {
-                item.Quantity -= amount;
+                item.Quantity -= part;
             }
             else
             {

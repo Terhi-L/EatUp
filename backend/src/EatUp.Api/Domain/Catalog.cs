@@ -48,9 +48,21 @@ public class Catalog
     public Ingredient? Match(string name)
     {
         var text = name.Trim().ToLowerInvariant();
-        return Ingredients.FirstOrDefault(i => i.Name.Equals(text, StringComparison.OrdinalIgnoreCase) || i.Aliases.Contains(text))
-            ?? Ingredients.FirstOrDefault(i => i.Aliases.Any(a => text.Split(' ', '-').Contains(a)));
+        var exact = Ingredients.FirstOrDefault(i => i.Name.Equals(text, StringComparison.OrdinalIgnoreCase) || i.Aliases.Contains(text));
+        if (exact is not null) return exact;
+
+        // Longest alias found as whole words wins, so "coconut milk" beats "milk" and "peanut butter" isn't butter.
+        var padded = $" {Words(text)} ";
+        return Ingredients
+            .SelectMany(i => i.Aliases.Select(a => (i, alias: Words(a))))
+            .Where(x => x.alias.Length > 0 && padded.Contains($" {x.alias} "))
+            .OrderByDescending(x => x.alias.Length)
+            .Select(x => x.i)
+            .FirstOrDefault();
     }
+
+    private static string Words(string s) =>
+        string.Join(' ', s.ToLowerInvariant().Split([' ', '-'], StringSplitOptions.RemoveEmptyEntries));
 
     public IEnumerable<Ingredient> Search(string? query) =>
         string.IsNullOrWhiteSpace(query)

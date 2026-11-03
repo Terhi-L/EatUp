@@ -85,7 +85,12 @@ async function request<T>(path: string, init?: RequestInit & { json?: unknown })
   try {
     response = await fetch(`/api${path}`, {
       ...rest,
-      headers: json === undefined ? rest.headers : { 'Content-Type': 'application/json', ...rest.headers },
+      // X-EatUp: the backend rejects writes without it, so other websites can't send them (see Endpoints.cs).
+      headers: {
+        'X-EatUp': '1',
+        ...(json === undefined ? {} : { 'Content-Type': 'application/json' }),
+        ...rest.headers,
+      },
       body: json === undefined ? rest.body : JSON.stringify(json),
     })
   } catch {
@@ -109,7 +114,8 @@ export const api = {
     request<Item>(`/items/${id}/consume`, { method: 'POST', json: { outcome, amount: amount ?? null } }),
 
   profile: () => request<Profile>('/profile'),
-  updateProfile: (profile: Profile) => request<Profile>('/profile', { method: 'PUT', json: profile }),
+  /** Only the given fields are changed. */
+  updateProfile: (changes: Partial<Profile>) => request<Profile>('/profile', { method: 'PATCH', json: changes }),
 
   ingredients: (search: string) => request<Ingredient[]>(`/ingredients?search=${encodeURIComponent(search)}`),
   suggestions: () => request<Suggestion[]>('/suggestions'),

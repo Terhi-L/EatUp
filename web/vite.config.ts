@@ -36,6 +36,8 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
+    // Lets the phone-testing tunnel in GETTING_STARTED.md through Vite's host check.
+    allowedHosts: ['.trycloudflare.com'],
     proxy: { '/api': 'http://localhost:5080' },
   },
 })

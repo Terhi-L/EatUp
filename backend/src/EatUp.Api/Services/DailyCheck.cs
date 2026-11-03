@@ -19,8 +19,12 @@ public class DailyCheck(EatUpDb db, Pantry pantry, Catalog catalog, IPushSender 
         if (message is null) return new DailyCheckResult(null, 0);
 
         var sent = await SendToAllAsync(new { title = message.Title, body = message.Body, url = message.Url }, ct);
-        profile.LastNotifiedOn = message.LocalDate;
-        await db.SaveChangesAsync(ct);
+        // Only use up the day once something was delivered, so a device subscribed later today still gets it.
+        if (sent > 0)
+        {
+            profile.LastNotifiedOn = message.LocalDate;
+            await db.SaveChangesAsync(ct);
+        }
         return new DailyCheckResult(message, sent);
     }
 
@@ -29,8 +33,11 @@ public class DailyCheck(EatUpDb db, Pantry pantry, Catalog catalog, IPushSender 
         var sent = 0;
         foreach (var sub in await db.PushSubscriptions.ToListAsync(ct))
         {
-            if (await push.SendAsync(sub, payload, ct)) sent++;
-            else db.PushSubscriptions.Remove(sub);
+            switch (await push.SendAsync(sub, payload, ct))
+            {
+                case PushResult.Sent: sent++; break;
+                case PushResult.Gone: db.PushSubscriptions.Remove(sub); break;
+            }
         }
         await db.SaveChangesAsync(ct);
         return sent;

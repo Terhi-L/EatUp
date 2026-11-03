@@ -80,6 +80,8 @@ public static class SuggestionEngine
         var animalCount = Math.Min(animals.Count, limit / 3);
         var plantCount = Math.Min(plants.Count, limit - animalCount);
         animalCount = Math.Min(animalCount, plantCount / 2);
+        // Never return nothing when only meat or fish recipes fit (or only one result is asked for).
+        if (plantCount == 0 && animals.Count > 0 && limit > 0) animalCount = 1;
 
         return plants.Take(plantCount).Concat(animals.Take(animalCount))
             .OrderByDescending(s => s.Score).ThenBy(s => s.Recipe.Minutes)

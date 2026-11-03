@@ -58,6 +58,7 @@ This prints a temporary `https://….trycloudflare.com` address you can open on 
 
 - The address changes every run, so you'll need to reinstall the app on the phone each time.
 - On iPhone (iOS 16.4+), notifications only work after **Share → Add to Home Screen**, opening EatUp from the home screen.
+- Anyone with the address can use your local EatUp, so stop the tunnel when you're done.
 
 ## Other commands
 
