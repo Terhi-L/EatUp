@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-04T12:30:00Z'
-updated_date: '2026-11-04T13:22:00Z'
+updated_date: '2026-11-04T13:24:00Z'
 labels:
   - i18n
   - frontend
@@ -24,7 +24,7 @@ EatUp targets Nordic users, but the UI, catalog, recipes, notifications and barc
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 User can pick English, Norsk or Suomi on the Profile page; the choice persists in the profile and the UI switches immediately
+- [x] #1 User can pick English, Norsk or Suomi on the Profile page; the choice persists in the profile and the UI switches immediately
 - [ ] #2 First visit with no saved language uses the browser language when it is nb/no or fi, else English
 - [ ] #3 Catalog search, ingredient names, recipe suggestions and push notifications use the profile language
 - [ ] #4 Norwegian/Finnish aliases match products (e.g. lettmelk → milk), and barcode lookups prefer nb/no/fi product names
@@ -54,4 +54,6 @@ EatUp targets Nordic users, but the UI, catalog, recipes, notifications and barc
 
 <!-- SECTION:NOTES:BEGIN -->
 Done so far (uncommitted): backend `Language` enum + nullable `UserProfile.Language` in ProfileDto/ProfileUpdate; `Seed/catalog.Norwegian.json` and `catalog.Finnish.json`; `Catalog.NameOf/TextOf/Search(query, language)`; Nordic alias suffix matching; `NotificationText`; localised suggestions and Open Food Facts names; TranslationTests + API language test (94 backend tests passing). Frontend: `web/src/i18n/{en,nb,fi}.ts`, live-binding `strings.ts` switcher (`setLanguage`, `useLanguage`, `detectLanguage`, `languageNames`, `unitLabel`, `localeOf`), localised api errors, `lib/profileSync.ts`, `lib/i18n.test.ts`; App.tsx `tabs` is now a function plus `syncProfile`.
+
+Finished: language picker on ProfilePage (setLanguage + PATCH, invalidates all queries); units shown via unitLabel and saved via new storedUnit; PackageSize maps kpl → pcs; tests added (web units test, backend "10 kpl"). typecheck + web 24 + backend 95 tests pass. Decisions logged 2026-11-04.
 <!-- SECTION:NOTES:END -->
