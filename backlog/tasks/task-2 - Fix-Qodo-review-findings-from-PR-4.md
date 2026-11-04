@@ -5,6 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-04T21:08:00Z'
+updated_date: '2026-11-04T21:11:00Z'
 labels:
   - backend
   - frontend
@@ -39,3 +40,9 @@ Qodo reviewed PR #4 (Norwegian/Finnish, barcode scanning, Cupboard) and found bu
 <!-- SECTION:PLAN:BEGIN -->
 1. Catalog.Search: match alias prefix or any word prefix; return all aliases (every language) so the form can resolve typed names. 2. Catalog.Match: dairy ingredients never match text with a plant marker (soy/oat/havre/kaura/mandel/plante...). 3. ItemFormPage: match by name or alias; apply opened-location in an effect when match arrives, unless the user picked a location. 4. ProfilePage: on language save error restore previous language. 5. App.syncProfile: invalidate all queries after a language write. 6. PATCH /profile: Enum.IsDefined check; lookup falls back to English. 7. storedUnit: reverse-map across all dictionaries. 8. PackageSize: TryParse bounded multipack count. 9. Tests + typecheck.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented all 9 fixes; backend 105 + web 30 tests and typecheck pass. PR #5 opened. Not browser-verified: #3 opened-location effect, #5 language rollback, #9 sync refetch (Chrome extension not connected).
+<!-- SECTION:NOTES:END -->
