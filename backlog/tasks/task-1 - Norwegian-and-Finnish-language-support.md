@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-04T12:30:00Z'
-updated_date: '2026-11-04T20:06:00Z'
+updated_date: '2026-11-04T20:52:00Z'
 labels:
   - i18n
   - frontend
@@ -28,7 +28,7 @@ EatUp targets Nordic users, but the UI, catalog, recipes, notifications and barc
 - [x] #2 First visit with no saved language uses the browser language when it is nb/no or fi, else English
 - [x] #3 Catalog search, ingredient names, recipe suggestions and push notifications use the profile language
 - [x] #4 Norwegian/Finnish aliases match products (e.g. lettmelk → milk), and barcode lookups prefer nb/no/fi product names
-- [ ] #5 Units show in the active language (pcs ↔ stk/kpl), and a scanned package size in kpl parses as pcs
+- [x] #5 Units show in the active language (pcs ↔ stk/kpl), and a scanned package size in kpl parses as pcs
 - [x] #6 API errors appear in the active language
 - [x] #7 Translation and language-switch tests exist and `npm test` + `npm run typecheck` pass
 - [x] #8 i18n decisions are logged in `docs/decisions.md`
@@ -62,4 +62,6 @@ Finished: language picker on ProfilePage (setLanguage + PATCH, invalidates all q
 Still to verify in the running app (after deleting backend/data/): language picker switches UI and persists (#1), catalog/suggestions/notifications in profile language (#3), barcode lookup names (#4), units shown as stk/kpl (#5), API errors localised (#6). Automated tests cover parts of #3, #4 and #6 only.
 
 2026-11-04: AC #6 gap fixed - api.ts now picks every error message client-side (field, then errors.byStatus 403/404/502, then requestFailed); new web/src/api.test.ts. typecheck + web 27 tests pass. Verified against the running API: profile language persists; Finnish 'maito' and Norwegian 'lettmelk' find milk (Maito/Melk); suggestions in Finnish; daily check notification in Norwegian; barcode 7038010009457 (nb) and 6408430000135 (fi) return local product names. Not verified: #1 picker UI and #5 unit display (Chrome extension not connected).
+
+2026-11-04: User verified #1 (picker switches UI and persists) and #5 (units shown as stk/kpl) in the running app. Follow-up from that check: demo units bag/tub/loaf/bulb changed to pcs; unitLabel/storedUnit now use a per-language units map (pcs, can → nb 'boks' (unconfirmed), fi 'purkkia'). Item names stay as entered (demo items seed in English) by design. typecheck + web 27 + backend 95 tests pass.
 <!-- SECTION:NOTES:END -->
