@@ -32,3 +32,23 @@ The product owner asked for a "simple short version" of the MVP **without login*
 - **Profile updates are `PATCH /api/profile` with only the changed fields**, so overlapping edits and the time-zone sync can't overwrite each other.
 - **The daily reminder only counts as sent once a device received it.** Failed pushes keep their subscription; 401/403/404/410 remove it.
 - **Flexitarians still get one meat/fish idea** when nothing plant-based fits.
+
+## 2026-11-03 · Barcode scanning (Phase 5)
+
+- **Photo, not live video.** "Scan barcode" opens the camera through `<input type="file" capture="environment">` and decodes the photo with `@zxing/browser`, instead of a `getUserMedia` stream with the native `BarcodeDetector`. One code path works on iPhone and Android, and over plain `http://` on the local network, where browsers block live camera access. The decoder is loaded on the first scan, so the app still starts fast.
+- **Category from Open Food Facts tags, exact matches only.** The most specific tag that exactly names a catalogue ingredient wins (`en:milks` → milk). Loose word matching is used only on the product name, as when typing, because it would turn "plant milks" into milk.
+- **The name becomes the catalogue name** (e.g. "Milk") when recognised, so the form suggests a shelf life; otherwise the package name is kept. A barcode has no expiry date, so the user still confirms it, and fields left empty are highlighted.
+
+## 2026-11-03 · European storage wording
+
+- **`Cupboard` instead of `Pantry`** as a storage location, since walk-in pantries are rare in Nordic/European kitchens. The icon is a cabinet, not a bottle.
+- **Opened food can move to the fridge.** Catalogue entries may set `openedLocation` (tins of chickpeas, coconut milk, tomatoes). Ticking "It's opened" in the form switches the location and says so; the user can switch it back.
+
+## 2026-11-04 · Norwegian and Finnish
+
+- **Typed dictionaries, no i18n package.** `web/src/i18n/en.ts` is the source and defines the `Strings` type, so `nb.ts` and `fi.ts` can't miss a key. `strings.ts` swaps the active dictionary, and the app re-renders from the root.
+- **The language is stored in the profile** (`UserProfile.Language`) as well as `localStorage`, because the server words push notifications, suggestions, ingredient names and Open Food Facts product names in it. Before a language is chosen, the browser language decides, falling back to English.
+- **Catalogue translations are side files** (`Seed/catalog.Norwegian.json`, `catalog.Finnish.json`) keyed by the English catalogue keys, so recipes stay one list. Nordic aliases of 4+ letters also match word endings (lettmelk → milk), since compound words are common.
+- **API error text is chosen by the client.** The backend stays English; `api.ts` shows validation errors by field and other errors by HTTP status (`errors.byStatus`), never the backend's title.
+- **Units are stored in English** (`pcs`, `can`) and only shown translated (stk/kpl, boks/purkkia). Typed or scanned stk/kpl are saved as `pcs`, so switching language doesn't strand old units.
+- **The Norwegian and Finnish texts are machine-drafted** and need review by a native speaker.

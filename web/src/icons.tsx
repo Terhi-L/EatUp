@@ -14,7 +14,7 @@ function Svg({ size = 20, strokeWidth = 2.2, children, ...rest }: IconProps & { 
 
 export const FridgeIcon = (p: IconProps) => <Svg {...p}><rect x="5" y="2" width="14" height="20" rx="2" /><path d="M5 9h14M8 5v2M8 12v3" /></Svg>
 export const FreezerIcon = (p: IconProps) => <Svg {...p}><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7" /></Svg>
-export const PantryIcon = (p: IconProps) => <Svg {...p}><path d="M7 3h10M8 3v3L6 9v11a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9l-2-3V3M6 13h12" /></Svg>
+export const CupboardIcon = (p: IconProps) => <Svg {...p}><path d="M4 3h16v18H4zM12 3v18M4 17h16M9.5 9v3M14.5 9v3" /></Svg>
 export const CounterIcon = (p: IconProps) => <Svg {...p}><path d="M3 11h18a9 9 0 0 1-18 0zM9 8c0-2 2-3 2-5M14 8c0-2 2-3 2-5" /></Svg>
 export const BasketIcon = (p: IconProps) => <Svg {...p}><path d="M3 9h18l-2 11H5zM8 9l3-6M16 9l-3-6" /></Svg>
 export const PotIcon = (p: IconProps) => <Svg {...p}><path d="M4 10h16v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3zM2 10h2M20 10h2M9 6c0-1 1-1 1-2M14 6c0-1 1-1 1-2" /></Svg>
@@ -25,6 +25,7 @@ export const PlusIcon = (p: IconProps) => <Svg strokeWidth={3} {...p}><path d="M
 export const AlarmIcon = (p: IconProps) => <Svg strokeWidth={2} {...p}><circle cx="12" cy="13" r="7" /><path d="M12 9v4l2.5 2M4 5l3-2.5M20 5l-3-2.5" /></Svg>
 export const ClockIcon = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="8" /><path d="M12 8v4l3 2" /></Svg>
 export const BellIcon = (p: IconProps) => <Svg {...p}><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4" /></Svg>
+export const BarcodeIcon = (p: IconProps) => <Svg {...p}><path d="M3 7V4h3M18 4h3v3M21 17v3h-3M6 20H3v-3M7 8v8M10 8v8M13 8v8M17 8v8" /></Svg>
 export const LeafIcon = (p: IconProps) => <Svg {...p}><path d="M5 19C5 10 11 5 20 4c0 9-5 15-14 15zM5 19l8-8" /></Svg>
 
 /** The pea-pod logo, drawn in the design's own colours. */
@@ -43,14 +44,14 @@ export function Logo({ width = 44 }: { width?: number }) {
 export const locationIcon: Record<StorageLocation, (p: IconProps) => ReactNode> = {
   Fridge: FridgeIcon,
   Freezer: FreezerIcon,
-  Pantry: PantryIcon,
+  Cupboard: CupboardIcon,
   Counter: CounterIcon,
 }
 
 export const locationTone: Record<StorageLocation, string> = {
   Fridge: 'bg-fridge',
   Freezer: 'bg-freezer',
-  Pantry: 'bg-pantry',
+  Cupboard: 'bg-cupboard',
   Counter: 'bg-counter',
 }
 

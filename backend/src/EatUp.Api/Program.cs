@@ -20,6 +20,13 @@ builder.Services.AddSingleton(_ => Catalog.Load(Path.Combine(AppContext.BaseDire
 builder.Services.AddSingleton(sp => VapidKeyStore.LoadOrCreate(
     sp.GetRequiredService<IConfiguration>(), dataDir, sp.GetRequiredService<ILoggerFactory>().CreateLogger("Push")));
 builder.Services.AddSingleton<IPushSender, WebPushSender>();
+builder.Services.AddHttpClient<IProductLookup, OpenFoodFactsLookup>(http =>
+{
+    http.BaseAddress = OpenFoodFactsLookup.BaseAddress;
+    http.Timeout = TimeSpan.FromSeconds(10);
+    // Open Food Facts asks every app to identify itself.
+    http.DefaultRequestHeaders.UserAgent.ParseAdd("EatUp/0.1 (local food-waste app)");
+});
 builder.Services.AddScoped<Pantry>();
 builder.Services.AddScoped<DailyCheck>();
 if (builder.Configuration.GetValue("Push:EnableDailyJob", true))

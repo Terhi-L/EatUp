@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="Seed\catalog.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Update="Seed\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -15,14 +15,18 @@ public record ItemInput(
 
 public record ConsumeInput(ConsumeOutcome Outcome, double? Amount);
 
-public record ProfileDto(DietType Diet, List<Allergen> Allergens, TimeOnly NotificationTime, string TimeZone, bool NotificationsEnabled);
+public record ProfileDto(DietType Diet, List<Allergen> Allergens, TimeOnly NotificationTime, string TimeZone, bool NotificationsEnabled, Language? Language);
 
 /// <summary>Only the fields that are set are changed, so separate edits (and the time-zone sync) can't overwrite each other.</summary>
-public record ProfileUpdate(DietType? Diet, List<Allergen>? Allergens, TimeOnly? NotificationTime, string? TimeZone, bool? NotificationsEnabled);
+public record ProfileUpdate(
+    DietType? Diet, List<Allergen>? Allergens, TimeOnly? NotificationTime, string? TimeZone, bool? NotificationsEnabled, Language? Language = null);
 
 public record SuggestionDto(
     string Key, string Title, string Description, int Minutes, string[] Steps,
     IReadOnlyList<PantryItem> UsesItems, IReadOnlyList<string> MissingIngredients, bool IsPlantBased);
+
+/// <summary>A scanned product, prefilled into the add form. Null fields are for the user to fill in.</summary>
+public record ProductDto(string? Name, string? ProductName, double? Quantity, string? Unit);
 
 public record ShoppingInput(string Name, bool Done = false);
 
@@ -60,6 +64,7 @@ public static class Endpoints
             if (input.NotificationTime is { } time) p.NotificationTime = time;
             if (input.TimeZone is { Length: > 0 } zone) p.TimeZone = zone;
             if (input.NotificationsEnabled is { } enabled) p.NotificationsEnabled = enabled;
+            if (input.Language is { } language) p.Language = language;
             await db.SaveChangesAsync();
             return ToDto(p);
         });
@@ -119,12 +124,17 @@ public static class Endpoints
         });
 
         // Catalogue & suggestions
-        api.MapGet("/ingredients", (Catalog catalog, string? search) => catalog.Search(search).Take(20));
+        api.MapGet("/ingredients", async (Catalog catalog, Pantry pantry, string? search) =>
+            catalog.Search(search, (await pantry.GetProfileAsync()).LanguageOrDefault).Take(20));
 
-        api.MapGet("/suggestions", async (Pantry pantry, int? limit) =>
-            (await pantry.SuggestAsync(await pantry.GetProfileAsync(), limit ?? 5)).Select(s => new SuggestionDto(
-                s.Recipe.Key, s.Recipe.Title, s.Recipe.Description, s.Recipe.Minutes, s.Recipe.Steps,
-                s.UsesItems, s.MissingIngredients, s.IsPlantBased)));
+        api.MapGet("/products/{barcode}", LookUpProductAsync);
+
+        api.MapGet("/suggestions", async (Pantry pantry, Catalog catalog, int? limit) =>
+        {
+            var profile = await pantry.GetProfileAsync();
+            var suggestions = await pantry.SuggestAsync(profile, limit ?? 5);
+            return suggestions.Select(s => ToDto(s, catalog, profile.LanguageOrDefault));
+        });
 
         // Shopping list
         api.MapGet("/shopping", async (EatUpDb db) =>
@@ -214,6 +224,38 @@ public static class Endpoints
         });
     }
 
+    private static async Task<IResult> LookUpProductAsync(
+        string barcode, IProductLookup lookup, Catalog catalog, Pantry pantry, CancellationToken cancellationToken)
+    {
+        if (!IsProductBarcode(barcode))
+            return Results.ValidationProblem(new Dictionary<string, string[]> { ["barcode"] = ["Barcode must be 8 to 14 digits."] });
+
+        var language = (await pantry.GetProfileAsync()).LanguageOrDefault;
+        ScannedProduct? product;
+        try
+        {
+            product = await lookup.FindAsync(barcode, language, cancellationToken);
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException && !cancellationToken.IsCancellationRequested)
+        {
+            return Results.Problem("Couldn't reach Open Food Facts. Fill in the details yourself.", statusCode: StatusCodes.Status502BadGateway);
+        }
+        if (product is null) return Results.Problem("Product not found.", statusCode: StatusCodes.Status404NotFound);
+
+        var recognised = ProductRecognition.Recognise(product, catalog, language);
+        return Results.Ok(new ProductDto(recognised.Name, recognised.ProductName, recognised.Size?.Quantity, recognised.Size?.Unit));
+    }
+
+    private static SuggestionDto ToDto(Suggestion s, Catalog catalog, Language language)
+    {
+        var text = catalog.TextOf(s.Recipe, language);
+        var missing = s.MissingIngredients.Select(i => catalog.NameOf(i, language)).ToList();
+        return new SuggestionDto(s.Recipe.Key, text.Title, text.Description, s.Recipe.Minutes, text.Steps, s.UsesItems, missing, s.IsPlantBased);
+    }
+
+    // EAN-8, UPC-A, EAN-13 and GTIN-14.
+    private static bool IsProductBarcode(string barcode) => barcode.Length is >= 8 and <= 14 && barcode.All(char.IsAsciiDigit);
+
     private static IResult? Apply(FoodItem item, ItemInput input, Catalog catalog, DateOnly today)
     {
         if (string.IsNullOrWhiteSpace(input.Name)) return Results.ValidationProblem(new Dictionary<string, string[]> { ["name"] = ["Name is required."] });
@@ -239,5 +281,5 @@ public static class Endpoints
         return new ItemDto(i.Id, i.Name, i.IngredientKey, i.Quantity, i.Unit, i.Location, i.ExpiryDate, i.OpenedDate, effective, days, Expiry.UrgencyFor(days), i.Status);
     }
 
-    private static ProfileDto ToDto(UserProfile p) => new(p.Diet, p.Allergens, p.NotificationTime, p.TimeZone, p.NotificationsEnabled);
+    private static ProfileDto ToDto(UserProfile p) => new(p.Diet, p.Allergens, p.NotificationTime, p.TimeZone, p.NotificationsEnabled, p.Language);
 }

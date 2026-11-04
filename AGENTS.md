@@ -17,7 +17,7 @@ Food-waste PWA: track what's in the fridge, get reminded before it expires, get 
 
 ### 2. Terse replies
 **Where:** every reply to the user.
-**Rule:** short sentences, answer first, no background. The user asks when they want an explanation.
+**Rule:** max 3 sentences or 5 bullets. Answer or result first. Skip what worked as expected; mention only failures, surprises and what the user must do. No headings, no file lists. The user asks when they want an explanation.
 **Why:** long replies bury the one line the user needs.
 
 ### 3. Self-explaining code

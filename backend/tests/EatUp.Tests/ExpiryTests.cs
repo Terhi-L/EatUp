@@ -53,6 +53,6 @@ public class ExpiryTests
         var egg = TestCatalog.Ing("egg");
 
         Assert.Equal(Today.AddDays(7), Expiry.DefaultExpiry(egg, StorageLocation.Fridge, Today));
-        Assert.Null(Expiry.DefaultExpiry(egg, StorageLocation.Pantry, Today));
+        Assert.Null(Expiry.DefaultExpiry(egg, StorageLocation.Cupboard, Today));
     }
 }

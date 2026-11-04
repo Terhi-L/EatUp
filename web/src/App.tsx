@@ -1,9 +1,10 @@
 import { useEffect, type ReactNode } from 'react'
 import { NavLink, Route, Routes } from 'react-router'
-import { useQueryClient } from '@tanstack/react-query'
-import { api } from './api'
-import { strings } from './strings'
+import { useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { api, type Profile } from './api'
+import { language, setLanguage, strings, useLanguage } from './strings'
 import { browserTimeZone } from './lib/dates'
+import { profileChanges } from './lib/profileSync'
 import { syncPush } from './features/push/push'
 import { InventoryPage } from './features/inventory/InventoryPage'
 import { ItemFormPage } from './features/inventory/ItemFormPage'
@@ -11,7 +12,7 @@ import { CookNowPage } from './features/suggestions/CookNowPage'
 import { ProfilePage } from './features/profile/ProfilePage'
 import { BasketIcon, Logo, PotIcon, UserIcon } from './icons'
 
-const tabs = [
+const tabs = () => [
   { to: '/', icon: <BasketIcon size={22} />, label: strings.nav.food },
   { to: '/cook', icon: <PotIcon size={22} />, label: strings.nav.cook },
   { to: '/profile', icon: <UserIcon size={22} />, label: strings.nav.profile },
@@ -19,17 +20,10 @@ const tabs = [
 
 export function App() {
   const queryClient = useQueryClient()
+  useLanguage() // re-renders the whole app in the new language when it changes
 
-  // Keep the backend's time zone in sync with the browser so reminders arrive at local time.
   useEffect(() => {
-    api.profile()
-      .then((profile) => {
-        const timeZone = browserTimeZone()
-        if (profile.timeZone !== timeZone) {
-          return api.updateProfile({ timeZone }).then((p) => queryClient.setQueryData(['profile'], p))
-        }
-      })
-      .catch(() => {})
+    syncProfile(queryClient).catch(() => {})
     syncPush().catch(() => {})
   }, [queryClient])
 
@@ -39,7 +33,7 @@ export function App() {
       <aside className="sticky top-0 hidden h-dvh w-64 flex-none flex-col gap-7 border-r-2 border-ink bg-white px-6 py-7 lg:flex">
         <Brand large />
         <nav aria-label="Main" className="flex flex-col gap-2">
-          {tabs.map((t) => <SideLink key={t.to} {...t} />)}
+          {tabs().map((t) => <SideLink key={t.to} {...t} />)}
         </nav>
       </aside>
 
@@ -62,11 +56,21 @@ export function App() {
       {/* Phone: bottom tab bar */}
       <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-10 border-t-2 border-ink bg-white pb-[env(safe-area-inset-bottom)] lg:hidden">
         <div className="mx-auto grid h-[84px] max-w-lg grid-cols-3 items-center px-2">
-          {tabs.map((t) => <BottomTab key={t.to} {...t} />)}
+          {tabs().map((t) => <BottomTab key={t.to} {...t} />)}
         </div>
       </nav>
     </div>
   )
+}
+
+// Reminders need the browser's time zone; the profile's language applies to every device.
+async function syncProfile(queryClient: QueryClient) {
+  const profile = await api.profile()
+  if (profile.language) setLanguage(profile.language)
+
+  const changes = profileChanges(profile, browserTimeZone(), language)
+  if (Object.keys(changes).length === 0) return
+  queryClient.setQueryData<Profile>(['profile'], await api.updateProfile(changes))
 }
 
 function Brand({ large = false }: { large?: boolean }) {

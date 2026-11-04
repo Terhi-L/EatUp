@@ -15,7 +15,8 @@ public class DailyCheck(EatUpDb db, Pantry pantry, Catalog catalog, IPushSender 
         var items = await pantry.GetActiveAsync(profile);
         var top = SuggestionEngine.Suggest(catalog, profile, items, limit: 1).FirstOrDefault();
 
-        var message = DailyNotification.Decide(profile, items, top?.Recipe.Title, time.GetUtcNow(), force);
+        var topTitle = top is null ? null : catalog.TextOf(top.Recipe, profile.LanguageOrDefault).Title;
+        var message = DailyNotification.Decide(profile, items, topTitle, time.GetUtcNow(), force);
         if (message is null) return new DailyCheckResult(null, 0);
 
         var sent = await SendToAllAsync(new { title = message.Title, body = message.Body, url = message.Url }, ct);

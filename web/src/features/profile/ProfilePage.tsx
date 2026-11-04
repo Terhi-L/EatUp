@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, type Allergen, type DietType, type Profile } from '../../api'
-import { strings } from '../../strings'
+import { api, type Allergen, type DietType, type Language, type Profile } from '../../api'
+import { language, languageNames, languages, localeOf, setLanguage, strings } from '../../strings'
 import { NotificationsCard } from '../push/NotificationsCard'
 
 const diets: DietType[] = ['Vegan', 'Vegetarian', 'Pescatarian', 'Flexitarian', 'Omnivore']
@@ -17,10 +17,8 @@ export function ProfilePage() {
       await queryClient.cancelQueries({ queryKey: ['profile'] })
       queryClient.setQueryData<Profile>(['profile'], (old) => old && { ...old, ...changes })
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
-      queryClient.invalidateQueries({ queryKey: ['suggestions'] })
-    },
+    // Diet, allergies and language all change what the server sends back (suggestions, names), so refetch everything.
+    onSettled: () => queryClient.invalidateQueries(),
   })
 
   if (profile.isPending) return null
@@ -48,7 +46,7 @@ export function ProfilePage() {
         <h2 className="mb-2 font-display text-[28px] leading-none font-normal">{strings.profile.diet}</h2>
         <div className="space-y-2">
           {diets.map((d) => (
-            <label key={d} className={`flex cursor-pointer items-start gap-3 rounded border-2 border-ink p-3 ${p.diet === d ? 'bg-pantry shadow-hard-sm' : 'bg-white'}`}>
+            <label key={d} className={`flex cursor-pointer items-start gap-3 rounded border-2 border-ink p-3 ${p.diet === d ? 'bg-cupboard shadow-hard-sm' : 'bg-white'}`}>
               <input type="radio" name="diet" className="mt-1 size-4 accent-ink" checked={p.diet === d} onChange={() => update({ diet: d })} />
               <span>
                 <span className="block font-bold">{strings.diet[d].label}</span>
@@ -75,10 +73,28 @@ export function ProfilePage() {
         </div>
       </section>
 
-      {save.isError && <p className="text-sm text-danger">{save.error.message}</p>}
+      <LanguagePicker onPick={(l) => { setLanguage(l); update({ language: l }) }} />
+
+      {save.isError &&<p className="text-sm text-danger">{save.error.message}</p>}
 
       {import.meta.env.DEV && <DevTools />}
     </div>
+  )
+}
+
+function LanguagePicker({ onPick }: { onPick: (l: Language) => void }) {
+  return (
+    <section>
+      <h2 className="mb-2 font-display text-[28px] leading-none font-normal">{strings.profile.language}</h2>
+      <div className="flex flex-wrap gap-2">
+        {languages.map((l) => (
+          <button key={l} lang={localeOf(l)} aria-pressed={l === language} className={`chip ${l === language ? 'chip-on' : 'chip-off'}`}
+            onClick={() => onPick(l)}>
+            {languageNames[l]}
+          </button>
+        ))}
+      </div>
+    </section>
   )
 }
 

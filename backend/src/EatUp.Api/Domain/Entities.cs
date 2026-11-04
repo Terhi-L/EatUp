@@ -28,6 +28,9 @@ public class UserProfile
     /// <summary>IANA time zone id reported by the browser.</summary>
     public string TimeZone { get; set; } = "UTC";
     public bool NotificationsEnabled { get; set; } = true;
+    /// <summary>Null until the app first reports the browser language.</summary>
+    public Language? Language { get; set; }
+    public Language LanguageOrDefault => Language ?? Domain.Language.English;
     /// <summary>Local date (in <see cref="TimeZone"/>) of the last daily notification.</summary>
     public DateOnly? LastNotifiedOn { get; set; }
 }

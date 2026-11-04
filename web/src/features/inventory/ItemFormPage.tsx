@@ -1,12 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, type ConsumeOutcome, type Ingredient, type Item, type ItemInput, type StorageLocation } from '../../api'
-import { strings } from '../../strings'
+import { api, type ConsumeOutcome, type Ingredient, type Item, type ItemInput, type Product, type StorageLocation } from '../../api'
+import { storedUnit, strings, unitLabel } from '../../strings'
 import { addDays, localIsoDate } from '../../lib/dates'
+import { locationAfterOpening } from '../../lib/storage'
 import { CheckIcon, TrashIcon, locationIcon, locationTone } from '../../icons'
+import { ScanBarcodeButton } from './ScanBarcodeButton'
 
-const locations: StorageLocation[] = ['Fridge', 'Freezer', 'Pantry', 'Counter']
+const locations: StorageLocation[] = ['Fridge', 'Freezer', 'Cupboard', 'Counter']
 
 export function ItemFormPage() {
   const { id } = useParams()
@@ -24,13 +26,17 @@ function ItemForm({ existing }: { existing?: Item }) {
 
   const [name, setName] = useState(existing?.name ?? '')
   const [quantity, setQuantity] = useState(existing?.quantity ?? 1)
-  const [unit, setUnit] = useState(existing?.unit ?? 'pcs')
+  const [unit, setUnit] = useState(unitLabel(existing?.unit ?? 'pcs'))
   const [location, setLocation] = useState<StorageLocation>(existing?.location ?? 'Fridge')
   const [expiryDate, setExpiryDate] = useState(existing?.expiryDate ?? '')
   const [expiryTouched, setExpiryTouched] = useState(existing !== undefined)
   const [opened, setOpened] = useState(existing?.openedDate != null)
   const [openedDate, setOpenedDate] = useState(existing?.openedDate ?? localIsoDate())
+  const [movedOnOpening, setMovedOnOpening] = useState<StorageLocation | null>(null)
   const [usedAmount, setUsedAmount] = useState(1)
+  const [scanned, setScanned] = useState(false)
+  const nameMissing = scanned && !name.trim()
+  const expiryMissing = scanned && !expiryDate
 
   const ingredients = useQuery({
     queryKey: ['ingredients', name.trim().toLowerCase()],
@@ -46,6 +52,32 @@ function ItemForm({ existing }: { existing?: Item }) {
     const days = match.shelfLifeDays[location]
     if (!expiryTouched && days !== undefined) setExpiryDate(addDays(localIsoDate(), days))
   }, [match, location, expiryTouched])
+
+  const chooseLocation = (l: StorageLocation) => {
+    setLocation(l)
+    setMovedOnOpening(null)
+  }
+
+  const toggleOpened = (checked: boolean) => {
+    setOpened(checked)
+    if (!checked) return
+    const target = locationAfterOpening(match, location)
+    if (!target) return
+    setLocation(target)
+    setMovedOnOpening(target)
+  }
+
+  // A barcode never carries the expiry date, so it's cleared for the shelf-life suggestion or the user.
+  const applyScannedProduct = (product: Product) => {
+    setName(product.name ?? '')
+    if (product.quantity) {
+      setQuantity(product.quantity)
+      setUnit(unitLabel(product.unit ?? 'pcs'))
+    }
+    setExpiryDate('')
+    setExpiryTouched(false)
+    setScanned(true)
+  }
 
   const done = () => {
     queryClient.invalidateQueries()
@@ -69,7 +101,7 @@ function ItemForm({ existing }: { existing?: Item }) {
       // Unknown names fall back to the backend's own matching.
       ingredientKey: match?.key ?? (name === existing?.name ? existing.ingredientKey : null),
       quantity,
-      unit,
+      unit: storedUnit(unit),
       location,
       expiryDate: expiryDate || null,
       openedDate: opened ? openedDate : null,
@@ -82,12 +114,14 @@ function ItemForm({ existing }: { existing?: Item }) {
     <div className="space-y-6 lg:max-w-2xl">
       <h1 className="page-title">{existing ? strings.form.editTitle : strings.form.addTitle}</h1>
 
+      {!existing && <ScanBarcodeButton onFound={applyScannedProduct} />}
+
       <form onSubmit={submit} className="space-y-4">
         <div>
           <label className="label" htmlFor="name">{strings.form.name}</label>
           <input
             id="name"
-            className="input"
+            className={`input ${nameMissing ? 'border-danger' : ''}`}
             list="ingredient-options"
             placeholder={strings.form.namePlaceholder}
             value={name}
@@ -99,6 +133,7 @@ function ItemForm({ existing }: { existing?: Item }) {
           <datalist id="ingredient-options">
             {ingredients.data?.map((i) => <option key={i.key} value={i.name} />)}
           </datalist>
+          {nameMissing && <p className="mt-1 text-xs text-danger">{strings.scan.fillName}</p>}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
@@ -120,7 +155,7 @@ function ItemForm({ existing }: { existing?: Item }) {
               const Icon = locationIcon[l]
               return (
                 <button type="button" key={l} aria-pressed={location === l}
-                  className={`chip h-11 justify-center ${location === l ? 'chip-on' : locationTone[l]}`} onClick={() => setLocation(l)}>
+                  className={`chip h-11 justify-center ${location === l ? 'chip-on' : locationTone[l]}`} onClick={() => chooseLocation(l)}>
                   <Icon size={16} />
                   {strings.location[l]}
                 </button>
@@ -131,16 +166,18 @@ function ItemForm({ existing }: { existing?: Item }) {
 
         <div>
           <label className="label" htmlFor="expiry">{strings.form.expiry}</label>
-          <input id="expiry" className="input" type="date" value={expiryDate}
+          <input id="expiry" className={`input ${expiryMissing ? 'border-danger' : ''}`} type="date" value={expiryDate}
             onChange={(e) => { setExpiryDate(e.target.value); setExpiryTouched(true) }} />
           {match && !expiryTouched && <p className="mt-1 text-xs text-muted">{strings.form.expiryHint}</p>}
+          {expiryMissing && <p className="mt-1 text-xs text-danger">{strings.scan.fillExpiry}</p>}
         </div>
 
         <div className="space-y-2">
           <label className="flex min-h-11 items-center gap-2">
-            <input type="checkbox" className="size-5 accent-ink" checked={opened} onChange={(e) => setOpened(e.target.checked)} />
+            <input type="checkbox" className="size-5 accent-ink" checked={opened} onChange={(e) => toggleOpened(e.target.checked)} />
             {strings.form.opened}
           </label>
+          {opened && movedOnOpening && <p className="text-xs text-muted">{strings.form.movedOnOpening(strings.location[movedOnOpening])}</p>}
           {opened && (
             <div>
               <label className="label" htmlFor="opened">{strings.form.openedOn}</label>
@@ -164,7 +201,7 @@ function ItemForm({ existing }: { existing?: Item }) {
             <div className="flex gap-2">
               <input id="used" className="input w-24" type="number" min="0" step="any" inputMode="decimal"
                 value={usedAmount} onChange={(e) => setUsedAmount(Number(e.target.value))} />
-              <span className="self-center text-muted">{existing.unit}</span>
+              <span className="self-center text-muted">{unitLabel(existing.unit)}</span>
               <button className="btn-secondary ml-auto"
                 disabled={consume.isPending || !Number.isFinite(usedAmount) || usedAmount <= 0}
                 onClick={() => consume.mutate({ outcome: 'Used', amount: usedAmount })}>
