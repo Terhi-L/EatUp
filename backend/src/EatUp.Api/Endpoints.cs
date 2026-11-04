@@ -56,6 +56,8 @@ public static class Endpoints
         api.MapGet("/profile", async (Pantry pantry) => ToDto(await pantry.GetProfileAsync()));
         api.MapPatch("/profile", async (ProfileUpdate input, EatUpDb db) =>
         {
+            if (input.Language is { } requested && !Enum.IsDefined(requested))
+                return Results.ValidationProblem(new Dictionary<string, string[]> { ["language"] = ["Unknown language."] });
             var p = await db.Profiles.SingleAsync();
             if ((input.TimeZone is not null && input.TimeZone != p.TimeZone) ||
                 (input.NotificationTime is { } t && t != p.NotificationTime)) p.LastNotifiedOn = null;
@@ -66,7 +68,7 @@ public static class Endpoints
             if (input.NotificationsEnabled is { } enabled) p.NotificationsEnabled = enabled;
             if (input.Language is { } language) p.Language = language;
             await db.SaveChangesAsync();
-            return ToDto(p);
+            return Results.Ok(ToDto(p));
         });
 
         // Items

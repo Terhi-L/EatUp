@@ -27,6 +27,13 @@ export function ProfilePage() {
   const p = profile.data
   const update = (changes: Partial<Profile>) => save.mutate(changes)
 
+  // Switch at once, but go back if the server didn't save it, so the UI and server-worded texts agree.
+  const pickLanguage = (next: Language) => {
+    const previous = language
+    setLanguage(next)
+    save.mutate({ language: next }, { onError: () => setLanguage(previous) })
+  }
+
   return (
     <div className="space-y-6 lg:max-w-2xl">
       <h1 className="page-title">{strings.profile.title}</h1>
@@ -73,7 +80,7 @@ export function ProfilePage() {
         </div>
       </section>
 
-      <LanguagePicker onPick={(l) => { setLanguage(l); update({ language: l }) }} />
+      <LanguagePicker onPick={(l) => pickLanguage(l)} />
 
       {save.isError &&<p className="text-sm text-danger">{save.error.message}</p>}
 

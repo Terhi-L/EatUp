@@ -3,7 +3,7 @@ import { locationAfterOpening } from './storage'
 import type { Ingredient } from '../api'
 
 const ingredient = (openedLocation: Ingredient['openedLocation']): Ingredient =>
-  ({ key: 'x', name: 'X', category: 'Test', allergens: [], shelfLifeDays: {}, openedLocation })
+  ({ key: 'x', name: 'X', aliases: [], category: 'Test', allergens: [], shelfLifeDays: {}, openedLocation })
 
 describe('locationAfterOpening', () => {
   it('moves an opened tin from the cupboard to the fridge', () => {

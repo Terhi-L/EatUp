@@ -144,6 +144,14 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
     }
 
     [Fact]
+    public async Task Unknown_language_is_rejected()
+    {
+        var response = await _client.PatchAsJsonAsync("/api/profile", new { language = 99 }, Json);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Catalogue_names_follow_the_profile_language()
     {
         try

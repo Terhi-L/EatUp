@@ -71,6 +71,8 @@ async function syncProfile(queryClient: QueryClient) {
   const changes = profileChanges(profile, browserTimeZone(), language)
   if (Object.keys(changes).length === 0) return
   queryClient.setQueryData<Profile>(['profile'], await api.updateProfile(changes))
+  // Suggestions and ingredient names fetched before the first language save came back in English.
+  if (changes.language) await queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'profile' })
 }
 
 function Brand({ large = false }: { large?: boolean }) {

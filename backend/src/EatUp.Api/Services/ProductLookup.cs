@@ -25,7 +25,8 @@ public class OpenFoodFactsLookup(HttpClient http) : IProductLookup
 
     public async Task<ScannedProduct?> FindAsync(string barcode, Language language, CancellationToken cancellationToken)
     {
-        var nameFields = NameLanguages[language].Select(code => $"product_name_{code}").Concat(["product_name", "product_name_en", "generic_name"]).ToList();
+        var codes = NameLanguages.GetValueOrDefault(language, NameLanguages[Language.English]);
+        var nameFields = codes.Select(code => $"product_name_{code}").Concat(["product_name", "product_name_en", "generic_name"]).ToList();
         var fields = string.Join(',', nameFields.Concat(["categories_tags", "quantity"]));
 
         using var response = await http.GetAsync($"api/v2/product/{barcode}.json?fields={fields}", cancellationToken);

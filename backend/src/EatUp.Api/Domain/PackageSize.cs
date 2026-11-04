@@ -11,7 +11,8 @@ public record PackageSize(double Quantity, string Unit)
         ["pcs"] = "pcs", ["pieces"] = "pcs", ["stk"] = "pcs", ["st"] = "pcs", ["kpl"] = "pcs",
     };
 
-    private static readonly Regex Multipack = new(@"^(\d+)\s*[x×]", RegexOptions.IgnoreCase);
+    // Product data is user-edited, so an absurd pack count is ignored rather than trusted.
+    private static readonly Regex Multipack = new(@"^(\d{1,4})\s*[x×]", RegexOptions.IgnoreCase);
     private static readonly Regex Amount = new(@"^(\d+(?:[.,]\d+)?)\s*([a-z]+)\b", RegexOptions.IgnoreCase);
 
     /// <summary>Reads a package quantity such as "1 l", "500 g" or "6 x 125 g" (counted as 6 pieces).</summary>

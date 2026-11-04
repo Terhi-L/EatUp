@@ -50,5 +50,7 @@ The product owner asked for a "simple short version" of the MVP **without login*
 - **The language is stored in the profile** (`UserProfile.Language`) as well as `localStorage`, because the server words push notifications, suggestions, ingredient names and Open Food Facts product names in it. Before a language is chosen, the browser language decides, falling back to English.
 - **Catalogue translations are side files** (`Seed/catalog.Norwegian.json`, `catalog.Finnish.json`) keyed by the English catalogue keys, so recipes stay one list. Nordic aliases of 4+ letters also match word endings (lettmelk → milk), since compound words are common.
 - **API error text is chosen by the client.** The backend stays English; `api.ts` shows validation errors by field and other errors by HTTP status (`errors.byStatus`), never the backend's title.
+- **Plant-based names never match dairy.** A name with a plant word (soy, oat, havre, kaura, mandel, plante…) skips milk and butter, so word-ending matches can't turn "soyamelk" into milk; such items get no ingredient and need a date.
+- **Search matches the start of any word** in any language ("milk" → Coconut milk) and returns every alias, so the form recognises a name typed in another language than the profile's.
 - **Units are stored in English** (`pcs`, `can`) and only shown translated (stk/kpl, boks/purkkia). Typed or scanned stk/kpl are saved as `pcs`, so switching language doesn't strand old units.
 - **The Norwegian and Finnish texts are machine-drafted** and need review by a native speaker.
