@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-04T12:30:00Z'
-updated_date: '2026-11-04T13:24:00Z'
+updated_date: '2026-11-04T15:21:00Z'
 labels:
   - i18n
   - frontend
@@ -24,7 +24,7 @@ EatUp targets Nordic users, but the UI, catalog, recipes, notifications and barc
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 User can pick English, Norsk or Suomi on the Profile page; the choice persists in the profile and the UI switches immediately
+- [x] #1 User can pick English, Norsk or Suomi on the Profile page; the choice persists in the profile and the UI switches immediately
 - [x] #2 First visit with no saved language uses the browser language when it is nb/no or fi, else English
 - [ ] #3 Catalog search, ingredient names, recipe suggestions and push notifications use the profile language
 - [ ] #4 Norwegian/Finnish aliases match products (e.g. lettmelk → milk), and barcode lookups prefer nb/no/fi product names
