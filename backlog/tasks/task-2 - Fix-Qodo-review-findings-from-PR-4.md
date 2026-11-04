@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-04T21:08:00Z'
-updated_date: '2026-11-04T21:11:00Z'
+updated_date: '2026-11-04T21:17:00Z'
 labels:
   - backend
   - frontend
@@ -45,4 +45,6 @@ Qodo reviewed PR #4 (Norwegian/Finnish, barcode scanning, Cupboard) and found bu
 
 <!-- SECTION:NOTES:BEGIN -->
 Implemented all 9 fixes; backend 105 + web 30 tests and typecheck pass. PR #5 opened. Not browser-verified: #3 opened-location effect, #5 language rollback, #9 sync refetch (Chrome extension not connected).
+
+Qodo review of PR #5: fixed language rollback (mutation-level onSettled reconciles with server language after the last pending save); late-lookup shelf override left as intended behaviour (see PR #5 comment). Typecheck + web 30 tests pass; not browser-verified.
 <!-- SECTION:NOTES:END -->
