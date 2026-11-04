@@ -4,8 +4,11 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using EatUp.Api;
 using EatUp.Api.Domain;
+using EatUp.Api.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EatUp.Tests;
 
@@ -84,7 +87,7 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
     public async Task Unknown_item_without_expiry_date_is_rejected()
     {
         var response = await _client.PostAsJsonAsync("/api/items",
-            new ItemInput("Mystery jar", null, 1, "pcs", StorageLocation.Pantry, null, null), Json);
+            new ItemInput("Mystery jar", null, 1, "pcs", StorageLocation.Cupboard, null, null), Json);
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -141,6 +144,23 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
     }
 
     [Fact]
+    public async Task Catalogue_names_follow_the_profile_language()
+    {
+        try
+        {
+            await _client.PatchAsJsonAsync("/api/profile", new { language = "Norwegian" }, Json);
+
+            var ingredients = await _client.GetFromJsonAsync<List<Ingredient>>("/api/ingredients?search=milk", Json);
+
+            Assert.Contains(ingredients!, i => i.Key == "milk" && i.Name == "Melk");
+        }
+        finally
+        {
+            await _client.PatchAsJsonAsync("/api/profile", new { language = "English" }, Json);
+        }
+    }
+
+    [Fact]
     public void Recipes_that_use_soy_sauce_declare_it()
     {
         var catalog = Catalog.Load(Path.Combine(AppContext.BaseDirectory, "Seed", "catalog.json"));
@@ -153,6 +173,17 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
     }
 
     [Theory]
+    [InlineData("coconut-milk", StorageLocation.Fridge)]
+    [InlineData("canned-tomatoes", StorageLocation.Fridge)]
+    [InlineData("peanut-butter", null)]
+    public void Catalog_says_where_opened_food_belongs(string key, StorageLocation? expected)
+    {
+        var catalog = Catalog.Load(Path.Combine(AppContext.BaseDirectory, "Seed", "catalog.json"));
+
+        Assert.Equal(expected, catalog.Find(key)?.OpenedLocation);
+    }
+
+    [Theory]
     [InlineData("Coconut milk", "coconut-milk")]
     [InlineData("Organic coconut milk", "coconut-milk")]
     [InlineData("Free-range eggs", "egg")]
@@ -162,5 +193,43 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
         var catalog = Catalog.Load(Path.Combine(AppContext.BaseDirectory, "Seed", "catalog.json"));
 
         Assert.Equal(expected, catalog.Match(name)?.Key);
+    }
+
+    private class FakeProductLookup(ScannedProduct? product, Exception? failure = null) : IProductLookup
+    {
+        public Task<ScannedProduct?> FindAsync(string barcode, Language language, CancellationToken cancellationToken) =>
+            failure is null ? Task.FromResult(product) : Task.FromException<ScannedProduct?>(failure);
+    }
+
+    private HttpClient ClientWithProducts(FakeProductLookup lookup) =>
+        _factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddSingleton<IProductLookup>(lookup))).CreateClient();
+
+    [Fact]
+    public async Task Scanned_product_is_matched_to_the_catalogue()
+    {
+        var client = ClientWithProducts(new(new ScannedProduct("Tine Lettmelk", ["en:dairies", "en:milks"], "1 l")));
+
+        var product = await client.GetFromJsonAsync<ProductDto>("/api/products/7038010000737", Json);
+
+        Assert.Equal(new ProductDto("Milk", "Tine Lettmelk", 1, "l"), product);
+    }
+
+    [Theory]
+    [InlineData("12345", HttpStatusCode.BadRequest)]
+    [InlineData("70380100007ab", HttpStatusCode.BadRequest)]
+    [InlineData("7038010000737", HttpStatusCode.NotFound)]
+    public async Task Unknown_or_invalid_barcodes_are_reported(string barcode, HttpStatusCode expected)
+    {
+        var client = ClientWithProducts(new(null));
+
+        Assert.Equal(expected, (await client.GetAsync($"/api/products/{barcode}")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Product_database_outage_is_a_bad_gateway()
+    {
+        var client = ClientWithProducts(new(null, new HttpRequestException("offline")));
+
+        Assert.Equal(HttpStatusCode.BadGateway, (await client.GetAsync("/api/products/7038010000737")).StatusCode);
     }
 }

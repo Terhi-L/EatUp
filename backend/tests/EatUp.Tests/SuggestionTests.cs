@@ -106,7 +106,7 @@ public class SuggestionTests
         var suggestion = SuggestionEngine.Suggest(Default, new UserProfile(), [Item("spinach", 0)], limit: 10)
             .Single(s => s.Recipe.Key == "chicken-spinach");
 
-        Assert.Equal(["chicken"], suggestion.MissingIngredients);
+        Assert.Equal(["chicken"], suggestion.MissingIngredients.Select(i => i.Key));
     }
 
     [Theory]

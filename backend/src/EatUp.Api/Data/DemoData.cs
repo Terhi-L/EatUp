@@ -35,16 +35,16 @@ public static class DemoData
             Item("Avocado", "avocado", 2, "pcs", StorageLocation.Counter, 0),
             Item("Eggs", "egg", 6, "pcs", StorageLocation.Fridge, 1),
             Item("Milk", "milk", 1, "l", StorageLocation.Fridge, 6, openedDaysAgo: 2),
-            Item("Baby spinach", "spinach", 1, "bag", StorageLocation.Fridge, 2),
+            Item("Baby spinach", "spinach", 1, "pcs", StorageLocation.Fridge, 2),
             Item("Tomatoes", "tomato", 4, "pcs", StorageLocation.Counter, 3),
-            Item("Yogurt", "yogurt", 1, "tub", StorageLocation.Fridge, -1),
-            Item("Cream cheese", "cream-cheese", 1, "tub", StorageLocation.Fridge, 10),
+            Item("Yogurt", "yogurt", 1, "pcs", StorageLocation.Fridge, -1),
+            Item("Cream cheese", "cream-cheese", 1, "pcs", StorageLocation.Fridge, 10),
             Item("Cheddar", "cheese", 200, "g", StorageLocation.Fridge, 20),
-            Item("Spaghetti", "pasta", 500, "g", StorageLocation.Pantry, 200),
-            Item("Onions", "onion", 3, "pcs", StorageLocation.Pantry, 25),
-            Item("Garlic", "garlic", 1, "bulb", StorageLocation.Pantry, 25),
-            Item("Bread", "bread", 1, "loaf", StorageLocation.Counter, 2),
-            Item("Chickpeas", "chickpeas", 1, "can", StorageLocation.Pantry, 300));
+            Item("Spaghetti", "pasta", 500, "g", StorageLocation.Cupboard, 200),
+            Item("Onions", "onion", 3, "pcs", StorageLocation.Cupboard, 25),
+            Item("Garlic", "garlic", 1, "pcs", StorageLocation.Cupboard, 25),
+            Item("Bread", "bread", 1, "pcs", StorageLocation.Counter, 2),
+            Item("Chickpeas", "chickpeas", 1, "can", StorageLocation.Cupboard, 300));
 
         await db.SaveChangesAsync();
     }

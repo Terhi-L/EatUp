@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, type ConsumeOutcome, type Item, type StorageLocation, type Urgency } from '../../api'
-import { strings } from '../../strings'
+import { strings, unitLabel } from '../../strings'
 import { AlarmIcon, CheckIcon, PlusIcon, TrashIcon, locationIcon, locationTone, urgencyTone } from '../../icons'
 
 const urgencyOrder: Urgency[] = ['Expired', 'Today', 'Soon', 'Later']
-const locations: StorageLocation[] = ['Fridge', 'Freezer', 'Pantry', 'Counter']
+const locations: StorageLocation[] = ['Fridge', 'Freezer', 'Cupboard', 'Counter']
 
 export function InventoryPage() {
   const [location, setLocation] = useState<StorageLocation | null>(null)
@@ -112,7 +112,7 @@ function ItemRow({ item }: { item: Item }) {
           </span>
         </span>
         <span className="flex items-center gap-1.5 text-[13px] text-muted">
-          {item.quantity} {item.unit}
+          {item.quantity} {unitLabel(item.unit)}
           <span aria-hidden="true">·</span>
           <Icon size={14} />
           {strings.location[item.location]}

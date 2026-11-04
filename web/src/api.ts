@@ -1,10 +1,13 @@
 // Mirrors the backend DTOs in backend/src/EatUp.Api/Endpoints.cs.
 // MVP: hand-written; replace with types generated from OpenAPI when the API grows.
 
-export type StorageLocation = 'Fridge' | 'Freezer' | 'Pantry' | 'Counter'
+import { strings } from './strings'
+
+export type StorageLocation = 'Fridge' | 'Freezer' | 'Cupboard' | 'Counter'
 export type Urgency = 'Expired' | 'Today' | 'Soon' | 'Later'
 export type ItemStatus = 'Active' | 'Used' | 'Discarded'
 export type ConsumeOutcome = 'Used' | 'Discarded'
+export type Language = 'English' | 'Norwegian' | 'Finnish'
 export type DietType = 'Omnivore' | 'Flexitarian' | 'Pescatarian' | 'Vegetarian' | 'Vegan'
 export type Allergen =
   | 'Gluten' | 'Crustaceans' | 'Eggs' | 'Fish' | 'Peanuts' | 'Soy' | 'Milk'
@@ -45,6 +48,8 @@ export interface Profile {
   notificationTime: string
   timeZone: string
   notificationsEnabled: boolean
+  /** Null until the app first reports the browser language. */
+  language: Language | null
 }
 
 export interface Ingredient {
@@ -53,6 +58,15 @@ export interface Ingredient {
   category: string
   allergens: Allergen[]
   shelfLifeDays: Partial<Record<StorageLocation, number>>
+  openedLocation: StorageLocation | null
+}
+
+/** A scanned product. Null fields weren't found and are left for the user. */
+export interface Product {
+  name: string | null
+  productName: string | null
+  quantity: number | null
+  unit: string | null
 }
 
 export interface PantryItem {
@@ -79,6 +93,20 @@ export interface DailyCheckResult {
   body: string | null
 }
 
+export class ApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message)
+  }
+}
+
+type Problem = { title?: string; errors?: Record<string, string[]> } | null
+
+// The backend writes English; the message is chosen here so it is always in the user's language.
+function problemMessage(problem: Problem, status: number): string {
+  const field = Object.keys(problem?.errors ?? {})[0]
+  return (field && strings.apiErrors[field]) || strings.errors.byStatus[status] || strings.errors.requestFailed(status)
+}
+
 async function request<T>(path: string, init?: RequestInit & { json?: unknown }): Promise<T> {
   const { json, ...rest } = init ?? {}
   let response: Response
@@ -94,12 +122,11 @@ async function request<T>(path: string, init?: RequestInit & { json?: unknown })
       body: json === undefined ? rest.body : JSON.stringify(json),
     })
   } catch {
-    throw new Error("Can't reach the EatUp backend. Is `npm run dev` running?")
+    throw new Error(strings.errors.offline)
   }
   if (!response.ok) {
     const problem = await response.json().catch(() => null)
-    const firstError = problem?.errors && (Object.values(problem.errors)[0] as string[] | undefined)?.[0]
-    throw new Error(firstError ?? problem?.title ?? `Request failed (${response.status})`)
+    throw new ApiError(problemMessage(problem, response.status), response.status)
   }
   return response.status === 204 ? (undefined as T) : response.json()
 }
@@ -118,6 +145,7 @@ export const api = {
   updateProfile: (changes: Partial<Profile>) => request<Profile>('/profile', { method: 'PATCH', json: changes }),
 
   ingredients: (search: string) => request<Ingredient[]>(`/ingredients?search=${encodeURIComponent(search)}`),
+  product: (barcode: string) => request<Product>(`/products/${encodeURIComponent(barcode)}`),
   suggestions: () => request<Suggestion[]>('/suggestions'),
 
   vapidPublicKey: () => request<{ publicKey: string }>('/push/vapid-public-key').then((r) => r.publicKey),

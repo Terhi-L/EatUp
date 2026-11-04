@@ -25,28 +25,12 @@ public static class DailyNotification
         var urgent = items.Where(i => Expiry.IsUrgent(i.DaysLeft)).OrderBy(i => i.DaysLeft).ToList();
         if (urgent.Count == 0) return null;
 
+        var text = NotificationText.For(profile.LanguageOrDefault);
         var first = urgent[0];
-        var title = $"{first.Name} {(IsPlural(first.Name) ? "expire" : "expires")} {When(first.DaysLeft)}";
-        if (urgent.Count > 1) title += $" (+{urgent.Count - 1} more)";
-
-        var body = topSuggestion is null
-            ? "Open EatUp to see what you can make."
-            : $"Cook idea: {topSuggestion}";
+        var title = text.Expires(first.Name, first.DaysLeft);
+        if (urgent.Count > 1) title += text.AndMore(urgent.Count - 1);
+        var body = topSuggestion is null ? text.OpenApp : text.CookIdea(topSuggestion);
 
         return new NotificationMessage(title, body, "/cook", today);
-    }
-
-    private static string When(int daysLeft) => daysLeft switch
-    {
-        0 => "today",
-        1 => "tomorrow",
-        _ => $"in {daysLeft} days",
-    };
-
-    // Good enough for food names: "Eggs" expire, "Milk" / "Hummus" / "Cress" expires.
-    private static bool IsPlural(string name)
-    {
-        var n = name.Trim().ToLowerInvariant();
-        return n.EndsWith('s') && !n.EndsWith("ss") && !n.EndsWith("us");
     }
 }

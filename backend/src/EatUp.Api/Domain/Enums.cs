@@ -1,6 +1,6 @@
 namespace EatUp.Api.Domain;
 
-public enum StorageLocation { Fridge, Freezer, Pantry, Counter }
+public enum StorageLocation { Fridge, Freezer, Cupboard, Counter }
 
 public enum ItemStatus { Active, Used, Discarded }
 
@@ -19,3 +19,5 @@ public enum Allergen
     Gluten, Crustaceans, Eggs, Fish, Peanuts, Soy, Milk,
     TreeNuts, Celery, Mustard, Sesame, Sulphites, Lupin, Molluscs,
 }
+
+public enum Language { English, Norwegian, Finnish }

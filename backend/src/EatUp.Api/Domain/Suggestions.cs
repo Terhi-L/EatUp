@@ -3,7 +3,7 @@ namespace EatUp.Api.Domain;
 /// <summary>An active item with its expiry already resolved against today.</summary>
 public record PantryItem(int Id, string Name, string? IngredientKey, int DaysLeft);
 
-public record Suggestion(Recipe Recipe, int Score, IReadOnlyList<PantryItem> UsesItems, IReadOnlyList<string> MissingIngredients, bool IsPlantBased);
+public record Suggestion(Recipe Recipe, int Score, IReadOnlyList<PantryItem> UsesItems, IReadOnlyList<Ingredient> MissingIngredients, bool IsPlantBased);
 
 public static class SuggestionEngine
 {
@@ -47,7 +47,7 @@ public static class SuggestionEngine
             if (urgent.Count == 0) continue;
 
             var have = uses.Select(i => i.IngredientKey!).ToHashSet(StringComparer.OrdinalIgnoreCase);
-            var missing = ingredients.Where(x => !x.ri.Optional && !have.Contains(x.ing.Key)).Select(x => x.ing.Name).ToList();
+            var missing = ingredients.Where(x => !x.ri.Optional && !have.Contains(x.ing.Key)).Select(x => x.ing).ToList();
 
             var score =
                 urgent.Sum(i => 10 + (Expiry.SoonDays - i.DaysLeft) * 2) +
