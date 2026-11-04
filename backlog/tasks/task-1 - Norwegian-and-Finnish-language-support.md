@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-04T12:30:00Z'
-updated_date: '2026-11-04T15:21:00Z'
+updated_date: '2026-11-04T20:04:00Z'
 labels:
   - i18n
   - frontend
@@ -48,6 +48,8 @@ EatUp targets Nordic users, but the UI, catalog, recipes, notifications and barc
 4. Run typecheck and tests (backend: `dotnet test backend --artifacts-path "$TEMP/claude/eatup-artifacts"` while dev server locks bin/).
 5. Log decisions in docs/decisions.md.
 6. Delete backend/data/ (new Profile.Language column) and restart.
+
+7. AC #6 gap: translate non-validation API errors on the client by HTTP status (403/404/502), never show the backend's English title; test in web/src/api.test.ts.
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
