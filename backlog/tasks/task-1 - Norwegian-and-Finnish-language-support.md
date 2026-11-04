@@ -24,14 +24,14 @@ EatUp targets Nordic users, but the UI, catalog, recipes, notifications and barc
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [x] #1 User can pick English, Norsk or Suomi on the Profile page; the choice persists in the profile and the UI switches immediately
-- [ ] #2 First visit with no saved language uses the browser language when it is nb/no or fi, else English
+- [ ] #1 User can pick English, Norsk or Suomi on the Profile page; the choice persists in the profile and the UI switches immediately
+- [x] #2 First visit with no saved language uses the browser language when it is nb/no or fi, else English
 - [ ] #3 Catalog search, ingredient names, recipe suggestions and push notifications use the profile language
 - [ ] #4 Norwegian/Finnish aliases match products (e.g. lettmelk → milk), and barcode lookups prefer nb/no/fi product names
 - [ ] #5 Units show in the active language (pcs ↔ stk/kpl), and a scanned package size in kpl parses as pcs
 - [ ] #6 API errors appear in the active language
-- [ ] #7 Translation and language-switch tests exist and `npm test` + `npm run typecheck` pass
-- [ ] #8 i18n decisions are logged in `docs/decisions.md`
+- [x] #7 Translation and language-switch tests exist and `npm test` + `npm run typecheck` pass
+- [x] #8 i18n decisions are logged in `docs/decisions.md`
 <!-- AC:END -->
 
 ## Definition of Done
@@ -56,4 +56,6 @@ EatUp targets Nordic users, but the UI, catalog, recipes, notifications and barc
 Done so far (uncommitted): backend `Language` enum + nullable `UserProfile.Language` in ProfileDto/ProfileUpdate; `Seed/catalog.Norwegian.json` and `catalog.Finnish.json`; `Catalog.NameOf/TextOf/Search(query, language)`; Nordic alias suffix matching; `NotificationText`; localised suggestions and Open Food Facts names; TranslationTests + API language test (94 backend tests passing). Frontend: `web/src/i18n/{en,nb,fi}.ts`, live-binding `strings.ts` switcher (`setLanguage`, `useLanguage`, `detectLanguage`, `languageNames`, `unitLabel`, `localeOf`), localised api errors, `lib/profileSync.ts`, `lib/i18n.test.ts`; App.tsx `tabs` is now a function plus `syncProfile`.
 
 Finished: language picker on ProfilePage (setLanguage + PATCH, invalidates all queries); units shown via unitLabel and saved via new storedUnit; PackageSize maps kpl → pcs; tests added (web units test, backend "10 kpl"). typecheck + web 24 + backend 95 tests pass. Decisions logged 2026-11-04.
+
+Still to verify in the running app (after deleting backend/data/): language picker switches UI and persists (#1), catalog/suggestions/notifications in profile language (#3), barcode lookup names (#4), units shown as stk/kpl (#5), API errors localised (#6). Automated tests cover parts of #3, #4 and #6 only.
 <!-- SECTION:NOTES:END -->
