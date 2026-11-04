@@ -2,8 +2,10 @@
 id: TASK-1
 title: Norwegian and Finnish language support
 status: In Progress
-assignee: []
+assignee:
+  - '@claude'
 created_date: '2026-11-04T12:30:00Z'
+updated_date: '2026-11-04T13:22:00Z'
 labels:
   - i18n
   - frontend
