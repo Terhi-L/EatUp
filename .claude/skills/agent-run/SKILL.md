@@ -48,7 +48,7 @@ Rounds are counted by PR comments starting with `Agent round` (`gh pr view <n> -
 If the latest continue command has guidance not yet handled in an `Agent round` comment, do that first: apply it, run the checks, commit, push, comment `Agent round K` saying how you applied it, print `ROUND_K_PUSHED` and stop.
 
 1. Get Qodo's review: the PR issue comment by `qodo-code-review[bot]` whose body starts with `<h3>Code Review by Qodo`. Qodo edits this one comment after each push.
-2. If it's missing, or its `updated_at` is older than the last commit on the branch, Qodo hasn't reviewed the latest push yet: print `WAITING_QODO` and stop. If the last commit and the latest continue command are both more than 45 minutes old, go to **Blocked** instead.
+2. If it's missing, or its `updated_at` is older than the last commit on the branch, Qodo hasn't reviewed the latest push yet: print `WAITING_QODO` and stop. If the newest of the last commit, the PR's creation and the latest continue command (if any) is more than 45 minutes old, go to **Blocked** instead.
 3. List every finding (numbered `<summary>` blocks, all severities). Skip ones you already answered in an earlier `Agent round` comment unless Qodo changed them.
 4. No new findings: go to **Ready**.
 5. Round count is already 3: go to **Blocked**.
@@ -71,4 +71,4 @@ Add PR label `agent-ready`, comment `Agent ready: checks pass, Qodo findings han
 
 ## Blocked
 
-Stop trying. Add PR label `agent-blocked` (if there's no PR yet, push the branch and open a draft PR first), and post a comment starting `Agent blocked:` with what you tried, what fails, the exact question for the user, and `Reply /agent continue <answer> to resume.` Add the same as a Backlog note on TASK-N. Print `BLOCKED: PR #n` and stop.
+Stop trying. Add PR label `agent-blocked` (if there's no PR yet, first commit everything you attempted, including failing tests, as `WIP: <task title>`, then push and open a draft PR, so the work is visible and the tree is clean for the next pass), and post a comment starting `Agent blocked:` with what you tried, what fails, the exact question for the user, and `Reply /agent continue <answer> to resume.` Add the same as a Backlog note on TASK-N. Print `BLOCKED: PR #n` and stop.

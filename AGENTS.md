@@ -48,5 +48,5 @@ Food-waste PWA: track what's in the fridge, get reminded before it expires, get 
 - Dates: `DateOnly` for expiry; compute "today" in the user's time zone via `Expiry.LocalToday`.
 - When changing an endpoint DTO in `Endpoints.cs`, update `web/src/api.ts` to match. API writes need the `X-EatUp` header (`api.ts` sends it).
 - No migrations yet: after changing the EF model, delete `backend/data/`.
-- UI text goes in `web/src/strings.ts`.
+- UI text goes in all three dictionaries in `web/src/i18n/` (`en.ts` defines the keys); components read it through `web/src/strings.ts`.
 - On Windows, paths are case-insensitive: `backend/src/EatUp.Api/Data/` (source) is not `backend/data/` (runtime files); don't create a lowercase `data` folder inside the API project.
