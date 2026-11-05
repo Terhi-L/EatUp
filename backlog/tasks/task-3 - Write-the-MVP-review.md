@@ -1,11 +1,11 @@
 ---
 id: TASK-3
 title: Write the MVP review
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:00:00Z'
-updated_date: '2026-11-05T15:17:00Z'
+updated_date: '2026-11-05T15:31:00Z'
 labels:
   - docs
 milestone: m-0
