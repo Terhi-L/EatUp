@@ -8,6 +8,12 @@ Food-waste PWA: track what's in the fridge, get reminded before it expires, get 
 - Verify every change with `npm test` (xUnit + Vitest) and `npm run typecheck`. Done means both pass.
 - Reset local data: stop the app and delete `backend/data/`.
 
+## Picking up work
+
+- Next task: the first line of `backlog task list --status "To Do" --ready --sort ordinal --plain`. Ordinal is the agreed build order; `--ready` hides tasks whose dependencies aren't Done.
+- Skip a task labelled `needs-decision` until the product owner has confirmed the approach; ask them, or take the next one.
+- An In Progress task assigned to you comes first; one waiting on a human (e.g. translation review) is not yours to finish.
+
 ## Rules
 
 ### 1. Questions get answers, not changes
