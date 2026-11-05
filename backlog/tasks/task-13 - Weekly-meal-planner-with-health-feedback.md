@@ -4,6 +4,7 @@ title: Weekly meal planner with health feedback
 status: To Do
 assignee: []
 created_date: '2026-11-05T13:01:00Z'
+updated_date: '2026-11-05T14:50:00Z'
 labels:
   - frontend
   - backend
@@ -12,6 +13,7 @@ milestone: m-3
 dependencies:
   - TASK-4
   - TASK-6
+  - TASK-13.5
 priority: medium
 type: feature
 ordinal: 13000
