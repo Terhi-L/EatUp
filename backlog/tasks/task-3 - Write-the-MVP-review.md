@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:00:00Z'
-updated_date: '2026-11-05T14:53:00Z'
+updated_date: '2026-11-05T14:54:00Z'
 labels:
   - docs
 milestone: m-0
@@ -23,10 +23,10 @@ PLAN.md says the MVP ends with a short `docs/mvp-review.md`, and it was never wr
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 docs/mvp-review.md lists what works today, per MVP feature in PLAN.md § 2
-- [ ] #2 It lists the known gaps and deviations (no login, EnsureCreated instead of migrations, hand-written API types, no ESLint/Playwright, machine-drafted nb/fi texts, partial discards not recorded)
-- [ ] #3 It names the suggested next step and links to the Backlog instead of duplicating the task list
-- [ ] #4 PLAN.md status line points to the review
+- [x] #1 docs/mvp-review.md lists what works today, per MVP feature in PLAN.md § 2
+- [x] #2 It lists the known gaps and deviations (no login, EnsureCreated instead of migrations, hand-written API types, no ESLint/Playwright, machine-drafted nb/fi texts, partial discards not recorded)
+- [x] #3 It names the suggested next step and links to the Backlog instead of duplicating the task list
+- [x] #4 PLAN.md status line points to the review
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -37,3 +37,11 @@ PLAN.md says the MVP ends with a short `docs/mvp-review.md`, and it was never wr
 3. Point the PLAN.md status line to the review.
 4. Run npm run typecheck and npm test.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Each MVP row in PLAN.md § 2 checked against code: Endpoints.cs routes, web/src/App.tsx routes, sw.ts push/notificationclick, vite.config.ts manifest, push.ts iOS install guidance, DailyCheck.cs periodic timer, dev endpoints.
+Found and listed as a gap: /api/shopping endpoints exist with no UI (decisions.md says there is no shopping feature).
+npm run typecheck passes; npm test: backend 105, web 30 passed (docs-only change).
+<!-- SECTION:NOTES:END -->
