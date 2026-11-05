@@ -4,7 +4,7 @@ title: Switch from EnsureCreated to EF Core migrations
 status: To Do
 assignee: []
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-05T14:44:00Z'
+updated_date: '2026-11-05T14:50:00Z'
 labels:
   - backend
   - ready-for-agent
@@ -24,7 +24,6 @@ The database is built with `EnsureCreated`, so every EF model change means delet
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 An initial migration matches the current model, and the API applies pending migrations on startup
-- [ ] #2 An existing EnsureCreated database from before this change is handled: either upgraded or reset with a clear console message, decided and logged in docs/decisions.md
-- [ ] #3 AGENTS.md and GETTING_STARTED.md describe how to add a migration instead of deleting backend/data/
-- [ ] #4 Tests run against the migrated schema; npm test and npm run typecheck pass
+- [ ] #2 AGENTS.md and GETTING_STARTED.md describe how to add a migration instead of deleting backend/data/
+- [ ] #3 Tests run against the migrated schema; npm test and npm run typecheck pass
 <!-- AC:END -->
