@@ -1,13 +1,13 @@
 ---
 id: TASK-4
 title: Switch from EnsureCreated to EF Core migrations
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-05T14:50:00Z'
+updated_date: '2026-11-05T15:32:00Z'
 labels:
   - backend
-  - ready-for-agent
 milestone: m-0
 dependencies: []
 priority: high
@@ -28,3 +28,12 @@ The database is built with `EnsureCreated`, so every EF model change means delet
 - [ ] #3 Tests run against the migrated schema; npm test and npm run typecheck pass
 - [ ] #4 A database created by EnsureCreated (no migrations history) is reset once on startup with a clear console message, keeping `backend/data/vapid.json`; from the first migration on, startup only upgrades and never deletes data. Logged in docs/decisions.md
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Add Microsoft.EntityFrameworkCore.Design; generate InitialCreate migration with dotnet-ef into Data/Migrations.
+2. Extract startup DB preparation into a DatabaseSetup class: if the DB has tables but no __EFMigrationsHistory (EnsureCreated era), delete the DB file once with a console warning (vapid.json is a separate file, untouched); then MigrateAsync; then seed.
+3. Tests: legacy EnsureCreated DB gets reset and migrated; migrated DB with data keeps data across restarts; API tests run on the migrated schema.
+4. Update AGENTS.md, GETTING_STARTED.md, docs/decisions.md; run checks.
+<!-- SECTION:PLAN:END -->
