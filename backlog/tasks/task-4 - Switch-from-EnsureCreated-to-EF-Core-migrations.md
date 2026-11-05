@@ -26,4 +26,5 @@ The database is built with `EnsureCreated`, so every EF model change means delet
 - [ ] #1 An initial migration matches the current model, and the API applies pending migrations on startup
 - [ ] #2 AGENTS.md and GETTING_STARTED.md describe how to add a migration instead of deleting backend/data/
 - [ ] #3 Tests run against the migrated schema; npm test and npm run typecheck pass
+- [ ] #4 A database created by EnsureCreated (no migrations history) is reset once on startup with a clear console message, keeping `backend/data/vapid.json`; from the first migration on, startup only upgrades and never deletes data. Logged in docs/decisions.md
 <!-- AC:END -->
