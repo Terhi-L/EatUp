@@ -1,13 +1,13 @@
 ---
 id: TASK-3
 title: Write the MVP review
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-05T13:00:00Z'
-updated_date: '2026-11-05T14:44:00Z'
+updated_date: '2026-11-05T14:53:00Z'
 labels:
   - docs
-  - ready-for-agent
 milestone: m-0
 dependencies: []
 priority: high
@@ -28,3 +28,12 @@ PLAN.md says the MVP ends with a short `docs/mvp-review.md`, and it was never wr
 - [ ] #3 It names the suggested next step and links to the Backlog instead of duplicating the task list
 - [ ] #4 PLAN.md status line points to the review
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Verify each MVP feature in PLAN.md § 2 against the code (endpoints, web features, service worker, push, daily job, dev endpoints, tests).
+2. Write docs/mvp-review.md: what works, beyond-MVP additions, known gaps/deviations, suggested next step linking to Backlog.
+3. Point the PLAN.md status line to the review.
+4. Run npm run typecheck and npm test.
+<!-- SECTION:PLAN:END -->
