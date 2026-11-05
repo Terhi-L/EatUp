@@ -4,8 +4,10 @@ title: Write the MVP review
 status: To Do
 assignee: []
 created_date: '2026-11-05T13:00:00Z'
+updated_date: '2026-11-05T14:44:00Z'
 labels:
   - docs
+  - ready-for-agent
 milestone: m-0
 dependencies: []
 priority: high
