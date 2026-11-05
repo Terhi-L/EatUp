@@ -34,11 +34,10 @@ if (builder.Configuration.GetValue("Push:EnableDailyJob", true))
 
 var app = builder.Build();
 
-// MVP: no migrations yet; the schema is created from the model. Delete data/eatup.db after model changes.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<EatUpDb>();
-    await db.Database.EnsureCreatedAsync();
+    await DatabaseSetup.PrepareAsync(db, scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Database"));
     await DemoData.EnsureSeededAsync(db, scope.ServiceProvider.GetRequiredService<TimeProvider>());
 }
 
