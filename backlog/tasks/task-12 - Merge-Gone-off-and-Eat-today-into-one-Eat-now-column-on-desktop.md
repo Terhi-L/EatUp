@@ -4,9 +4,11 @@ title: Merge "Gone off" and "Eat today" into one "Eat now" column on desktop
 status: To Do
 assignee: []
 created_date: '2026-11-05T13:01:00Z'
+updated_date: '2026-11-05T13:02:00Z'
 labels:
   - frontend
   - design
+  - needs-decision
 milestone: m-1
 dependencies: []
 priority: low
