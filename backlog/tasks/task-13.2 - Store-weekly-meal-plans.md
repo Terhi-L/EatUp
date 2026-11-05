@@ -4,10 +4,13 @@ title: Store weekly meal plans
 status: To Do
 assignee: []
 created_date: '2026-11-05T13:01:00Z'
+updated_date: '2026-11-05T13:02:00Z'
 labels:
   - backend
 milestone: m-3
-dependencies: []
+dependencies:
+  - TASK-4
+  - TASK-6
 parent_task_id: TASK-13
 priority: medium
 type: feature
