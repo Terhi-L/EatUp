@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:00:00Z'
-updated_date: '2026-11-05T14:54:00Z'
+updated_date: '2026-11-05T15:17:00Z'
 labels:
   - docs
 milestone: m-0
@@ -44,4 +44,6 @@ PLAN.md says the MVP ends with a short `docs/mvp-review.md`, and it was never wr
 Each MVP row in PLAN.md § 2 checked against code: Endpoints.cs routes, web/src/App.tsx routes, sw.ts push/notificationclick, vite.config.ts manifest, push.ts iOS install guidance, DailyCheck.cs periodic timer, dev endpoints.
 Found and listed as a gap: /api/shopping endpoints exist with no UI (decisions.md says there is no shopping feature).
 npm run typecheck passes; npm test: backend 105, web 30 passed (docs-only change).
+
+Ready for review: https://github.com/Terhi-L/EatUp/pull/8 (Qodo: 2 low findings, both rejected with reasons in Agent round 1).
 <!-- SECTION:NOTES:END -->
