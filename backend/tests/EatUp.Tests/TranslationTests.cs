@@ -47,6 +47,30 @@ public class TranslationTests
     public void English_words_still_need_whole_word_matches(string name, string? expected) =>
         Assert.Equal(expected, Real.Match(name)?.Key);
 
+    [Theory]
+    [InlineData("Alpro soyamelk")]
+    [InlineData("Havremelk")]
+    [InlineData("Kauramaito")]
+    [InlineData("Plantesmør")]
+    [InlineData("Oat milk")]
+    public void Plant_based_milks_and_butters_are_not_dairy(string name) =>
+        Assert.NotEqual(AnimalProduct.Dairy, Real.Match(name)?.Animal);
+
+    [Theory]
+    [InlineData("milk", "coconut-milk")]
+    [InlineData("butter", "peanut-butter")]
+    public void Search_matches_the_start_of_any_word(string query, string expected) =>
+        Assert.Contains(Real.Search(query, Language.English), i => i.Key == expected);
+
+    [Fact]
+    public void Search_results_list_aliases_in_every_language()
+    {
+        var chickpeas = Real.Search("chickpeas", Language.Norwegian).Single(i => i.Key == "chickpeas");
+
+        Assert.Contains("chickpeas", chickpeas.Aliases);
+        Assert.Contains(chickpeas.Name.ToLowerInvariant(), chickpeas.Aliases);
+    }
+
     [Fact]
     public void Search_finds_any_language_and_names_results_in_the_users_language()
     {

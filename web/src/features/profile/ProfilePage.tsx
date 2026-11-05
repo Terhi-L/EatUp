@@ -6,6 +6,7 @@ import { NotificationsCard } from '../push/NotificationsCard'
 
 const diets: DietType[] = ['Vegan', 'Vegetarian', 'Pescatarian', 'Flexitarian', 'Omnivore']
 const allergens = Object.keys(strings.allergen) as Allergen[]
+const languageSaveKey = ['save-language']
 
 export function ProfilePage() {
   const queryClient = useQueryClient()
@@ -20,12 +21,29 @@ export function ProfilePage() {
     // Diet, allergies and language all change what the server sends back (suggestions, names), so refetch everything.
     onSettled: () => queryClient.invalidateQueries(),
   })
+  // The UI switches at once; when the last pending save settles, it takes the server's language, so a failed save
+  // can't leave them apart. Set on the mutation, not per call, so it still runs after leaving this page.
+  const saveLanguage = useMutation({
+    mutationKey: languageSaveKey,
+    mutationFn: (next: Language) => api.updateProfile({ language: next }),
+    onSettled: async () => {
+      if (queryClient.isMutating({ mutationKey: languageSaveKey }) > 1) return
+      const saved = await queryClient.fetchQuery({ queryKey: ['profile'], queryFn: api.profile, staleTime: 0 }).catch(() => null)
+      if (saved?.language) setLanguage(saved.language)
+      await queryClient.invalidateQueries()
+    },
+  })
 
   if (profile.isPending) return null
   if (profile.isError) return <p className="text-danger">{profile.error.message}</p>
 
   const p = profile.data
   const update = (changes: Partial<Profile>) => save.mutate(changes)
+
+  const pickLanguage = (next: Language) => {
+    setLanguage(next)
+    saveLanguage.mutate(next)
+  }
 
   return (
     <div className="space-y-6 lg:max-w-2xl">
@@ -73,9 +91,10 @@ export function ProfilePage() {
         </div>
       </section>
 
-      <LanguagePicker onPick={(l) => { setLanguage(l); update({ language: l }) }} />
+      <LanguagePicker onPick={(l) => pickLanguage(l)} />
 
-      {save.isError &&<p className="text-sm text-danger">{save.error.message}</p>}
+      {save.isError && <p className="text-sm text-danger">{save.error.message}</p>}
+      {saveLanguage.isError && <p className="text-sm text-danger">{saveLanguage.error.message}</p>}
 
       {import.meta.env.DEV && <DevTools />}
     </div>

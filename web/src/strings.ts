@@ -54,10 +54,10 @@ export function unitLabel(unit: string): string {
   return strings.form.units[unit as UnitKey] ?? unit
 }
 
-/** The reverse of unitLabel, so a unit typed in any language is stored the same way. */
+/** The reverse of unitLabel, so a unit typed in any supported language is stored the same way. */
 export function storedUnit(label: string): string {
   const typed = label.trim()
-  const units = Object.entries(strings.form.units)
+  const units = Object.values(dictionaries).flatMap((d) => Object.entries(d.form.units))
   return units.find(([, shown]) => shown === typed.toLowerCase())?.[0] ?? typed
 }
 

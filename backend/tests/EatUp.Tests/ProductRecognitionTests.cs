@@ -65,6 +65,7 @@ public class ProductRecognitionTests
     [InlineData("")]
     [InlineData("family pack")]
     [InlineData("3 bunches")]
+    [InlineData("99999999999 x 1 g")]
     public void Unreadable_package_size_is_left_for_the_user(string? text)
     {
         Assert.Null(PackageSize.Parse(text));

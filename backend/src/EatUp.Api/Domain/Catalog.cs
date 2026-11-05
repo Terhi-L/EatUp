@@ -72,12 +72,20 @@ public class Catalog
         // Longest alias wins, so "coconut milk" beats "milk" and "peanut butter" isn't butter.
         var words = text.Split(' ');
         var padded = $" {text} ";
+        var plantBased = IsPlantBased(words);
         return _aliases
+            .Where(a => !(plantBased && a.Ingredient.Animal == AnimalProduct.Dairy))
             .Where(a => padded.Contains($" {a.Words} ") || (a.MatchesWordEnding && words.Any(w => w.EndsWith(a.Words))))
             .OrderByDescending(a => a.Words.Length)
             .Select(a => a.Ingredient)
             .FirstOrDefault();
     }
+
+    // Oat milk, soyamelk, kauramaito and plantesmør are not dairy, so they must not become milk or butter.
+    private static readonly string[] PlantMarkers =
+        ["soy", "soj", "soij", "oat", "havre", "kaura", "almond", "mandel", "mantel", "rice", "rismelk", "riisi", "plant", "kasvi", "vegan", "vegaan"];
+
+    private static bool IsPlantBased(string[] words) => words.Any(w => PlantMarkers.Any(w.StartsWith));
 
     /// <summary>Ingredient whose name or alias, in any language, is exactly this text (ignoring case).</summary>
     public Ingredient? FindByName(string text)
@@ -86,13 +94,17 @@ public class Catalog
         return _aliases.FirstOrDefault(a => a.Words == words)?.Ingredient;
     }
 
-    /// <summary>Ingredients whose name or alias in any language starts with the query, named in the given language.</summary>
+    /// <summary>
+    /// Ingredients with a word in their name or alias, in any language, starting with the query ("milk" → Coconut milk),
+    /// named in the given language and listing every alias, so a name typed in another language still resolves.
+    /// </summary>
     public IEnumerable<Ingredient> Search(string? query, Language language)
     {
-        var matches = string.IsNullOrWhiteSpace(query)
+        var words = Words(query ?? "");
+        var matches = words.Length == 0
             ? Ingredients
-            : Ingredients.Where(i => AliasesOf(i).Any(a => a.Words.StartsWith(Words(query))));
-        return matches.Select(i => i with { Name = NameOf(i, language) });
+            : Ingredients.Where(i => AliasesOf(i).Any(a => a.Words.StartsWith(words) || a.Words.Contains($" {words}")));
+        return matches.Select(i => i with { Name = NameOf(i, language), Aliases = AliasesOf(i).Select(a => a.Words).Distinct().ToArray() });
     }
 
     public string NameOf(Ingredient ingredient, Language language) =>

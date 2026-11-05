@@ -5,6 +5,7 @@ import { api, type ConsumeOutcome, type Ingredient, type Item, type ItemInput, t
 import { storedUnit, strings, unitLabel } from '../../strings'
 import { addDays, localIsoDate } from '../../lib/dates'
 import { locationAfterOpening } from '../../lib/storage'
+import { findTypedIngredient } from '../../lib/ingredients'
 import { CheckIcon, TrashIcon, locationIcon, locationTone } from '../../icons'
 import { ScanBarcodeButton } from './ScanBarcodeButton'
 
@@ -33,6 +34,8 @@ function ItemForm({ existing }: { existing?: Item }) {
   const [opened, setOpened] = useState(existing?.openedDate != null)
   const [openedDate, setOpenedDate] = useState(existing?.openedDate ?? localIsoDate())
   const [movedOnOpening, setMovedOnOpening] = useState<StorageLocation | null>(null)
+  // An existing item's location was already chosen, so it isn't moved just for being opened.
+  const [locationPicked, setLocationPicked] = useState(existing !== undefined)
   const [usedAmount, setUsedAmount] = useState(1)
   const [scanned, setScanned] = useState(false)
   const nameMissing = scanned && !name.trim()
@@ -44,7 +47,7 @@ function ItemForm({ existing }: { existing?: Item }) {
     enabled: name.trim().length > 0,
     placeholderData: keepPreviousData,
   })
-  const match: Ingredient | undefined = ingredients.data?.find((i) => i.name.toLowerCase() === name.trim().toLowerCase())
+  const match: Ingredient | undefined = findTypedIngredient(ingredients.data, name)
 
   // Picking a known ingredient suggests an expiry date from its typical shelf life.
   useEffect(() => {
@@ -53,18 +56,24 @@ function ItemForm({ existing }: { existing?: Item }) {
     if (!expiryTouched && days !== undefined) setExpiryDate(addDays(localIsoDate(), days))
   }, [match, location, expiryTouched])
 
+  // An effect, not the click handler, so it still applies when the ingredient arrives after "opened" is ticked.
+  useEffect(() => {
+    if (!opened || locationPicked) return
+    const target = locationAfterOpening(match, location)
+    if (!target) return
+    setLocation(target)
+    setMovedOnOpening(target)
+  }, [opened, locationPicked, match, location])
+
   const chooseLocation = (l: StorageLocation) => {
     setLocation(l)
+    setLocationPicked(true)
     setMovedOnOpening(null)
   }
 
   const toggleOpened = (checked: boolean) => {
     setOpened(checked)
-    if (!checked) return
-    const target = locationAfterOpening(match, location)
-    if (!target) return
-    setLocation(target)
-    setMovedOnOpening(target)
+    setLocationPicked(false)
   }
 
   // A barcode never carries the expiry date, so it's cleared for the shelf-life suggestion or the user.

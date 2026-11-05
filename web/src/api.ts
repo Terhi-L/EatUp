@@ -55,6 +55,8 @@ export interface Profile {
 export interface Ingredient {
   key: string
   name: string
+  /** Lower-case names and aliases in every language, words separated by single spaces. */
+  aliases: string[]
   category: string
   allergens: Allergen[]
   shelfLifeDays: Partial<Record<StorageLocation, number>>

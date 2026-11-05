@@ -31,6 +31,13 @@ describe('units', () => {
     expect(storedUnit('dl')).toBe('dl')
     setLanguage('English')
   })
+
+  it('store a unit typed in another language in English', () => {
+    setLanguage('Norwegian')
+    expect(storedUnit('kpl')).toBe('pcs')
+    expect(storedUnit('purkkia')).toBe('can')
+    setLanguage('English')
+  })
 })
 
 describe('translations', () => {
