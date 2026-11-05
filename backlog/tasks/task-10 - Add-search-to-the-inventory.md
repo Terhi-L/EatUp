@@ -4,9 +4,11 @@ title: Add search to the inventory
 status: To Do
 assignee: []
 created_date: '2026-11-05T13:01:00Z'
+updated_date: '2026-11-05T13:44:00Z'
 labels:
   - frontend
   - design
+  - ready-for-agent
 milestone: m-1
 dependencies: []
 priority: low
