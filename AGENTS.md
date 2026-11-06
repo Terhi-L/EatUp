@@ -41,6 +41,11 @@ Food-waste PWA: track what's in the fridge, get reminded before it expires, get 
 **Rule:** free and local only; ask before adding any external service.
 **Why:** the project must run with nothing paid and no card required (`PLAN.md` § 0).
 
+### 6. Review against the roadmap
+**Where:** every PR review, by Qodo, agents or people.
+**Rule:** judge a PR by its own task and the current phase in `PLAN.md` and `docs/decisions.md`. A feature the roadmap schedules for later (login, OpenAPI-generated types) is a finding only on the PR that implements it. Rule 5 applies to every PR.
+**Why:** the MVP postpones roadmap work on purpose; findings that ask for it early are noise.
+
 ## Project notes
 
 - Read `PLAN.md` for the roadmap and `docs/decisions.md` for how the build deviates from it. Log new deviations there.
