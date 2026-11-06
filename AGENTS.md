@@ -43,7 +43,7 @@ Food-waste PWA: track what's in the fridge, get reminded before it expires, get 
 
 ### 6. Review against the roadmap
 **Where:** every PR review, by Qodo, agents or people.
-**Rule:** judge a PR by its own task and the current phase in `PLAN.md` and `docs/decisions.md`. A feature the roadmap schedules for later (login, OpenAPI-generated types) is a finding only on the PR that implements it. Rule 5 applies to every PR.
+**Rule:** judge a PR by its own task and the current phase in `PLAN.md` and `docs/decisions.md`. A feature the roadmap schedules for later (login, OpenAPI-generated types) is a finding only on the PR that implements it. Security and data-safety defects in what the PR builds, such as a write without the `X-EatUp` header check, are always findings. Rule 5 applies to every PR.
 **Why:** the MVP postpones roadmap work on purpose; findings that ask for it early are noise.
 
 ## Project notes
