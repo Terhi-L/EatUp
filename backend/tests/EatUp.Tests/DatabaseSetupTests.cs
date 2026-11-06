@@ -59,6 +59,24 @@ public sealed class DatabaseSetupTests : IDisposable
     }
 
     [Fact]
+    public async Task An_unrelated_database_is_never_deleted()
+    {
+        await using (var foreign = OpenDb())
+        {
+            await foreign.Database.ExecuteSqlRawAsync("CREATE TABLE Notes (Text TEXT); INSERT INTO Notes VALUES ('keep me');");
+        }
+
+        await using (var db = OpenDb())
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => DatabaseSetup.PrepareAsync(db, NullLogger.Instance));
+        }
+
+        await using var reopened = OpenDb();
+        var notes = await reopened.Database.SqlQueryRaw<string>("SELECT Text AS Value FROM Notes").ToListAsync();
+        Assert.Equal(["keep me"], notes);
+    }
+
+    [Fact]
     public async Task A_migrated_database_keeps_its_data_on_restart()
     {
         await using (var db = OpenDb())
