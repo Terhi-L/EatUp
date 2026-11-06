@@ -18,13 +18,21 @@ npm run dev
 
 This starts the C# backend (http://localhost:5080) and the web app (http://localhost:5173) together. On first run the backend:
 
-- creates the SQLite database in `backend/data/` (git-ignored)
+- creates the SQLite database in `backend/data/` (git-ignored) and applies any pending EF Core migrations
 - fills it with demo food: **avocado expires today**, **eggs tomorrow**, opened milk, spinach and bread in 2 days, and so on. Dates are relative to the current day, so there's always something to cook.
 - generates Web Push (VAPID) keys into `backend/data/vapid.json`
 
 Then open **http://localhost:5173**. There's no login in the MVP: it's a single local user.
 
-To start from scratch, stop the app and delete `backend/data/`.
+To start from scratch, stop the app and delete `backend/data/eatup.db`. Keep `vapid.json`, or installed apps must turn notifications on again.
+
+Changing the data model? Add a migration instead of deleting the database; the backend applies it on the next start:
+
+```bash
+dotnet ef migrations add <DescriptiveName> --project backend/src/EatUp.Api --output-dir Data/Migrations
+```
+
+This needs the EF tool once: `dotnet tool install -g dotnet-ef`.
 
 ## Test the app as a phone app
 

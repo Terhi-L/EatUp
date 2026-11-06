@@ -6,7 +6,7 @@ Food-waste PWA: track what's in the fridge, get reminded before it expires, get 
 
 - Setup: `npm install`, then `npm run dev` (API on :5080, web on :5173 with `/api` proxied). Full guide: `GETTING_STARTED.md`.
 - Verify every change with `npm test` (xUnit + Vitest) and `npm run typecheck`. Done means both pass.
-- Reset local data: stop the app and delete `backend/data/`.
+- Reset local data: stop the app and delete `backend/data/eatup.db`.
 
 ## Picking up work
 
@@ -23,7 +23,7 @@ Food-waste PWA: track what's in the fridge, get reminded before it expires, get 
 
 ### 2. Terse replies
 **Where:** every reply to the user.
-**Rule:** max 3 sentences or 5 bullets. Answer or result first. Skip what worked as expected; mention only failures, surprises and what the user must do. No headings, no file lists. The user asks when they want an explanation.
+**Rule:** one sentence; add one more short sentence only when something important (a failure, risk or decision the user must make) would otherwise be lost. Answer or result first. Skip what worked as expected; mention only failures, surprises and what the user must do. No headings, no file lists. The user asks when they want an explanation.
 **Why:** long replies bury the one line the user needs.
 
 ### 3. Self-explaining code
@@ -47,6 +47,6 @@ Food-waste PWA: track what's in the fridge, get reminded before it expires, get 
 - Domain rules (`backend/src/EatUp.Api/Domain/`) stay free of EF/HTTP and get unit tests first.
 - Dates: `DateOnly` for expiry; compute "today" in the user's time zone via `Expiry.LocalToday`.
 - When changing an endpoint DTO in `Endpoints.cs`, update `web/src/api.ts` to match. API writes need the `X-EatUp` header (`api.ts` sends it).
-- No migrations yet: after changing the EF model, delete `backend/data/`.
+- After changing the EF model, add a migration (`dotnet ef migrations add <Name> --project backend/src/EatUp.Api --output-dir Data/Migrations`); never make users delete their database. The `Migrations_match_the_model` test fails until you do.
 - UI text goes in all three dictionaries in `web/src/i18n/` (`en.ts` defines the keys); components read it through `web/src/strings.ts`.
 - On Windows, paths are case-insensitive: `backend/src/EatUp.Api/Data/` (source) is not `backend/data/` (runtime files); don't create a lowercase `data` folder inside the API project.

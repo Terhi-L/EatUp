@@ -17,7 +17,7 @@ The product owner asked for a "simple short version" of the MVP **without login*
 
 - **No accounts or login.** A single implicit local user: one `UserProfile` row (Id = 1) and no `UserId` on items. Adding accounts later means adding Identity plus a `UserId` column and scoping every query.
 - **One backend project** (`EatUp.Api`) instead of Api/Core/Infrastructure. Pure domain rules sit in `Domain/` with no EF or HTTP dependencies, so they can move to their own project later.
-- **`EnsureCreated` instead of EF migrations.** After changing the model, delete `backend/data/`. Switch to migrations before there's data worth keeping.
+- **`EnsureCreated` instead of EF migrations.** After changing the model, delete `backend/data/`. Switch to migrations before there's data worth keeping. *(Replaced by migrations on 2026-11-05.)*
 - **Catalogue is a JSON file loaded into memory** (`Seed/catalog.json`), not database tables. Recipes and ingredients are read-only for now.
 - **Hand-written TypeScript API types** (`web/src/api.ts`) instead of types generated from OpenAPI. Keep them in sync with `Endpoints.cs` by hand until the API grows.
 - **No ESLint or Playwright yet.** Type-checking (`tsc -b`) and Vitest cover the web app.
@@ -54,3 +54,8 @@ The product owner asked for a "simple short version" of the MVP **without login*
 - **Search matches the start of any word** in any language ("milk" → Coconut milk) and returns every alias, so the form recognises a name typed in another language than the profile's.
 - **Units are stored in English** (`pcs`, `can`) and only shown translated (stk/kpl, boks/purkkia). Typed or scanned stk/kpl are saved as `pcs`, so switching language doesn't strand old units.
 - **The Norwegian and Finnish texts are machine-drafted** and need review by a native speaker.
+
+## 2026-11-05 · EF Core migrations
+
+- **The schema comes from migrations** (`backend/src/EatUp.Api/Data/Migrations`), applied on every start by `DatabaseSetup`. A test fails when the model changes without a migration.
+- **Pre-migration databases are reset once.** A database made by `EnsureCreated` has tables but no migration history and only holds test data, so the backend deletes it once with a console warning and recreates it, instead of shipping upgrade code. `vapid.json` is a separate file and stays. Agreed with the product owner. From the first migration on, startup only upgrades and never deletes data.
