@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-05T15:34:00Z'
+updated_date: '2026-11-06T12:41:00Z'
 labels:
   - backend
 milestone: m-0
@@ -44,4 +44,6 @@ The database is built with `EnsureCreated`, so every EF model change means delet
 InitialCreate migration in Data/Migrations (dotnet-ef 10.0.10, Microsoft.EntityFrameworkCore.Design 10.0.14 as a private build-time package). DatabaseSetup.PrepareAsync: legacy = DB exists, has tables, no applied migrations -> EnsureDeleted with a warning, then MigrateAsync.
 Evidence: DatabaseSetupTests.Migrations_match_the_model (HasPendingModelChanges false), A_new_database_is_created_from_migrations, A_pre_migration_database_is_reset_once_and_keeps_the_vapid_keys, A_migrated_database_keeps_its_data_on_restart; ApiTests start through Program, so they run on the migrated schema. npm run typecheck passes; npm test: backend 109, web 30.
 Note for the user: the existing local backend/data/eatup.db (EnsureCreated era) will be reset on the next npm run dev, as agreed.
+
+Qodo PR #9 fix: the reset only deletes a database whose tables exactly match the model; otherwise startup throws (DatabaseSetupTests.An_unrelated_database_is_never_deleted). npm test: backend 110, web 30.
 <!-- SECTION:NOTES:END -->
