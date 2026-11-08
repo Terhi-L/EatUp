@@ -4,9 +4,11 @@ title: Add ESLint and a Playwright smoke test
 status: To Do
 assignee: []
 created_date: '2026-11-05T13:01:00Z'
+updated_date: '2026-11-08T15:06:00Z'
 labels:
   - frontend
   - testing
+  - ready-for-agent
 milestone: m-0
 dependencies: []
 priority: high
