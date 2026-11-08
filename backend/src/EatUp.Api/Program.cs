@@ -36,13 +36,13 @@ builder.Services.AddHttpClient<IProductLookup, OpenFoodFactsLookup>(http =>
 });
 builder.Services.AddScoped<Pantry>();
 builder.Services.AddScoped<DailyCheck>();
-if (builder.Configuration.GetValue("Push:EnableDailyJob", true))
+// npm run gen:api runs this file only to read the endpoints; it must never touch a real database or send reminders.
+var isGeneratingOpenApiDocument = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+if (!isGeneratingOpenApiDocument && builder.Configuration.GetValue("Push:EnableDailyJob", true))
     builder.Services.AddHostedService<DailyNotificationJob>();
 
 var app = builder.Build();
 
-// npm run gen:api runs this file only to read the endpoints; it must never migrate or seed a real database.
-var isGeneratingOpenApiDocument = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
 if (!isGeneratingOpenApiDocument) await PrepareDatabaseAsync(app.Services);
 
 app.MapEatUpApi();
