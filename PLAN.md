@@ -3,7 +3,7 @@
 > This plan is written for a Claude coding agent. Work through the phases in order.
 > Each phase ends with acceptance criteria; do not start the next phase until they pass.
 > When a decision isn't covered here, pick the simplest option that keeps the next phase possible, and note it in `docs/decisions.md`.
-> **Status (2026-11-05):** a short MVP without login is built, plus barcode scanning and Norwegian/Finnish. [`docs/mvp-review.md`](docs/mvp-review.md) says what works and what's missing; `docs/decisions.md` explains how the build differs from the phases below.
+> **Where we are:** this plan is the roadmap, not a progress tracker. Backlog is the source of truth for what's done, in progress and next (`backlog board`, or `backlog task list --plain`); `docs/decisions.md` explains how the build differs from the phases below.
 
 ## 0. Guiding principle: local-first, zero cost
 

@@ -1,11 +1,11 @@
 ---
 id: TASK-5
 title: Add oxlint and a Playwright smoke test
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-08T15:24:00Z'
+updated_date: '2026-11-08T15:58:00Z'
 labels:
   - frontend
   - testing
@@ -48,3 +48,9 @@ Blocked on lint approach, PR https://github.com/Terhi-L/EatUp/pull/12 : oxlint, 
 
 Product owner chose oxlint (2026-11-08). npm run lint (oxlint --deny-warnings, web/.oxlintrc.json) exits 0; React Compiler rules purity and set-state-in-effect off, logged in docs/decisions.md. typecheck, npm test (110 + 30) and npm run e2e (1 passed) pass.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Added oxlint (npm run lint) instead of ESLint, since typescript-eslint cannot parse with TypeScript 7, and a Playwright smoke test (npm run e2e) that runs on its own API, Vite server and temporary database. Merged in PR #12; typecheck, lint, npm test and e2e passed.
+<!-- SECTION:FINAL_SUMMARY:END -->
