@@ -4,9 +4,11 @@ title: Tag recipes with nutrition facts
 status: To Do
 assignee: []
 created_date: '2026-11-05T13:01:00Z'
+updated_date: '2026-11-08T15:06:00Z'
 labels:
   - backend
   - domain
+  - ready-for-agent
 milestone: m-3
 dependencies: []
 parent_task_id: TASK-13
