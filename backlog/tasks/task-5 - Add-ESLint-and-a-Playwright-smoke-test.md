@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-08T15:14:00Z'
+updated_date: '2026-11-08T15:15:00Z'
 labels:
   - frontend
   - testing
@@ -43,4 +43,6 @@ PLAN.md phases 0 and 3 call for ESLint and a Playwright smoke test; both were sk
 
 <!-- SECTION:NOTES:BEGIN -->
 Playwright smoke test (web/e2e/smoke.e2e.ts) passes via npm run e2e; it starts its own API on 5081 with a temp DataDirectory and Vite on 5174 (EATUP_API_URL proxy). npm test and npm run typecheck pass. ESLint blocked: typescript-eslint 8.72.1 peer-requires typescript <6.1, the project uses TypeScript 7.0.2 whose package exports no compiler API. Needs a product-owner decision.
+
+Blocked on lint approach, PR https://github.com/Terhi-L/EatUp/pull/12 : oxlint, ESLint with a pinned TypeScript 6, or drop lint to a follow-up. Reply /agent continue <answer> on the PR.
 <!-- SECTION:NOTES:END -->
