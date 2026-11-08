@@ -1,0 +1,1205 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "EatUp.Api | v1",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/profile": {
+      "get": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/items": {
+      "get": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/ItemStatus"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ItemDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/items/{id}": {
+      "get": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ItemInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/items/{id}/consume": {
+      "post": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsumeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/ingredients": {
+      "get": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Ingredient"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/products/{barcode}": {
+      "get": {
+        "tags": [
+          "Endpoints"
+        ],
+        "parameters": [
+          {
+            "name": "barcode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/suggestions": {
+      "get": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SuggestionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shopping": {
+      "get": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShoppingItem"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShoppingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShoppingItem"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShoppingItem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/shopping/{id}": {
+      "put": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShoppingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShoppingItem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/shopping/clear-done": {
+      "post": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/push/vapid-public-key": {
+      "get": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VapidPublicKeyDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/push/subscriptions": {
+      "post": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushSubscriptionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EndpointInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/dev/push/test": {
+      "post": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushTestResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dev/run-daily-check": {
+      "post": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyCheckResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dev/reset-demo-data": {
+      "post": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Allergen": {
+        "enum": [
+          "Gluten",
+          "Crustaceans",
+          "Eggs",
+          "Fish",
+          "Peanuts",
+          "Soy",
+          "Milk",
+          "TreeNuts",
+          "Celery",
+          "Mustard",
+          "Sesame",
+          "Sulphites",
+          "Lupin",
+          "Molluscs"
+        ]
+      },
+      "AnimalProduct": {
+        "enum": [
+          "None",
+          "Dairy",
+          "Egg",
+          "Fish",
+          "Meat"
+        ]
+      },
+      "ConsumeInput": {
+        "required": [
+          "outcome",
+          "amount"
+        ],
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "$ref": "#/components/schemas/ConsumeOutcome"
+          },
+          "amount": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
+      "ConsumeOutcome": {
+        "enum": [
+          "Used",
+          "Discarded"
+        ]
+      },
+      "DailyCheckResultDto": {
+        "required": [
+          "sent",
+          "title",
+          "body"
+        ],
+        "type": "object",
+        "properties": {
+          "sent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "body": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "DietType": {
+        "enum": [
+          "Omnivore",
+          "Flexitarian",
+          "Pescatarian",
+          "Vegetarian",
+          "Vegan"
+        ]
+      },
+      "EndpointInput": {
+        "required": [
+          "endpoint"
+        ],
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string"
+          }
+        }
+      },
+      "Ingredient": {
+        "required": [
+          "key",
+          "name",
+          "aliases",
+          "category",
+          "allergens",
+          "animal",
+          "shelfLifeDays",
+          "openedShelfLifeDays"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "category": {
+            "type": "string"
+          },
+          "allergens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Allergen"
+            }
+          },
+          "animal": {
+            "$ref": "#/components/schemas/AnimalProduct"
+          },
+          "shelfLifeDays": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "openedShelfLifeDays": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "openedLocation": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StorageLocation"
+              }
+            ]
+          }
+        }
+      },
+      "ItemDto": {
+        "required": [
+          "id",
+          "name",
+          "ingredientKey",
+          "quantity",
+          "unit",
+          "location",
+          "expiryDate",
+          "openedDate",
+          "effectiveExpiry",
+          "daysLeft",
+          "urgency",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "ingredientKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "location": {
+            "$ref": "#/components/schemas/StorageLocation"
+          },
+          "expiryDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "openedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "effectiveExpiry": {
+            "type": "string",
+            "format": "date"
+          },
+          "daysLeft": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "urgency": {
+            "$ref": "#/components/schemas/Urgency"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ItemStatus"
+          }
+        }
+      },
+      "ItemInput": {
+        "required": [
+          "name",
+          "ingredientKey",
+          "quantity",
+          "unit",
+          "location",
+          "expiryDate",
+          "openedDate"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "ingredientKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": "number",
+            "format": "double"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "location": {
+            "$ref": "#/components/schemas/StorageLocation"
+          },
+          "expiryDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "openedDate": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          }
+        }
+      },
+      "ItemStatus": {
+        "enum": [
+          "Active",
+          "Used",
+          "Discarded"
+        ]
+      },
+      "Language": {
+        "enum": [
+          "English",
+          "Norwegian",
+          "Finnish",
+          null
+        ]
+      },
+      "PantryItem": {
+        "required": [
+          "id",
+          "name",
+          "ingredientKey",
+          "daysLeft"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "ingredientKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "daysLeft": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ProductDto": {
+        "required": [
+          "name",
+          "productName",
+          "quantity",
+          "unit"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "productName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "quantity": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "unit": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "ProfileDto": {
+        "required": [
+          "diet",
+          "allergens",
+          "notificationTime",
+          "timeZone",
+          "notificationsEnabled",
+          "language"
+        ],
+        "type": "object",
+        "properties": {
+          "diet": {
+            "$ref": "#/components/schemas/DietType"
+          },
+          "allergens": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Allergen"
+            }
+          },
+          "notificationTime": {
+            "type": "string",
+            "format": "time"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "notificationsEnabled": {
+            "type": "boolean"
+          },
+          "language": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Language"
+              }
+            ]
+          }
+        }
+      },
+      "ProfileUpdate": {
+        "type": "object",
+        "properties": {
+          "diet": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/DietType"
+              }
+            ]
+          },
+          "allergens": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/Allergen"
+            }
+          },
+          "notificationTime": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "time"
+          },
+          "timeZone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notificationsEnabled": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "language": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/Language"
+              }
+            ]
+          }
+        }
+      },
+      "PushKeys": {
+        "required": [
+          "p256dh",
+          "auth"
+        ],
+        "type": "object",
+        "properties": {
+          "p256dh": {
+            "type": "string"
+          },
+          "auth": {
+            "type": "string"
+          }
+        }
+      },
+      "PushSubscriptionInput": {
+        "required": [
+          "endpoint",
+          "keys"
+        ],
+        "type": "object",
+        "properties": {
+          "endpoint": {
+            "type": "string"
+          },
+          "keys": {
+            "$ref": "#/components/schemas/PushKeys"
+          }
+        }
+      },
+      "PushTestResult": {
+        "required": [
+          "sent"
+        ],
+        "type": "object",
+        "properties": {
+          "sent": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ShoppingInput": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "ShoppingItem": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "StorageLocation": {
+        "enum": [
+          "Fridge",
+          "Freezer",
+          "Cupboard",
+          "Counter"
+        ]
+      },
+      "SuggestionDto": {
+        "required": [
+          "key",
+          "title",
+          "description",
+          "minutes",
+          "steps",
+          "usesItems",
+          "missingIngredients",
+          "isPlantBased"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "minutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "usesItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PantryItem"
+            }
+          },
+          "missingIngredients": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isPlantBased": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Urgency": {
+        "enum": [
+          "Expired",
+          "Today",
+          "Soon",
+          "Later"
+        ]
+      },
+      "VapidPublicKeyDto": {
+        "required": [
+          "publicKey"
+        ],
+        "type": "object",
+        "properties": {
+          "publicKey": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "EatUp.Api"
+    },
+    {
+      "name": "Endpoints"
+    }
+  ]
+}

@@ -1,99 +1,25 @@
-// Mirrors the backend DTOs in backend/src/EatUp.Api/Endpoints.cs.
-// MVP: hand-written; replace with types generated from OpenAPI when the API grows.
-
+import createClient from 'openapi-fetch'
+import type { components, paths } from './api-schema'
 import { strings } from './strings'
 
-export type StorageLocation = 'Fridge' | 'Freezer' | 'Cupboard' | 'Counter'
-export type Urgency = 'Expired' | 'Today' | 'Soon' | 'Later'
-export type ItemStatus = 'Active' | 'Used' | 'Discarded'
-export type ConsumeOutcome = 'Used' | 'Discarded'
-export type Language = 'English' | 'Norwegian' | 'Finnish'
-export type DietType = 'Omnivore' | 'Flexitarian' | 'Pescatarian' | 'Vegetarian' | 'Vegan'
-export type Allergen =
-  | 'Gluten' | 'Crustaceans' | 'Eggs' | 'Fish' | 'Peanuts' | 'Soy' | 'Milk'
-  | 'TreeNuts' | 'Celery' | 'Mustard' | 'Sesame' | 'Sulphites' | 'Lupin' | 'Molluscs'
-
-/** ISO date, `YYYY-MM-DD`. */
-export type IsoDate = string
-
-export interface Item {
-  id: number
-  name: string
-  ingredientKey: string | null
-  quantity: number
-  unit: string
-  location: StorageLocation
-  expiryDate: IsoDate
-  openedDate: IsoDate | null
-  effectiveExpiry: IsoDate
-  daysLeft: number
-  urgency: Urgency
-  status: ItemStatus
-}
-
-export interface ItemInput {
-  name: string
-  ingredientKey: string | null
-  quantity: number
-  unit: string
-  location: StorageLocation
-  expiryDate: IsoDate | null
-  openedDate: IsoDate | null
-}
-
-export interface Profile {
-  diet: DietType
-  allergens: Allergen[]
-  /** `HH:mm:ss` */
-  notificationTime: string
-  timeZone: string
-  notificationsEnabled: boolean
-  /** Null until the app first reports the browser language. */
-  language: Language | null
-}
-
-export interface Ingredient {
-  key: string
-  name: string
-  /** Lower-case names and aliases in every language, words separated by single spaces. */
-  aliases: string[]
-  category: string
-  allergens: Allergen[]
-  shelfLifeDays: Partial<Record<StorageLocation, number>>
-  openedLocation: StorageLocation | null
-}
-
-/** A scanned product. Null fields weren't found and are left for the user. */
-export interface Product {
-  name: string | null
-  productName: string | null
-  quantity: number | null
-  unit: string | null
-}
-
-export interface PantryItem {
-  id: number
-  name: string
-  ingredientKey: string | null
-  daysLeft: number
-}
-
-export interface Suggestion {
-  key: string
-  title: string
-  description: string
-  minutes: number
-  steps: string[]
-  usesItems: PantryItem[]
-  missingIngredients: string[]
-  isPlantBased: boolean
-}
-
-export interface DailyCheckResult {
-  sent: number
-  title: string | null
-  body: string | null
-}
+// Generated from the backend's OpenAPI document by `npm run gen:api`; never edit the shapes here.
+type Schemas = components['schemas']
+export type Item = Schemas['ItemDto']
+export type ItemInput = Schemas['ItemInput']
+export type Profile = Schemas['ProfileDto']
+export type ProfileUpdate = Schemas['ProfileUpdate']
+export type Ingredient = Schemas['Ingredient']
+export type Product = Schemas['ProductDto']
+export type PantryItem = Schemas['PantryItem']
+export type Suggestion = Schemas['SuggestionDto']
+export type DailyCheckResult = Schemas['DailyCheckResultDto']
+export type StorageLocation = Schemas['StorageLocation']
+export type Urgency = Schemas['Urgency']
+export type ItemStatus = Schemas['ItemStatus']
+export type ConsumeOutcome = Schemas['ConsumeOutcome']
+export type Language = NonNullable<Schemas['Language']>
+export type DietType = Schemas['DietType']
+export type Allergen = Schemas['Allergen']
 
 export class ApiError extends Error {
   constructor(message: string, readonly status: number) {
@@ -109,54 +35,63 @@ function problemMessage(problem: Problem, status: number): string {
   return (field && strings.apiErrors[field]) || strings.errors.byStatus[status] || strings.errors.requestFailed(status)
 }
 
-async function request<T>(path: string, init?: RequestInit & { json?: unknown }): Promise<T> {
-  const { json, ...rest } = init ?? {}
-  let response: Response
+// Looked up per call, not captured at start-up, so tests can stub fetch.
+async function fetchOrOffline(request: Request): Promise<Response> {
   try {
-    response = await fetch(`/api${path}`, {
-      ...rest,
-      // X-EatUp: the backend rejects writes without it, so other websites can't send them (see Endpoints.cs).
-      headers: {
-        'X-EatUp': '1',
-        ...(json === undefined ? {} : { 'Content-Type': 'application/json' }),
-        ...rest.headers,
-      },
-      body: json === undefined ? rest.body : JSON.stringify(json),
-    })
+    return await fetch(request)
   } catch {
     throw new Error(strings.errors.offline)
   }
-  if (!response.ok) {
-    const problem = await response.json().catch(() => null)
-    throw new ApiError(problemMessage(problem, response.status), response.status)
-  }
-  return response.status === 204 ? (undefined as T) : response.json()
 }
 
+const client = createClient<paths>({
+  // Request needs an absolute URL, and tests run without a page to resolve against.
+  baseUrl: globalThis.location?.origin ?? 'http://localhost',
+  // X-EatUp: the backend rejects writes without it, so other websites can't send them (see Endpoints.cs).
+  headers: { 'X-EatUp': '1' },
+  fetch: fetchOrOffline,
+})
+
+async function unwrap<T>(call: Promise<{ data?: T; error?: unknown; response: Response }>): Promise<T> {
+  const { data, error, response } = await call
+  if (!response.ok) throw new ApiError(problemMessage(error as Problem, response.status), response.status)
+  return data as T
+}
+
+const itemPath = (id: number) => ({ params: { path: { id } } })
+
 export const api = {
-  items: (status: ItemStatus = 'Active') => request<Item[]>(`/items?status=${status}`),
-  item: (id: number) => request<Item>(`/items/${id}`),
-  createItem: (input: ItemInput) => request<Item>('/items', { method: 'POST', json: input }),
-  updateItem: (id: number, input: ItemInput) => request<Item>(`/items/${id}`, { method: 'PUT', json: input }),
-  deleteItem: (id: number) => request<void>(`/items/${id}`, { method: 'DELETE' }),
+  items: (status: ItemStatus = 'Active') => unwrap(client.GET('/api/items', { params: { query: { status } } })),
+  item: (id: number) => unwrap(client.GET('/api/items/{id}', itemPath(id))),
+  createItem: (input: ItemInput) => unwrap(client.POST('/api/items', { body: input })),
+  updateItem: (id: number, input: ItemInput) => unwrap(client.PUT('/api/items/{id}', { ...itemPath(id), body: input })),
+  deleteItem: (id: number) => unwrap(client.DELETE('/api/items/{id}', itemPath(id))),
   consume: (id: number, outcome: ConsumeOutcome, amount?: number) =>
-    request<Item>(`/items/${id}/consume`, { method: 'POST', json: { outcome, amount: amount ?? null } }),
+    unwrap(client.POST('/api/items/{id}/consume', { ...itemPath(id), body: { outcome, amount: amount ?? null } })),
 
-  profile: () => request<Profile>('/profile'),
+  profile: () => unwrap(client.GET('/api/profile')),
   /** Only the given fields are changed. */
-  updateProfile: (changes: Partial<Profile>) => request<Profile>('/profile', { method: 'PATCH', json: changes }),
+  updateProfile: (changes: ProfileUpdate) => unwrap(client.PATCH('/api/profile', { body: changes })),
 
-  ingredients: (search: string) => request<Ingredient[]>(`/ingredients?search=${encodeURIComponent(search)}`),
-  product: (barcode: string) => request<Product>(`/products/${encodeURIComponent(barcode)}`),
-  suggestions: () => request<Suggestion[]>('/suggestions'),
+  ingredients: (search: string) => unwrap(client.GET('/api/ingredients', { params: { query: { search } } })),
+  product: (barcode: string) => unwrap(client.GET('/api/products/{barcode}', { params: { path: { barcode } } })),
+  suggestions: () => unwrap(client.GET('/api/suggestions')),
 
-  vapidPublicKey: () => request<{ publicKey: string }>('/push/vapid-public-key').then((r) => r.publicKey),
-  subscribe: (subscription: PushSubscriptionJSON) => request<void>('/push/subscriptions', { method: 'POST', json: subscription }),
-  unsubscribe: (endpoint: string) => request<void>('/push/subscriptions', { method: 'DELETE', json: { endpoint } }),
+  vapidPublicKey: () => unwrap(client.GET('/api/push/vapid-public-key')).then((r) => r.publicKey),
+  subscribe: (subscription: PushSubscriptionJSON) =>
+    unwrap(client.POST('/api/push/subscriptions', { body: toSubscriptionInput(subscription) })),
+  unsubscribe: (endpoint: string) => unwrap(client.DELETE('/api/push/subscriptions', { body: { endpoint } })),
 
   dev: {
-    testPush: () => request<{ sent: number }>('/dev/push/test', { method: 'POST' }),
-    runDailyCheck: () => request<DailyCheckResult>('/dev/run-daily-check', { method: 'POST' }),
-    resetDemoData: () => request<void>('/dev/reset-demo-data', { method: 'POST' }),
+    testPush: () => unwrap(client.POST('/api/dev/push/test')),
+    runDailyCheck: () => unwrap(client.POST('/api/dev/run-daily-check')),
+    resetDemoData: () => unwrap(client.POST('/api/dev/reset-demo-data')),
   },
+}
+
+function toSubscriptionInput(subscription: PushSubscriptionJSON): Schemas['PushSubscriptionInput'] {
+  return {
+    endpoint: subscription.endpoint ?? '',
+    keys: { p256dh: subscription.keys?.p256dh ?? '', auth: subscription.keys?.auth ?? '' },
+  }
 }
