@@ -19,7 +19,7 @@ The product owner asked for a "simple short version" of the MVP **without login*
 - **One backend project** (`EatUp.Api`) instead of Api/Core/Infrastructure. Pure domain rules sit in `Domain/` with no EF or HTTP dependencies, so they can move to their own project later.
 - **`EnsureCreated` instead of EF migrations.** After changing the model, delete `backend/data/`. Switch to migrations before there's data worth keeping. *(Replaced by migrations on 2026-11-05.)*
 - **Catalogue is a JSON file loaded into memory** (`Seed/catalog.json`), not database tables. Recipes and ingredients are read-only for now.
-- **Hand-written TypeScript API types** (`web/src/api.ts`) instead of types generated from OpenAPI. Keep them in sync with `Endpoints.cs` by hand until the API grows.
+- **Hand-written TypeScript API types** (`web/src/api.ts`) instead of types generated from OpenAPI. Keep them in sync with `Endpoints.cs` by hand until the API grows. *(Replaced by generated types on 2026-11-08.)*
 - **No ESLint or Playwright yet.** Type-checking (`tsc -b`) and Vitest cover the web app. *(Playwright smoke test and oxlint added on 2026-11-08, see below.)*
 - **VAPID keys are generated into `backend/data/vapid.json`** instead of user secrets, so `npm run dev` works with zero setup. They can be overridden with `Push:PublicKey` / `Push:PrivateKey` configuration.
 - **Suggestions never use expired items**, since use-by dates may be unsafe. Expired items still show in the inventory.
@@ -65,3 +65,10 @@ The product owner asked for a "simple short version" of the MVP **without login*
 - **The e2e test runs its own servers** (API on 5081 with a fresh temporary `DataDirectory` and the daily push job off, Vite on 5174 proxying to it via `EATUP_API_URL`) instead of the developer's `npm run dev`, so it can delete demo items and never touches real data.
 - **oxlint instead of ESLint.** typescript-eslint supports TypeScript below 6.1, and this project uses TypeScript 7, whose npm package no longer exposes the compiler API typescript-eslint parses with. oxlint needs no TypeScript package and has the TypeScript, React and hooks rules. Agreed with the product owner.
 - **Only the correctness category plus the hooks rules** are on, and warnings fail the run. The React Compiler rules `purity` and `set-state-in-effect` are off: the app doesn't use the compiler, and they flag `new Date()` in the inventory header and the form's shelf-life and opened-location effects, which would need a refactor of their own.
+
+## 2026-11-08 · Generated API types
+
+- **The OpenAPI document is written at build time** (`Microsoft.Extensions.ApiDescription.Server`), only when `npm run gen:api` asks for it, into `web/openapi.json`; `openapi-typescript` turns it into `web/src/api-schema.d.ts` and `api.ts` calls the API through `openapi-fetch`. Both generated files are committed, so the web app builds without the .NET SDK. No `/openapi` endpoint is served.
+- **openapi-typescript runs through `npx` with a pinned TypeScript 5**, because it needs the TypeScript 5 compiler API that TypeScript 7 dropped; the project itself stays on TypeScript 7.
+- **The document is generated in Development** so the `/api/dev` endpoints are typed too. The generator runs `Program.cs` up to `app.Run()`, so startup skips migrating and seeding the database while it runs.
+- **JSON numbers are strict**: the API no longer accepts numbers sent as strings, so the generated types say `number`, not `number | string`.

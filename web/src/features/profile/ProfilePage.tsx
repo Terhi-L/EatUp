@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, type Allergen, type DietType, type Language, type Profile } from '../../api'
+import { api, type Allergen, type DietType, type Language, type Profile, type ProfileUpdate } from '../../api'
 import { language, languageNames, languages, localeOf, setLanguage, strings } from '../../strings'
 import { NotificationsCard } from '../push/NotificationsCard'
 
@@ -16,7 +16,7 @@ export function ProfilePage() {
     mutationFn: api.updateProfile,
     onMutate: async (changes) => {
       await queryClient.cancelQueries({ queryKey: ['profile'] })
-      queryClient.setQueryData<Profile>(['profile'], (old) => old && { ...old, ...changes })
+      queryClient.setQueryData<Profile>(['profile'], (old) => old && withChanges(old, changes))
     },
     // Diet, allergies and language all change what the server sends back (suggestions, names), so refetch everything.
     onSettled: () => queryClient.invalidateQueries(),
@@ -143,4 +143,10 @@ function DevTools() {
       {message && <p className="text-sm">{message}</p>}
     </section>
   )
+}
+
+// The server leaves null fields unchanged, so the cached profile does too.
+function withChanges(profile: Profile, changes: ProfileUpdate): Profile {
+  const setFields = Object.fromEntries(Object.entries(changes).filter(([, value]) => value != null))
+  return { ...profile, ...setFields }
 }

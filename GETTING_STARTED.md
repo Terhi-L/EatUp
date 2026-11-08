@@ -75,6 +75,7 @@ This prints a temporary `https://….trycloudflare.com` address you can open on 
 | `npm test` | Runs backend (xUnit) and frontend (Vitest) tests |
 | `npm run build` | Builds the backend and the production web app |
 | `npm run typecheck` | Type-checks the web app |
+| `npm run gen:api` | Regenerates the web app's API types from the backend after an endpoint changes |
 | `npm run lint` | Lints the web app with oxlint (rules in `web/.oxlintrc.json`) |
 | `npm run e2e` | Runs the Playwright smoke test: add eggs, see them flagged and suggested, mark them used. It starts its own API (port 5081) and web app (port 5174) on an empty temporary database, so your data is untouched. Install the browser once first: `npx -w web playwright install chromium` |
 

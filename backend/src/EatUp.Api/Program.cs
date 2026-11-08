@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json.Serialization;
 using EatUp.Api;
 using EatUp.Api.Data;
@@ -12,7 +13,13 @@ var dataDir = builder.Configuration["DataDirectory"]
     ?? Path.GetFullPath(Path.Combine(builder.Environment.ContentRootPath, "..", "..", "data"));
 Directory.CreateDirectory(dataDir);
 
-builder.Services.ConfigureHttpJsonOptions(o => o.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.AddOpenApi();
+builder.Services.ConfigureHttpJsonOptions(o =>
+{
+    o.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    // Numbers stay numbers, so the generated TypeScript types don't widen them to number | string.
+    o.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
+});
 builder.Services.AddDbContext<EatUpDb>(o =>
     o.UseSqlite(builder.Configuration.GetConnectionString("EatUp") ?? $"Data Source={Path.Combine(dataDir, "eatup.db")}"));
 builder.Services.AddSingleton(TimeProvider.System);
@@ -29,20 +36,25 @@ builder.Services.AddHttpClient<IProductLookup, OpenFoodFactsLookup>(http =>
 });
 builder.Services.AddScoped<Pantry>();
 builder.Services.AddScoped<DailyCheck>();
-if (builder.Configuration.GetValue("Push:EnableDailyJob", true))
+// npm run gen:api runs this file only to read the endpoints; it must never touch a real database or send reminders.
+var isGeneratingOpenApiDocument = Assembly.GetEntryAssembly()?.GetName().Name == "GetDocument.Insider";
+if (!isGeneratingOpenApiDocument && builder.Configuration.GetValue("Push:EnableDailyJob", true))
     builder.Services.AddHostedService<DailyNotificationJob>();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<EatUpDb>();
-    await DatabaseSetup.PrepareAsync(db, scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Database"));
-    await DemoData.EnsureSeededAsync(db, scope.ServiceProvider.GetRequiredService<TimeProvider>());
-}
+if (!isGeneratingOpenApiDocument) await PrepareDatabaseAsync(app.Services);
 
 app.MapEatUpApi();
 
 app.Run();
+
+static async Task PrepareDatabaseAsync(IServiceProvider services)
+{
+    using var scope = services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<EatUpDb>();
+    await DatabaseSetup.PrepareAsync(db, scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Database"));
+    await DemoData.EnsureSeededAsync(db, scope.ServiceProvider.GetRequiredService<TimeProvider>());
+}
 
 public partial class Program;
