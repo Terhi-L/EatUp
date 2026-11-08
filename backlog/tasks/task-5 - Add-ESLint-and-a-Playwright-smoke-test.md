@@ -1,11 +1,11 @@
 ---
 id: TASK-5
-title: Add ESLint and a Playwright smoke test
+title: Add oxlint and a Playwright smoke test
 status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-08T15:15:00Z'
+updated_date: '2026-11-08T15:23:00Z'
 labels:
   - frontend
   - testing
@@ -24,8 +24,8 @@ PLAN.md phases 0 and 3 call for ESLint and a Playwright smoke test; both were sk
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 `npm run lint` lints the web app and passes
-- [x] #2 A Playwright test against the local dev servers adds "Eggs, fridge, expires in 2 days", sees it flagged as soon, sees an egg recipe on Cook now and marks the eggs used
+- [ ] #1 `npm run lint` lints the web app with oxlint and passes
+- [ ] #2 A Playwright test against the local dev servers adds Eggs, fridge, expires in 2 days, sees it flagged as soon, sees an egg recipe on Cook now and marks the eggs used
 - [x] #3 A root script runs the e2e test, and GETTING_STARTED.md says how
 - [x] #4 docs/decisions.md entry about skipping ESLint/Playwright is updated
 <!-- AC:END -->
