@@ -38,6 +38,7 @@ export default defineConfig({
     strictPort: true,
     // Lets the phone-testing tunnel in GETTING_STARTED.md through Vite's host check.
     allowedHosts: ['.trycloudflare.com'],
-    proxy: { '/api': 'http://localhost:5080' },
+    // The e2e test points this at its own API so it never touches the dev database.
+    proxy: { '/api': process.env.EATUP_API_URL ?? 'http://localhost:5080' },
   },
 })
