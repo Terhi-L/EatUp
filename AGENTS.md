@@ -13,6 +13,7 @@ Food-waste PWA: track what's in the fridge, get reminded before it expires, get 
 - Next task: the first line of `backlog task list --status "To Do" --ready --sort ordinal --plain`. Ordinal is the agreed build order; `--ready` hides tasks whose dependencies aren't Done.
 - Skip a task labelled `needs-decision` until the product owner has confirmed the approach; ask them, or take the next one.
 - An In Progress task assigned to you comes first; one waiting on a human (e.g. translation review) is not yours to finish.
+- Backlog is the source of truth for progress; don't track status in `PLAN.md` or other docs. Set a task to Done (with its final summary) in the task's own PR, so merging it is what finishes the task; never open a PR just to change a status.
 
 ## Rules
 

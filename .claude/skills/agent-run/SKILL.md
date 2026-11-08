@@ -36,7 +36,7 @@ None listed: print `IDLE` and stop. Otherwise take the first one, call it TASK-N
 2. Read `AGENTS.md`, `backlog task view TASK-N --plain`, and `backlog instructions task-execution`. Follow that guide: set In Progress, assign `@claude`, remove the `ready-for-agent` label, record your plan.
 3. Implement against the acceptance criteria and the AGENTS.md rules (domain rules test-first, UI text in all three `web/src/i18n` dictionaries).
 4. Run the checks (below). On failure, fix and rerun; after 2 failed fix attempts, go to **Blocked**.
-5. Read `backlog instructions task-finalization`; check off each acceptance criterion only with evidence (a test name or command output), add implementation notes. Leave the task In Progress.
+5. Read `backlog instructions task-finalization`; check off each acceptance criterion only with evidence (a test name or command output), add implementation notes. Leave the task In Progress until **Ready**.
 6. Commit, push, and open the PR:
    `gh pr create --base main --title "<task title>" --body "<what changed, AC checklist with evidence, 'Backlog: TASK-N'>"`.
 7. Print `PR_OPENED: #n` and stop. Qodo needs a few minutes.
@@ -67,7 +67,7 @@ If `dotnet test` fails on locked files (the dev server is running), rerun the ba
 
 ## Ready
 
-Add PR label `agent-ready`, comment `Agent ready: checks pass, Qodo findings handled (see rounds). I won't merge. Comment /agent continue <what to change> for more work.`, add a Backlog note on TASK-N with the PR link. Print `READY: PR #n` and stop.
+Follow `backlog instructions task-finalization` on the PR branch: add a Backlog note with the PR link, a final summary, and set TASK-N to Done, then push. Merging the PR is what makes the task Done on `main`, so no follow-up PR is needed. Add PR label `agent-ready`, comment `Agent ready: checks pass, Qodo findings handled (see rounds). I won't merge. Comment /agent continue <what to change> for more work.` Print `READY: PR #n` and stop.
 
 ## Blocked
 
