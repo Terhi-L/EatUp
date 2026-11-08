@@ -1,14 +1,14 @@
 ---
 id: TASK-5
-title: Add ESLint and a Playwright smoke test
-status: To Do
-assignee: []
+title: Add oxlint and a Playwright smoke test
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-08T15:06:00Z'
+updated_date: '2026-11-08T15:24:00Z'
 labels:
   - frontend
   - testing
-  - ready-for-agent
 milestone: m-0
 dependencies: []
 priority: high
@@ -24,8 +24,27 @@ PLAN.md phases 0 and 3 call for ESLint and a Playwright smoke test; both were sk
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 `npm run lint` lints the web app and passes
-- [ ] #2 A Playwright test against the local dev servers adds "Eggs, fridge, expires in 2 days", sees it flagged as soon, sees an egg recipe on Cook now and marks the eggs used
-- [ ] #3 A root script runs the e2e test, and GETTING_STARTED.md says how
-- [ ] #4 docs/decisions.md entry about skipping ESLint/Playwright is updated
+- [x] #1 `npm run lint` lints the web app with oxlint and passes
+- [x] #2 A Playwright test against the local dev servers adds Eggs, fridge, expires in 2 days, sees it flagged as soon, sees an egg recipe on Cook now and marks the eggs used
+- [x] #3 A root script runs the e2e test, and GETTING_STARTED.md says how
+- [x] #4 docs/decisions.md entry about skipping ESLint/Playwright is updated
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. ESLint flat config in web/ (typescript-eslint, react-hooks, react-refresh); npm run lint at root and in web; fix findings.
+2. Playwright in web/e2e: config starts its own API (port 5081, temp DataDirectory, daily job off) and Vite (port 5174, proxy target from EATUP_API_URL), so the test never touches the user's database or running dev servers.
+3. Smoke test: clear demo items via API, add Eggs in the fridge expiring in 2 days through the form, see it under Soon, see an egg recipe on Cook now, mark the eggs used.
+4. Root npm run e2e; document in GETTING_STARTED.md; update docs/decisions.md.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Playwright smoke test (web/e2e/smoke.e2e.ts) passes via npm run e2e; it starts its own API on 5081 with a temp DataDirectory and Vite on 5174 (EATUP_API_URL proxy). npm test and npm run typecheck pass. ESLint blocked: typescript-eslint 8.72.1 peer-requires typescript <6.1, the project uses TypeScript 7.0.2 whose package exports no compiler API. Needs a product-owner decision.
+
+Blocked on lint approach, PR https://github.com/Terhi-L/EatUp/pull/12 : oxlint, ESLint with a pinned TypeScript 6, or drop lint to a follow-up. Reply /agent continue <answer> on the PR.
+
+Product owner chose oxlint (2026-11-08). npm run lint (oxlint --deny-warnings, web/.oxlintrc.json) exits 0; React Compiler rules purity and set-state-in-effect off, logged in docs/decisions.md. typecheck, npm test (110 + 30) and npm run e2e (1 passed) pass.
+<!-- SECTION:NOTES:END -->

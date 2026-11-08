@@ -8,7 +8,9 @@
     "dev": "concurrently -k -n api,web -c cyan,green \"dotnet run --project backend/src/EatUp.Api\" \"npm run dev -w web\"",
     "test": "dotnet test backend && npm test -w web",
     "build": "dotnet build backend && npm run build -w web",
-    "typecheck": "npm run typecheck -w web"
+    "typecheck": "npm run typecheck -w web",
+    "e2e": "npm run e2e -w web",
+    "lint": "npm run lint -w web"
   },
   "devDependencies": {
     "concurrently": "^10.0.6"

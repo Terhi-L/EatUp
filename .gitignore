@@ -19,3 +19,7 @@ backend/data/
 .DS_Store
 
 .fake
+
+# Playwright
+web/test-results/
+web/playwright-report/
