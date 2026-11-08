@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-08T15:10:00Z'
+updated_date: '2026-11-08T15:14:00Z'
 labels:
   - frontend
   - testing
@@ -25,9 +25,9 @@ PLAN.md phases 0 and 3 call for ESLint and a Playwright smoke test; both were sk
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
 - [ ] #1 `npm run lint` lints the web app and passes
-- [ ] #2 A Playwright test against the local dev servers adds "Eggs, fridge, expires in 2 days", sees it flagged as soon, sees an egg recipe on Cook now and marks the eggs used
-- [ ] #3 A root script runs the e2e test, and GETTING_STARTED.md says how
-- [ ] #4 docs/decisions.md entry about skipping ESLint/Playwright is updated
+- [x] #2 A Playwright test against the local dev servers adds "Eggs, fridge, expires in 2 days", sees it flagged as soon, sees an egg recipe on Cook now and marks the eggs used
+- [x] #3 A root script runs the e2e test, and GETTING_STARTED.md says how
+- [x] #4 docs/decisions.md entry about skipping ESLint/Playwright is updated
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -38,3 +38,9 @@ PLAN.md phases 0 and 3 call for ESLint and a Playwright smoke test; both were sk
 3. Smoke test: clear demo items via API, add Eggs in the fridge expiring in 2 days through the form, see it under Soon, see an egg recipe on Cook now, mark the eggs used.
 4. Root npm run e2e; document in GETTING_STARTED.md; update docs/decisions.md.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Playwright smoke test (web/e2e/smoke.e2e.ts) passes via npm run e2e; it starts its own API on 5081 with a temp DataDirectory and Vite on 5174 (EATUP_API_URL proxy). npm test and npm run typecheck pass. ESLint blocked: typescript-eslint 8.72.1 peer-requires typescript <6.1, the project uses TypeScript 7.0.2 whose package exports no compiler API. Needs a product-owner decision.
+<!-- SECTION:NOTES:END -->
