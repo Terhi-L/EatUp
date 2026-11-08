@@ -26,6 +26,8 @@ export default defineConfig({
         ASPNETCORE_URLS: apiUrl,
         ASPNETCORE_ENVIRONMENT: 'Development',
         DataDirectory: dataDirectory,
+        // Explicit, so an inherited connection string can't point the test's deletes at a real database.
+        ConnectionStrings__EatUp: `Data Source=${join(dataDirectory, 'eatup.db')}`,
         Push__EnableDailyJob: 'false',
       },
     },
