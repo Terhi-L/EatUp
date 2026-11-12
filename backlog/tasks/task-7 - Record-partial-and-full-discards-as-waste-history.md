@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-12T14:31:00Z'
+updated_date: '2026-11-12T14:48:00Z'
 labels:
   - backend
   - domain
@@ -59,6 +59,8 @@ Open questions for the product owner:
 No index on ConsumedAt: EF SQLite cannot translate DateTimeOffset comparisons, so TASK-8 should decide how it queries by date. Verified with npm test (121 xUnit, 31 Vitest) and npm run typecheck.
 
 Qodo review of PR #15 (8e8b00d), all 5 findings fixed: pre-migration databases (no ConsumeEvents table) are reset again instead of rejected; undefined outcomes return 400; Status and Quantity are concurrency tokens and a lost race returns 409 (folded into the unmerged AddConsumeEvents migration); the inventory row refreshes after a failed consume; 409 has a translated message (nb/fi wording written by the agent, not reviewed by a native speaker).
+
+Follow-up Qodo finding on 08aed7c fixed: the pre-migration reset now requires exactly the four EnsureCreated tables, so a foreign database with an Items table is refused, not deleted.
 <!-- SECTION:NOTES:END -->
 
 ## Comments
