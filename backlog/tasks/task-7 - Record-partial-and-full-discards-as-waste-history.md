@@ -1,11 +1,11 @@
 ---
 id: TASK-7
 title: Record every consume as a waste-history event
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-12T14:18:00Z'
+updated_date: '2026-11-12T14:21:00Z'
 labels:
   - backend
   - domain
@@ -33,15 +33,31 @@ Open questions for the product owner:
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Every consume (used or discarded, partial or full) stores a ConsumeEvent with item id (nullable), item name, ingredient key, amount, unit, outcome and a UTC timestamp from TimeProvider
-- [ ] #2 The recorded amount is what was actually consumed: the partial amount, or the remaining quantity for a full or overshooting consume
-- [ ] #3 Deleting an item or resetting demo items keeps its events (FK set to null)
-- [ ] #4 Consuming an item that is not Active returns 409 and records nothing
-- [ ] #5 Existing partial-use behaviour (quantity drops, item stays active) is unchanged
-- [ ] #6 The consume rule lives in Domain/ with unit tests written first; endpoint tests cover partial, full, overshoot and already-consumed cases
-- [ ] #7 A migration adds the table and backfills one event per existing Used/Discarded item from StatusChangedAt
-- [ ] #8 The decisions entry about unrecorded partial discards is updated
+- [x] #1 Every consume (used or discarded, partial or full) stores a ConsumeEvent with item id (nullable), item name, ingredient key, amount, unit, outcome and a UTC timestamp from TimeProvider
+- [x] #2 The recorded amount is what was actually consumed: the partial amount, or the remaining quantity for a full or overshooting consume
+- [x] #3 Deleting an item or resetting demo items keeps its events (FK set to null)
+- [x] #4 Consuming an item that is not Active returns 409 and records nothing
+- [x] #5 Existing partial-use behaviour (quantity drops, item stays active) is unchanged
+- [x] #6 The consume rule lives in Domain/ with unit tests written first; endpoint tests cover partial, full, overshoot and already-consumed cases
+- [x] #7 A migration adds the table and backfills one event per existing Used/Discarded item from StatusChangedAt
+- [x] #8 The decisions entry about unrecorded partial discards is updated
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Domain/Consumption: CanConsume + Consume returning a ConsumeEvent snapshot (tests first).
+2. ConsumeEvent entity with nullable FoodItemId FK ON DELETE SET NULL.
+3. Consume endpoint: 409 for non-active items, store the event.
+4. Migration AddConsumeEvents with backfill of Used/Discarded items.
+5. Endpoint + migration tests, gen:api, decisions entry.
+<!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+No index on ConsumedAt: EF SQLite cannot translate DateTimeOffset comparisons, so TASK-8 should decide how it queries by date. Verified with npm test (121 xUnit, 31 Vitest) and npm run typecheck.
+<!-- SECTION:NOTES:END -->
 
 ## Comments
 
@@ -65,3 +81,9 @@ Product owner decisions (2026-11-12): backfill existing Used/Discarded items (AC
 
 ---
 <!-- COMMENTS:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Every consume now stores a ConsumeEvent (item snapshot, actual amount, unit, outcome, UTC time). The rule moved to Domain/Consumption with unit tests; the endpoint returns 409 for items that are no longer active. Events keep a nullable item FK (ON DELETE SET NULL), so deletes and demo resets keep history. Migration AddConsumeEvents backfills one full event per existing Used/Discarded item. Tests cover partial, full, overshoot, re-consume, delete/reset and the backfill. Follow-up for TASK-8: SQLite stores DateTimeOffset as text, so date filtering needs care.
+<!-- SECTION:FINAL_SUMMARY:END -->
