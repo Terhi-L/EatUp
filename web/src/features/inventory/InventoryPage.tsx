@@ -98,7 +98,8 @@ function ItemRow({ item }: { item: Item }) {
   const queryClient = useQueryClient()
   const consume = useMutation({
     mutationFn: (outcome: ConsumeOutcome) => api.consume(item.id, outcome),
-    onSuccess: () => queryClient.invalidateQueries(),
+    // Also after a failure: a 409 means another tab or device already changed this item.
+    onSettled: () => queryClient.invalidateQueries(),
   })
   const Icon = locationIcon[item.location]
 

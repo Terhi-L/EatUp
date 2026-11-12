@@ -3,11 +3,13 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EatUp.Api;
+using EatUp.Api.Data;
 using EatUp.Api.Domain;
 using EatUp.Api.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EatUp.Tests;
@@ -65,6 +67,96 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
         await _client.PostAsJsonAsync($"/api/items/{item.Id}/consume", new ConsumeInput(ConsumeOutcome.Discarded, null), Json);
         var discarded = await _client.GetFromJsonAsync<List<ItemDto>>("/api/items?status=Discarded", Json);
         Assert.Contains(discarded!, i => i.Id == item.Id);
+    }
+
+    private async Task<ItemDto> AddEggsAsync(double quantity = 6) =>
+        (await (await _client.PostAsJsonAsync("/api/items",
+            new ItemInput("Test eggs", null, quantity, "pcs", StorageLocation.Fridge, null, null), Json)).Content.ReadFromJsonAsync<ItemDto>(Json))!;
+
+    private Task<HttpResponseMessage> ConsumeAsync(int id, ConsumeOutcome outcome, double? amount) =>
+        _client.PostAsJsonAsync($"/api/items/{id}/consume", new ConsumeInput(outcome, amount), Json);
+
+    private async Task<List<ConsumeEvent>> EventsAsync(Func<ConsumeEvent, bool> match)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var events = await scope.ServiceProvider.GetRequiredService<EatUpDb>().ConsumeEvents.AsNoTracking().ToListAsync();
+        return events.Where(match).OrderBy(e => e.Id).ToList();
+    }
+
+    [Fact]
+    public async Task Partial_full_and_overshooting_consumes_record_what_was_consumed()
+    {
+        var partlyThrownAway = await AddEggsAsync();
+        var overshot = await AddEggsAsync();
+
+        await ConsumeAsync(partlyThrownAway.Id, ConsumeOutcome.Discarded, 2);
+        await ConsumeAsync(partlyThrownAway.Id, ConsumeOutcome.Used, null);
+        await ConsumeAsync(overshot.Id, ConsumeOutcome.Used, 10);
+
+        var partly = await EventsAsync(e => e.FoodItemId == partlyThrownAway.Id);
+        Assert.Equal([(2.0, ConsumeOutcome.Discarded), (4.0, ConsumeOutcome.Used)], partly.Select(e => (e.Amount, e.Outcome)));
+        Assert.All(partly, e => Assert.Equal(("Test eggs", "egg", "pcs"), (e.ItemName, e.IngredientKey, e.Unit)));
+        Assert.Equal(6, Assert.Single(await EventsAsync(e => e.FoodItemId == overshot.Id)).Amount);
+    }
+
+    [Fact]
+    public async Task Consuming_an_item_that_is_no_longer_active_is_a_conflict_and_records_nothing()
+    {
+        var eggs = await AddEggsAsync();
+        await ConsumeAsync(eggs.Id, ConsumeOutcome.Used, null);
+
+        var again = await ConsumeAsync(eggs.Id, ConsumeOutcome.Discarded, 1);
+
+        Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
+        Assert.Equal(ConsumeOutcome.Used, Assert.Single(await EventsAsync(e => e.FoodItemId == eggs.Id)).Outcome);
+    }
+
+    [Fact]
+    public async Task An_undefined_outcome_is_rejected_and_records_nothing()
+    {
+        var eggs = await AddEggsAsync();
+
+        var response = await _client.PostAsJsonAsync($"/api/items/{eggs.Id}/consume", new { outcome = 99 });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Empty(await EventsAsync(e => e.FoodItemId == eggs.Id));
+    }
+
+    [Fact]
+    public async Task A_consume_that_lost_a_race_cannot_overwrite_the_winner()
+    {
+        var eggs = await AddEggsAsync();
+        using var firstScope = _factory.Services.CreateScope();
+        using var secondScope = _factory.Services.CreateScope();
+        var first = firstScope.ServiceProvider.GetRequiredService<EatUpDb>();
+        var second = secondScope.ServiceProvider.GetRequiredService<EatUpDb>();
+        var firstCopy = (await first.Items.FindAsync(eggs.Id))!;
+        var secondCopy = (await second.Items.FindAsync(eggs.Id))!;
+        var now = DateTimeOffset.UtcNow;
+
+        first.ConsumeEvents.Add(Consumption.Consume(firstCopy, ConsumeOutcome.Used, null, now));
+        await first.SaveChangesAsync();
+        second.ConsumeEvents.Add(Consumption.Consume(secondCopy, ConsumeOutcome.Discarded, 2, now));
+
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => second.SaveChangesAsync());
+        Assert.Single(await EventsAsync(e => e.FoodItemId == eggs.Id));
+    }
+
+    [Fact]
+    public async Task Deleting_an_item_or_resetting_demo_data_keeps_its_history()
+    {
+        var deleted = await AddEggsAsync();
+        var reset = await AddEggsAsync(quantity: 12);
+        await ConsumeAsync(deleted.Id, ConsumeOutcome.Discarded, 1);
+        await ConsumeAsync(reset.Id, ConsumeOutcome.Used, 1);
+        var recorded = (await EventsAsync(_ => true)).Select(e => e.Id).ToHashSet();
+
+        await _client.DeleteAsync($"/api/items/{deleted.Id}");
+        await _client.PostAsync("/api/dev/reset-demo-data", null);
+
+        var kept = await EventsAsync(e => recorded.Contains(e.Id));
+        Assert.Equal(recorded.Count, kept.Count);
+        Assert.All(kept, e => Assert.Null(e.FoodItemId));
     }
 
     [Fact]

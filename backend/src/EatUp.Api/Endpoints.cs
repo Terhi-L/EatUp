@@ -54,6 +54,16 @@ public static class Endpoints
             return HttpMethods.IsGet(request.Method) || request.Headers.ContainsKey(ClientHeader)
                 ? await next(context)
                 : Results.Problem("Missing " + ClientHeader + " header.", statusCode: StatusCodes.Status403Forbidden);
+        }).AddEndpointFilter(async (context, next) =>
+        {
+            try
+            {
+                return await next(context);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Results.Problem("Someone else changed this at the same time. Reload and try again.", statusCode: StatusCodes.Status409Conflict);
+            }
         });
 
         api.MapGet("/health", () => new HealthDto("ok"));
@@ -116,20 +126,16 @@ public static class Endpoints
         api.MapPost("/items/{id:int}/consume", async (int id, ConsumeInput input, EatUpDb db, Pantry pantry, Catalog catalog, TimeProvider time) =>
         {
             if (await db.Items.FindAsync(id) is not { } item) return Results.NotFound();
+            if (!Enum.IsDefined(input.Outcome))
+                return Results.ValidationProblem(new Dictionary<string, string[]> { ["outcome"] = ["Unknown outcome."] });
             if (input.Amount is { } amount && (!double.IsFinite(amount) || amount <= 0))
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["amount"] = ["Amount must be more than zero."] });
-            if (input.Amount is { } part && part < item.Quantity)
-            {
-                item.Quantity -= part;
-            }
-            else
-            {
-                item.Status = input.Outcome == ConsumeOutcome.Used ? ItemStatus.Used : ItemStatus.Discarded;
-                item.StatusChangedAt = time.GetUtcNow();
-            }
+            if (!Consumption.CanConsume(item))
+                return Results.Problem($"This item is already {item.Status.ToString().ToLowerInvariant()}.", statusCode: StatusCodes.Status409Conflict);
+            db.ConsumeEvents.Add(Consumption.Consume(item, input.Outcome, input.Amount, time.GetUtcNow()));
             await db.SaveChangesAsync();
             return Results.Ok(ToDto(item, catalog, pantry.Today(await pantry.GetProfileAsync())));
-        }).Produces<ItemDto>();
+        }).Produces<ItemDto>().ProducesProblem(StatusCodes.Status409Conflict);
 
         // Catalogue & suggestions
         api.MapGet("/ingredients", async (Catalog catalog, Pantry pantry, string? search) =>

@@ -23,19 +23,21 @@ public static class DatabaseSetup
     // One-time switch from EnsureCreated: that test data can't be upgraded, and only the database file goes (vapid.json stays).
     private static async Task ResetPreMigrationDatabaseAsync(EatUpDb db, ILogger logger)
     {
-        if (!await HasExactlyEatUpTablesAsync(db))
+        if (!await HasExactlyPreMigrationTablesAsync(db))
             throw new InvalidOperationException($"The database '{db.Database.GetDbConnection().DataSource}' has tables EatUp did not create. Refusing to delete it; point ConnectionStrings:EatUp at an EatUp database.");
 
         logger.LogWarning("The database was created before EF migrations were introduced. Deleting it once and recreating it from migrations; from now on startup only upgrades it.");
         await db.Database.EnsureDeletedAsync();
     }
 
-    private static async Task<bool> HasExactlyEatUpTablesAsync(EatUpDb db)
+    // Frozen at the switch to migrations: newer tables never existed in an EnsureCreated database.
+    private static readonly HashSet<string> PreMigrationTables = ["Items", "Profiles", "PushSubscriptions", "Shopping"];
+
+    private static async Task<bool> HasExactlyPreMigrationTablesAsync(EatUpDb db)
     {
-        var modelTables = db.Model.GetEntityTypes().Select(entity => entity.GetTableName()).OfType<string>().ToHashSet();
         var databaseTables = await db.Database
             .SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")
             .ToListAsync();
-        return modelTables.SetEquals(databaseTables);
+        return PreMigrationTables.SetEquals(databaseTables);
     }
 }

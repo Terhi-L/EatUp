@@ -1,6 +1,8 @@
 using EatUp.Api.Data;
 using EatUp.Api.Domain;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace EatUp.Tests;
@@ -48,6 +50,8 @@ public sealed class DatabaseSetupTests : IDisposable
             await legacy.Database.EnsureCreatedAsync();
             legacy.Items.Add(Milk());
             await legacy.SaveChangesAsync();
+            // EnsureCreated builds today's model; databases from before migrations had no ConsumeEvents table.
+            await legacy.Database.ExecuteSqlRawAsync("DROP TABLE ConsumeEvents");
         }
 
         await using (var db = OpenDb()) await DatabaseSetup.PrepareAsync(db, NullLogger.Instance);
@@ -77,6 +81,24 @@ public sealed class DatabaseSetupTests : IDisposable
     }
 
     [Fact]
+    public async Task A_foreign_database_that_shares_a_table_name_is_never_deleted()
+    {
+        await using (var foreign = OpenDb())
+        {
+            await foreign.Database.ExecuteSqlRawAsync("CREATE TABLE Items (Text TEXT); INSERT INTO Items VALUES ('keep me');");
+        }
+
+        await using (var db = OpenDb())
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => DatabaseSetup.PrepareAsync(db, NullLogger.Instance));
+        }
+
+        await using var reopened = OpenDb();
+        var rows = await reopened.Database.SqlQueryRaw<string>("SELECT Text AS Value FROM Items").ToListAsync();
+        Assert.Equal(["keep me"], rows);
+    }
+
+    [Fact]
     public async Task A_migrated_database_keeps_its_data_on_restart()
     {
         await using (var db = OpenDb())
@@ -90,6 +112,29 @@ public sealed class DatabaseSetupTests : IDisposable
 
         await using var reopened = OpenDb();
         Assert.Single(reopened.Items);
+    }
+
+    [Fact]
+    public async Task Upgrading_records_one_consume_event_per_finished_item()
+    {
+        var discardedAt = new DateTimeOffset(2026, 11, 4, 12, 0, 0, TimeSpan.Zero);
+        await using (var db = OpenDb())
+        {
+            await db.GetService<IMigrator>().MigrateAsync("20261105153237_InitialCreate");
+            await db.Database.ExecuteSqlAsync($"""
+                INSERT INTO Items (Name, IngredientKey, Quantity, Unit, Location, ExpiryDate, Status, CreatedAt, StatusChangedAt)
+                VALUES ('Milk', 'milk', 1, 'l', 'Fridge', '2026-11-10', 'Active', '2026-11-01', NULL),
+                       ('Bread', 'bread', 2, 'pcs', 'Counter', '2026-11-05', 'Discarded', '2026-11-01', {discardedAt})
+                """);
+        }
+
+        await using (var db = OpenDb()) await DatabaseSetup.PrepareAsync(db, NullLogger.Instance);
+
+        await using var reopened = OpenDb();
+        var bread = Assert.Single(reopened.ConsumeEvents);
+        Assert.Equal(("Bread", 2.0, "pcs", ConsumeOutcome.Discarded, discardedAt),
+            (bread.ItemName, bread.Amount, bread.Unit, bread.Outcome, bread.ConsumedAt));
+        Assert.NotNull(bread.FoodItemId);
     }
 
     public void Dispose() => Directory.Delete(_dataDir, recursive: true);

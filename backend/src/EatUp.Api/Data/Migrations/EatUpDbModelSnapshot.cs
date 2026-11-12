@@ -17,6 +17,43 @@ namespace EatUp.Api.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.14");
 
+            modelBuilder.Entity("EatUp.Api.Domain.ConsumeEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("REAL");
+
+                    b.Property<DateTimeOffset>("ConsumedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("FoodItemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("IngredientKey")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FoodItemId");
+
+                    b.ToTable("ConsumeEvents");
+                });
+
             modelBuilder.Entity("EatUp.Api.Domain.FoodItem", b =>
                 {
                     b.Property<int>("Id")
@@ -44,9 +81,11 @@ namespace EatUp.Api.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<double>("Quantity")
+                        .IsConcurrencyToken()
                         .HasColumnType("REAL");
 
                     b.Property<string>("Status")
+                        .IsConcurrencyToken()
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -146,6 +185,14 @@ namespace EatUp.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Profiles");
+                });
+
+            modelBuilder.Entity("EatUp.Api.Domain.ConsumeEvent", b =>
+                {
+                    b.HasOne("EatUp.Api.Domain.FoodItem", null)
+                        .WithMany()
+                        .HasForeignKey("FoodItemId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 #pragma warning restore 612, 618
         }
