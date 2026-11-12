@@ -1,14 +1,14 @@
 ---
 id: TASK-7
 title: Record every consume as a waste-history event
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-10T13:16:00Z'
+updated_date: '2026-11-12T14:18:00Z'
 labels:
   - backend
   - domain
-  - needs-decision
 milestone: m-2
 dependencies:
   - TASK-4
@@ -53,6 +53,15 @@ created: 2026-11-10T13:16:00Z
 Revised after a Qodo Codebase Wisdom investigation (main @ 29d035a). Original title: "Record partial and full discards as waste history". Original AC: (1) every consume stores an event with item, amount, unit, outcome and date; (2) partial use unchanged; (3) domain tests first, endpoint tests cover partial and full discards; (4) decisions entry updated.
 
 Why it changed: DELETE /items and demo reset hard-delete items (Endpoints.cs:112, DemoData.cs:19), so events need a snapshot and nullable FK; consume has no Active check (Endpoints.cs:117) so re-consuming would double-count; overshoot amounts become full consumes (Endpoints.cs:121) so the event must store the remaining quantity; consume logic lives in the endpoint, so AC "domain tests first" means extracting a Domain rule; StatusChangedAt allows a backfill. cross-repo relations: none. Prior-PR search failed upstream (MT-UPSTREAM-DOWN), not checked.
+
+---
+
+author: @claude
+created: 2026-11-12T14:18:00Z
+
+---
+
+Product owner decisions (2026-11-12): backfill existing Used/Discarded items (AC #7); edit-form quantity changes stay out of scope; demo reset keeps events with item id set to null; re-consuming a non-active item returns 409.
 
 ---
 <!-- COMMENTS:END -->
