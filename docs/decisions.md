@@ -77,6 +77,6 @@ The product owner asked for a "simple short version" of the MVP **without login*
 
 - **Every consume stores a `ConsumeEvent`** with a snapshot of the item name, ingredient, amount, unit and outcome. A full or overshooting consume records the quantity that was left.
 - **History outlives the item.** Deleting an item or resetting demo data sets the event's item id to null instead of deleting the event.
-- **Consuming an item that is no longer active returns 409** and records nothing, so a double tap can't count waste twice.
+- **Consuming an item that is no longer active returns 409** and records nothing, so a double tap can't count waste twice. `Status` and `Quantity` are concurrency tokens, so two simultaneous consumes from different tabs or devices also end in one 409 instead of a double count.
 - **Existing Used/Discarded items were backfilled** as one full consume each, dated `StatusChangedAt`. Earlier partial uses were never stored and stay unknown.
 - **Quantity changes in the edit form are not recorded** as use or waste.

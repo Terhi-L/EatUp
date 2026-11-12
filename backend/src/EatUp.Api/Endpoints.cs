@@ -54,6 +54,16 @@ public static class Endpoints
             return HttpMethods.IsGet(request.Method) || request.Headers.ContainsKey(ClientHeader)
                 ? await next(context)
                 : Results.Problem("Missing " + ClientHeader + " header.", statusCode: StatusCodes.Status403Forbidden);
+        }).AddEndpointFilter(async (context, next) =>
+        {
+            try
+            {
+                return await next(context);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return Results.Problem("Someone else changed this at the same time. Reload and try again.", statusCode: StatusCodes.Status409Conflict);
+            }
         });
 
         api.MapGet("/health", () => new HealthDto("ok"));
@@ -116,6 +126,8 @@ public static class Endpoints
         api.MapPost("/items/{id:int}/consume", async (int id, ConsumeInput input, EatUpDb db, Pantry pantry, Catalog catalog, TimeProvider time) =>
         {
             if (await db.Items.FindAsync(id) is not { } item) return Results.NotFound();
+            if (!Enum.IsDefined(input.Outcome))
+                return Results.ValidationProblem(new Dictionary<string, string[]> { ["outcome"] = ["Unknown outcome."] });
             if (input.Amount is { } amount && (!double.IsFinite(amount) || amount <= 0))
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["amount"] = ["Amount must be more than zero."] });
             if (!Consumption.CanConsume(item))

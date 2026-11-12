@@ -24,6 +24,12 @@ describe('API errors', () => {
     await expect(api.product('12345678')).rejects.toThrow('Tuotetietokantaan ei saatu yhteyttä. Täytä tiedot itse.')
   })
 
+  it('explain a conflict instead of showing its status code', async () => {
+    setLanguage('Norwegian')
+    respondWith(409, { title: 'Conflict', detail: 'This item is already used.' })
+    await expect(api.consume(1, 'Used')).rejects.toThrow('Dette ble endret et annet sted.')
+  })
+
   it('fall back to the status code for anything unknown', async () => {
     setLanguage('Finnish')
     respondWith(500, { title: 'Internal Server Error' })

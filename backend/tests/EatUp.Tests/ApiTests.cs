@@ -112,6 +112,37 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
     }
 
     [Fact]
+    public async Task An_undefined_outcome_is_rejected_and_records_nothing()
+    {
+        var eggs = await AddEggsAsync();
+
+        var response = await _client.PostAsJsonAsync($"/api/items/{eggs.Id}/consume", new { outcome = 99 });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Empty(await EventsAsync(e => e.FoodItemId == eggs.Id));
+    }
+
+    [Fact]
+    public async Task A_consume_that_lost_a_race_cannot_overwrite_the_winner()
+    {
+        var eggs = await AddEggsAsync();
+        using var firstScope = _factory.Services.CreateScope();
+        using var secondScope = _factory.Services.CreateScope();
+        var first = firstScope.ServiceProvider.GetRequiredService<EatUpDb>();
+        var second = secondScope.ServiceProvider.GetRequiredService<EatUpDb>();
+        var firstCopy = (await first.Items.FindAsync(eggs.Id))!;
+        var secondCopy = (await second.Items.FindAsync(eggs.Id))!;
+        var now = DateTimeOffset.UtcNow;
+
+        first.ConsumeEvents.Add(Consumption.Consume(firstCopy, ConsumeOutcome.Used, null, now));
+        await first.SaveChangesAsync();
+        second.ConsumeEvents.Add(Consumption.Consume(secondCopy, ConsumeOutcome.Discarded, 2, now));
+
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(() => second.SaveChangesAsync());
+        Assert.Single(await EventsAsync(e => e.FoodItemId == eggs.Id));
+    }
+
+    [Fact]
     public async Task Deleting_an_item_or_resetting_demo_data_keeps_its_history()
     {
         var deleted = await AddEggsAsync();
