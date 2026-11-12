@@ -81,9 +81,11 @@ namespace EatUp.Api.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<double>("Quantity")
+                        .IsConcurrencyToken()
                         .HasColumnType("REAL");
 
                     b.Property<string>("Status")
+                        .IsConcurrencyToken()
                         .IsRequired()
                         .HasColumnType("TEXT");
 

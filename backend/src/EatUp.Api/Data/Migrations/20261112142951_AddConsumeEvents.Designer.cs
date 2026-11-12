@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EatUp.Api.Data.Migrations
 {
     [DbContext(typeof(EatUpDb))]
-    [Migration("20261112141956_AddConsumeEvents")]
+    [Migration("20261112142951_AddConsumeEvents")]
     partial class AddConsumeEvents
     {
         /// <inheritdoc />
@@ -84,9 +84,11 @@ namespace EatUp.Api.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<double>("Quantity")
+                        .IsConcurrencyToken()
                         .HasColumnType("REAL");
 
                     b.Property<string>("Status")
+                        .IsConcurrencyToken()
                         .IsRequired()
                         .HasColumnType("TEXT");
 

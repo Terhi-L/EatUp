@@ -50,6 +50,8 @@ public sealed class DatabaseSetupTests : IDisposable
             await legacy.Database.EnsureCreatedAsync();
             legacy.Items.Add(Milk());
             await legacy.SaveChangesAsync();
+            // EnsureCreated builds today's model; databases from before migrations had no ConsumeEvents table.
+            await legacy.Database.ExecuteSqlRawAsync("DROP TABLE ConsumeEvents");
         }
 
         await using (var db = OpenDb()) await DatabaseSetup.PrepareAsync(db, NullLogger.Instance);
