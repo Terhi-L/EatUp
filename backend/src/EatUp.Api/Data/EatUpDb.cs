@@ -10,6 +10,7 @@ public class EatUpDb(DbContextOptions<EatUpDb> options) : DbContext(options)
     public DbSet<UserProfile> Profiles => Set<UserProfile>();
     public DbSet<PushSubscriptionRecord> PushSubscriptions => Set<PushSubscriptionRecord>();
     public DbSet<ShoppingItem> Shopping => Set<ShoppingItem>();
+    public DbSet<ConsumeEvent> ConsumeEvents => Set<ConsumeEvent>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -28,6 +29,12 @@ public class EatUpDb(DbContextOptions<EatUpDb> options) : DbContext(options)
                 list => string.Join(',', list),
                 text => text.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(Enum.Parse<Allergen>).ToList(),
                 new ValueComparer<List<Allergen>>((a, b) => a!.SequenceEqual(b!), l => l.Aggregate(0, (h, x) => HashCode.Combine(h, x)), l => l.ToList()));
+        });
+
+        model.Entity<ConsumeEvent>(e =>
+        {
+            e.Property(c => c.Outcome).HasConversion<string>();
+            e.HasOne<FoodItem>().WithMany().HasForeignKey(c => c.FoodItemId).OnDelete(DeleteBehavior.SetNull);
         });
 
         model.Entity<PushSubscriptionRecord>().HasIndex(s => s.Endpoint).IsUnique();

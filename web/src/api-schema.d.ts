@@ -271,6 +271,15 @@ export interface paths {
                         "application/json": components["schemas"]["ItemDto"];
                     };
                 };
+                /** @description Conflict */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": components["schemas"]["ProblemDetails"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -832,6 +841,14 @@ export interface components {
             ingredientKey: null | string;
             /** Format: int32 */
             daysLeft: number;
+        };
+        ProblemDetails: {
+            type?: null | string;
+            title?: null | string;
+            /** Format: int32 */
+            status?: null | number;
+            detail?: null | string;
+            instance?: null | string;
         };
         ProductDto: {
             name: null | string;
