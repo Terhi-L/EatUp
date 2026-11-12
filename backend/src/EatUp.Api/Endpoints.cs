@@ -118,18 +118,12 @@ public static class Endpoints
             if (await db.Items.FindAsync(id) is not { } item) return Results.NotFound();
             if (input.Amount is { } amount && (!double.IsFinite(amount) || amount <= 0))
                 return Results.ValidationProblem(new Dictionary<string, string[]> { ["amount"] = ["Amount must be more than zero."] });
-            if (input.Amount is { } part && part < item.Quantity)
-            {
-                item.Quantity -= part;
-            }
-            else
-            {
-                item.Status = input.Outcome == ConsumeOutcome.Used ? ItemStatus.Used : ItemStatus.Discarded;
-                item.StatusChangedAt = time.GetUtcNow();
-            }
+            if (!Consumption.CanConsume(item))
+                return Results.Problem($"This item is already {item.Status.ToString().ToLowerInvariant()}.", statusCode: StatusCodes.Status409Conflict);
+            db.ConsumeEvents.Add(Consumption.Consume(item, input.Outcome, input.Amount, time.GetUtcNow()));
             await db.SaveChangesAsync();
             return Results.Ok(ToDto(item, catalog, pantry.Today(await pantry.GetProfileAsync())));
-        }).Produces<ItemDto>();
+        }).Produces<ItemDto>().ProducesProblem(StatusCodes.Status409Conflict);
 
         // Catalogue & suggestions
         api.MapGet("/ingredients", async (Catalog catalog, Pantry pantry, string? search) =>
