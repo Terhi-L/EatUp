@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-19T14:59:00Z'
+updated_date: '2026-11-19T15:02:00Z'
 labels:
   - backend
   - domain
@@ -25,8 +25,8 @@ The weekly health analysis needs to know per recipe: protein source, whether it 
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Every seed recipe has the nutrition tags, and a test fails if one is missing
-- [ ] #2 Tags are read into the domain model with no EF or HTTP dependencies
+- [x] #1 Every seed recipe has the nutrition tags, and a test fails if one is missing
+- [x] #2 Tags are read into the domain model with no EF or HTTP dependencies
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -37,3 +37,13 @@ The weekly health analysis needs to know per recipe: protein source, whether it 
 3. Tag all 26 recipes in Seed/catalog.json. Definitions: main protein per serving (meat/fish over egg/dairy), vegetable portions = ~100 g of veg/fruit/berries per serving excluding potatoes (5-a-day), UltraProcessed = fast food or mostly ultra-processed (none of the seed recipes).
 4. TestCatalog.Rec gets default tags. Log the tag definitions in docs/decisions.md.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+- Domain (Domain/Catalog.cs, Domain/Enums.cs, no EF/HTTP): ProteinSource enum and NutritionTags(Protein, Omega3, VegetablePortions, UltraProcessed) on Recipe. Every field is [JsonRequired], so a tag left out fails the load instead of silently becoming None/false/0. The Catalog constructor rejects recipes without tags, the same way it rejects unknown keys.
+- All 26 recipes in Seed/catalog.json are tagged. Definitions are logged in docs/decisions.md (2026-11-19): one main protein, with meat or fish winning; vegetable portions as in 5-a-day, optional ingredients included, potatoes excluded; omega-3 for fish; ultra-processed false for every seed recipe.
+- Evidence: NutritionTests. Every_seed_recipe_has_nutrition_tags, A_recipe_without_nutrition_tags_is_rejected and Nutrition_tags_missing_a_field_are_rejected (JsonException names vegetablePortions). Per-recipe cross-checks against the ingredients: Main_protein_comes_from_the_recipes_ingredients, Fish_dishes_are_an_omega3_source, Only_vegetables_and_fruit_count_as_vegetable_portions_not_potatoes.
+- Mutation check: tagging bolognese as Dairy and salmon as non-omega-3 failed exactly those two cases.
+- dotnet test 191 passed; Vitest 36 passed; typecheck passes. No API/DTO change, so no gen:api.
+<!-- SECTION:NOTES:END -->
