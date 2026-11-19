@@ -1,11 +1,11 @@
 ---
 id: TASK-11
 title: Add the "Tonight, maybe?" recipe card on desktop inventory
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-19T14:54:00Z'
+updated_date: '2026-11-19T14:59:00Z'
 labels:
   - frontend
   - design
@@ -48,3 +48,9 @@ The design canvas shows a "Tonight, maybe?" card with the top suggestion beside 
 - Strings tonight/seeRecipe in en, nb, fi (typecheck enforces same keys).
 - Evidence: e2e "Tonight, maybe? card on desktop › shows the top suggestion and links to Cook now" (Eggs in 2 days → card shows Eggs, link goes to /cook) and "› is hidden when nothing needs cooking" (Milk in 10 days, after /api/suggestions responds → no card). npm run e2e 5 passed; typecheck, lint, npm test (110 xUnit, 36 Vitest) pass. Screenshots at 1280px and 390px checked.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+The desktop inventory shows a "Tonight, maybe?" card with the top recipe suggestion (title, minutes, the items it uses) beside the urgent banner, with a "See recipe →" link to Cook now; it is not rendered when there is no suggestion and never shows on phones. Cook now and the inventory share one suggestions query (useSuggestions). Texts in en/nb/fi. Verified by two Playwright e2e tests (card shown + link; hidden when nothing needs cooking), typecheck, lint and all unit tests. Merged in PR #18 without a Qodo review (trial ended); finalised in the TASK-13.1 PR because #18 merged before this step.
+<!-- SECTION:FINAL_SUMMARY:END -->
