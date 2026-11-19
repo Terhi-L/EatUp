@@ -11,7 +11,8 @@
     "typecheck": "npm run typecheck -w web",
     "e2e": "npm run e2e -w web",
     "lint": "npm run lint -w web",
-    "gen:api": "node scripts/gen-api.mjs"
+    "gen:api": "node scripts/gen-api.mjs",
+    "gen:icons": "node scripts/gen-icons.mjs"
   },
   "devDependencies": {
     "concurrently": "^10.0.6"
