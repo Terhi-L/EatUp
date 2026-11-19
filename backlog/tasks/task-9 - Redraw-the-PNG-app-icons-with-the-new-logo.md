@@ -1,11 +1,11 @@
 ---
 id: TASK-9
 title: Redraw the PNG app icons with the new logo
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-19T14:24:00Z'
+updated_date: '2026-11-19T14:40:00Z'
 labels:
   - frontend
   - design
@@ -48,3 +48,9 @@ Only `favicon.svg` was redrawn for the new visual design; `icon-192`, `icon-512`
 - `npm run typecheck` and `npm test` (110 xUnit, 31 Vitest) pass.
 - Not checked on a real phone: already-installed apps keep the old icon until reinstalled (iOS always; Android refreshes on its own schedule).
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Every PNG app icon is now rendered from web/public/favicon.svg by `npm run gen:icons` (scripts/gen-icons.mjs, Playwright Chromium, no new dependency): icon-192/512 as the favicon, a new full-bleed icon-maskable-512.png (artwork at 80%, inside the safe zone) that the manifest's maskable entry now uses, and a full-bleed apple-touch-icon. Verified by pixel check (maskable artwork within 29.9% of the width from centre, safe zone 40%; no transparency in full-bleed icons) and a production build/preview (manifest, apple-touch-icon link and precache all serve the new PNGs). Merged in PR #16; finalised in the TASK-10 PR because #16 merged before this step. Not checked on a real phone: installed apps keep the old icon until re-added.
+<!-- SECTION:FINAL_SUMMARY:END -->
