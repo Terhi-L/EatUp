@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-19T14:40:00Z'
+updated_date: '2026-11-19T14:41:00Z'
 labels:
   - frontend
   - design
@@ -48,4 +48,6 @@ The design canvas has a search button in the phone header and a search box on de
 - No-results message names the search (en/nb/fi). Location chips and the search combine; the urgent banner and the All count still show the whole kitchen.
 - Evidence: e2e (npm run e2e, 3 passed): "the phone header search filters by name in any case and closes back to the full list" (RØM finds Rømme, kale shows the no-results text, closing restores all), "the desktop search box filters as you type and clears back to the full list" (mäm finds Mämmi only, clear restores all). Screenshots at 390px and 1280px checked: no header height jump.
 - npm run typecheck, npm run lint, npm test (110 xUnit, 36 Vitest) pass.
+
+Agent blocked on PR #17 (https://github.com/Terhi-L/EatUp/pull/17): Qodo reviews are paused because the Qodo trial has ended, so no review will arrive. Checks all pass. Asked the user: (a) wait for Qodo credits, (b) review locally instead (this PR or all PRs while Qodo is off), or (c) treat the PR as ready without a review. Reply /agent continue <answer> on the PR to resume.
 <!-- SECTION:NOTES:END -->
