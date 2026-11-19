@@ -137,6 +137,7 @@ export const nb: Strings = {
     byStatus: {
       403: 'Forespørselen ble blokkert. Last inn siden på nytt og prøv igjen.',
       404: 'Ikke funnet. Den kan ha blitt fjernet.',
+      409: 'Dette ble endret et annet sted. Listen er oppdatert nå; prøv igjen om nødvendig.',
       502: 'Fikk ikke kontakt med produktdatabasen. Fyll inn opplysningene selv.',
     },
   },

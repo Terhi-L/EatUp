@@ -23,7 +23,7 @@ The product owner asked for a "simple short version" of the MVP **without login*
 - **No ESLint or Playwright yet.** Type-checking (`tsc -b`) and Vitest cover the web app. *(Playwright smoke test and oxlint added on 2026-11-08, see below.)*
 - **VAPID keys are generated into `backend/data/vapid.json`** instead of user secrets, so `npm run dev` works with zero setup. They can be overridden with `Push:PublicKey` / `Push:PrivateKey` configuration.
 - **Suggestions never use expired items**, since use-by dates may be unsafe. Expired items still show in the inventory.
-- **Partial use** reduces the quantity and keeps the item active. A partial "thrown away" amount isn't recorded as waste yet.
+- **Partial use** reduces the quantity and keeps the item active. A partial "thrown away" amount isn't recorded as waste yet. *(Every consume is recorded as waste history since 2026-11-12, see below.)*
 - **"Meat-free"** in the UI means no meat or fish (dairy and eggs allowed). Flexitarian suggestions show at most one meat/fish option per two meat-free ones.
 
 ## 2026-11-03 · Fixes from the PR #1 code review
@@ -72,3 +72,11 @@ The product owner asked for a "simple short version" of the MVP **without login*
 - **openapi-typescript runs through `npx` with a pinned TypeScript 5**, because it needs the TypeScript 5 compiler API that TypeScript 7 dropped; the project itself stays on TypeScript 7.
 - **The document is generated in Development** so the `/api/dev` endpoints are typed too. The generator runs `Program.cs` up to `app.Run()`, so startup skips migrating and seeding the database while it runs.
 - **JSON numbers are strict**: the API no longer accepts numbers sent as strings, so the generated types say `number`, not `number | string`.
+
+## 2026-11-12 · Waste history (TASK-7)
+
+- **Every consume stores a `ConsumeEvent`** with a snapshot of the item name, ingredient, amount, unit and outcome. A full or overshooting consume records the quantity that was left.
+- **History outlives the item.** Deleting an item or resetting demo data sets the event's item id to null instead of deleting the event.
+- **Consuming an item that is no longer active returns 409** and records nothing, so a double tap can't count waste twice. `Status` and `Quantity` are concurrency tokens, so two simultaneous consumes from different tabs or devices also end in one 409 instead of a double count.
+- **Existing Used/Discarded items were backfilled** as one full consume each, dated `StatusChangedAt`. Earlier partial uses were never stored and stay unknown.
+- **Quantity changes in the edit form are not recorded** as use or waste.

@@ -138,6 +138,7 @@ export const en = {
     byStatus: {
       403: 'The request was blocked. Reload the page and try again.',
       404: 'Not found. It may have been removed.',
+      409: 'This was changed somewhere else. The list is up to date now; try again if needed.',
       502: "Couldn't reach the product database. Fill in the details yourself.",
     } as Record<number, string | undefined>,
   },

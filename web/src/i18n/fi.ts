@@ -137,6 +137,7 @@ export const fi: Strings = {
     byStatus: {
       403: 'Pyyntö estettiin. Lataa sivu uudelleen ja yritä uudestaan.',
       404: 'Ei löytynyt. Se on ehkä poistettu.',
+      409: 'Tätä muutettiin toisaalla. Lista on nyt ajan tasalla; yritä tarvittaessa uudelleen.',
       502: 'Tuotetietokantaan ei saatu yhteyttä. Täytä tiedot itse.',
     },
   },
