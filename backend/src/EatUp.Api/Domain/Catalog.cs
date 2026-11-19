@@ -16,13 +16,26 @@ public record Ingredient(
 
 public record RecipeIngredient(string Key, bool Optional = false);
 
+/// <summary>
+/// Per-serving facts for the weekly health feedback. VegetablePortions counts about 100 g of the vegetables, fruit or
+/// berries the recipe lists, optional ones included, but not potatoes (as in "5 a day"); UltraProcessed marks fast food
+/// or dishes made mostly of ultra-processed food.
+/// </summary>
+// JsonRequired: a forgotten field would otherwise load as None, false or 0 and skew the feedback unnoticed.
+public record NutritionTags(
+    [property: JsonRequired] ProteinSource Protein,
+    [property: JsonRequired] bool Omega3,
+    [property: JsonRequired] int VegetablePortions,
+    [property: JsonRequired] bool UltraProcessed);
+
 public record Recipe(
     string Key,
     string Title,
     string Description,
     int Minutes,
     RecipeIngredient[] Ingredients,
-    string[] Steps);
+    string[] Steps,
+    NutritionTags Nutrition);
 
 public record IngredientText(string Name, string[] Aliases);
 
@@ -55,7 +68,8 @@ public class Catalog
         _translations = translations ?? new Dictionary<Language, CatalogTranslation>();
 
         ThrowOnUnknownKeys();
-        _aliases = ingredients.SelectMany(AliasesOf).Where(a => a.Words.Length > 0).ToList();
+        ThrowOnUntaggedRecipes();
+        _aliases =ingredients.SelectMany(AliasesOf).Where(a => a.Words.Length > 0).ToList();
     }
 
     public IReadOnlyList<Ingredient> Ingredients { get; }
@@ -142,6 +156,13 @@ public class Catalog
             .ToList();
         if (unknown.Count > 0)
             throw new InvalidOperationException($"Catalogue references unknown keys: {string.Join(", ", unknown)}");
+    }
+
+    private void ThrowOnUntaggedRecipes()
+    {
+        var untagged = Recipes.Where(r => r.Nutrition is null).Select(r => r.Key).ToList();
+        if (untagged.Count > 0)
+            throw new InvalidOperationException($"Recipes without nutrition tags: {string.Join(", ", untagged)}");
     }
 
     public static Catalog Load(string path)
