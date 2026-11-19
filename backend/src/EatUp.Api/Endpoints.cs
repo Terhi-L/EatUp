@@ -19,7 +19,8 @@ public record ProfileDto(DietType Diet, List<Allergen> Allergens, TimeOnly Notif
 
 /// <summary>Only the fields that are set are changed, so separate edits (and the time-zone sync) can't overwrite each other.</summary>
 public record ProfileUpdate(
-    DietType? Diet, List<Allergen>? Allergens, TimeOnly? NotificationTime, string? TimeZone, bool? NotificationsEnabled, Language? Language = null);
+    DietType? Diet = null, List<Allergen>? Allergens = null, TimeOnly? NotificationTime = null, string? TimeZone = null,
+    bool? NotificationsEnabled = null, Language? Language = null);
 
 public record SuggestionDto(
     string Key, string Title, string Description, int Minutes, string[] Steps,
@@ -33,6 +34,11 @@ public record ShoppingInput(string Name, bool Done = false);
 public record PushSubscriptionInput(string Endpoint, PushKeys Keys);
 public record PushKeys(string P256dh, string Auth);
 public record EndpointInput(string Endpoint);
+public record VapidPublicKeyDto(string PublicKey);
+public record HealthDto(string Status);
+
+public record PushTestResult(int Sent);
+public record DailyCheckResultDto(int Sent, string? Title, string? Body);
 
 public static class Endpoints
 {
@@ -50,7 +56,7 @@ public static class Endpoints
                 : Results.Problem("Missing " + ClientHeader + " header.", statusCode: StatusCodes.Status403Forbidden);
         });
 
-        api.MapGet("/health", () => Results.Ok(new { status = "ok" }));
+        api.MapGet("/health", () => new HealthDto("ok"));
 
         // Profile (single user in the MVP)
         api.MapGet("/profile", async (Pantry pantry) => ToDto(await pantry.GetProfileAsync()));
@@ -69,7 +75,7 @@ public static class Endpoints
             if (input.Language is { } language) p.Language = language;
             await db.SaveChangesAsync();
             return Results.Ok(ToDto(p));
-        });
+        }).Produces<ProfileDto>();
 
         // Items
         api.MapGet("/items", async (EatUpDb db, Pantry pantry, Catalog catalog, ItemStatus? status) =>
@@ -82,7 +88,7 @@ public static class Endpoints
         api.MapGet("/items/{id:int}", async (int id, EatUpDb db, Pantry pantry, Catalog catalog) =>
             await db.Items.FindAsync(id) is { } item
                 ? Results.Ok(ToDto(item, catalog, pantry.Today(await pantry.GetProfileAsync())))
-                : Results.NotFound());
+                : Results.NotFound()).Produces<ItemDto>();
 
         api.MapPost("/items", async (ItemInput input, EatUpDb db, Pantry pantry, Catalog catalog, TimeProvider time) =>
         {
@@ -92,7 +98,7 @@ public static class Endpoints
             db.Items.Add(item);
             await db.SaveChangesAsync();
             return Results.Created($"/api/items/{item.Id}", ToDto(item, catalog, today));
-        });
+        }).Produces<ItemDto>(StatusCodes.Status201Created);
 
         api.MapPut("/items/{id:int}", async (int id, ItemInput input, EatUpDb db, Pantry pantry, Catalog catalog) =>
         {
@@ -101,10 +107,10 @@ public static class Endpoints
             if (Apply(item, input, catalog, today) is { } error) return error;
             await db.SaveChangesAsync();
             return Results.Ok(ToDto(item, catalog, today));
-        });
+        }).Produces<ItemDto>();
 
         api.MapDelete("/items/{id:int}", async (int id, EatUpDb db) =>
-            await db.Items.Where(i => i.Id == id).ExecuteDeleteAsync() > 0 ? Results.NoContent() : Results.NotFound());
+            await db.Items.Where(i => i.Id == id).ExecuteDeleteAsync() > 0 ? Results.NoContent() : Results.NotFound()).Produces(StatusCodes.Status204NoContent);
 
         // Used or thrown away. A partial amount reduces the quantity and keeps the item active.
         api.MapPost("/items/{id:int}/consume", async (int id, ConsumeInput input, EatUpDb db, Pantry pantry, Catalog catalog, TimeProvider time) =>
@@ -123,13 +129,13 @@ public static class Endpoints
             }
             await db.SaveChangesAsync();
             return Results.Ok(ToDto(item, catalog, pantry.Today(await pantry.GetProfileAsync())));
-        });
+        }).Produces<ItemDto>();
 
         // Catalogue & suggestions
         api.MapGet("/ingredients", async (Catalog catalog, Pantry pantry, string? search) =>
             catalog.Search(search, (await pantry.GetProfileAsync()).LanguageOrDefault).Take(20));
 
-        api.MapGet("/products/{barcode}", LookUpProductAsync);
+        api.MapGet("/products/{barcode}", LookUpProductAsync).Produces<ProductDto>();
 
         api.MapGet("/suggestions", async (Pantry pantry, Catalog catalog, int? limit) =>
         {
@@ -154,7 +160,7 @@ public static class Endpoints
             db.Shopping.Add(item);
             await db.SaveChangesAsync();
             return Results.Created($"/api/shopping/{item.Id}", item);
-        });
+        }).Produces<ShoppingItem>().Produces<ShoppingItem>(StatusCodes.Status201Created);
 
         api.MapPut("/shopping/{id:int}", async (int id, ShoppingInput input, EatUpDb db) =>
         {
@@ -163,19 +169,19 @@ public static class Endpoints
             item.Done = input.Done;
             await db.SaveChangesAsync();
             return Results.Ok(item);
-        });
+        }).Produces<ShoppingItem>();
 
         api.MapDelete("/shopping/{id:int}", async (int id, EatUpDb db) =>
-            await db.Shopping.Where(s => s.Id == id).ExecuteDeleteAsync() > 0 ? Results.NoContent() : Results.NotFound());
+            await db.Shopping.Where(s => s.Id == id).ExecuteDeleteAsync() > 0 ? Results.NoContent() : Results.NotFound()).Produces(StatusCodes.Status204NoContent);
 
         api.MapPost("/shopping/clear-done", async (EatUpDb db) =>
         {
             await db.Shopping.Where(s => s.Done).ExecuteDeleteAsync();
             return Results.NoContent();
-        });
+        }).Produces(StatusCodes.Status204NoContent);
 
         // Web Push
-        api.MapGet("/push/vapid-public-key", (VapidKeys keys) => new { publicKey = keys.PublicKey });
+        api.MapGet("/push/vapid-public-key", (VapidKeys keys) => new VapidPublicKeyDto(keys.PublicKey));
 
         api.MapPost("/push/subscriptions", async (PushSubscriptionInput input, EatUpDb db, TimeProvider time) =>
         {
@@ -194,13 +200,13 @@ public static class Endpoints
             }
             await db.SaveChangesAsync();
             return Results.NoContent();
-        });
+        }).Produces(StatusCodes.Status204NoContent);
 
         api.MapDelete("/push/subscriptions", async ([FromBody] EndpointInput input, EatUpDb db) =>
         {
             await db.PushSubscriptions.Where(s => s.Endpoint == input.Endpoint).ExecuteDeleteAsync();
             return Results.NoContent();
-        });
+        }).Produces(StatusCodes.Status204NoContent);
 
         if (app.Environment.IsDevelopment()) MapDevEndpoints(api.MapGroup("/dev"));
     }
@@ -210,20 +216,20 @@ public static class Endpoints
         dev.MapPost("/push/test", async (DailyCheck check) =>
         {
             var sent = await check.SendToAllAsync(new { title = "EatUp test 🥚", body = "Notifications are working!", url = "/" });
-            return new { sent };
+            return new PushTestResult(sent);
         });
 
         dev.MapPost("/run-daily-check", async (DailyCheck check) =>
         {
             var result = await check.RunAsync(force: true);
-            return new { sent = result.Sent, title = result.Message?.Title, body = result.Message?.Body };
+            return new DailyCheckResultDto(result.Sent, result.Message?.Title, result.Message?.Body);
         });
 
         dev.MapPost("/reset-demo-data", async (EatUpDb db, TimeProvider time) =>
         {
             await DemoData.ResetItemsAsync(db, time);
             return Results.NoContent();
-        });
+        }).Produces(StatusCodes.Status204NoContent);
     }
 
     private static async Task<IResult> LookUpProductAsync(

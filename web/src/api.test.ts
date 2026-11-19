@@ -30,3 +30,14 @@ describe('API errors', () => {
     await expect(api.items()).rejects.toThrow('Pyyntö epäonnistui (500)')
   })
 })
+
+describe('API writes', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('send the X-EatUp header the backend requires', async () => {
+    const fetchSpy = vi.fn<(request: Request) => Promise<Response>>(async () => new Response(null, { status: 204 }))
+    vi.stubGlobal('fetch', fetchSpy)
+    await api.deleteItem(1)
+    expect(fetchSpy.mock.calls[0][0].headers.get('X-EatUp')).toBe('1')
+  })
+})

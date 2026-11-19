@@ -52,7 +52,7 @@ Food-waste PWA: track what's in the fridge, get reminded before it expires, get 
 - Read `PLAN.md` for the roadmap and `docs/decisions.md` for how the build deviates from it. Log new deviations there.
 - Domain rules (`backend/src/EatUp.Api/Domain/`) stay free of EF/HTTP and get unit tests first.
 - Dates: `DateOnly` for expiry; compute "today" in the user's time zone via `Expiry.LocalToday`.
-- When changing an endpoint DTO in `Endpoints.cs`, update `web/src/api.ts` to match. API writes need the `X-EatUp` header (`api.ts` sends it).
+- After changing an endpoint or DTO in `Endpoints.cs`, run `npm run gen:api` and commit the regenerated `web/openapi.json` and `web/src/api-schema.d.ts`; never edit those by hand. Give an endpoint returning `IResult` a `.Produces<T>()` so its response type is generated. API writes need the `X-EatUp` header (`api.ts` sends it).
 - After changing the EF model, add a migration (`dotnet ef migrations add <Name> --project backend/src/EatUp.Api --output-dir Data/Migrations`); never make users delete their database. The `Migrations_match_the_model` test fails until you do.
 - UI text goes in all three dictionaries in `web/src/i18n/` (`en.ts` defines the keys); components read it through `web/src/strings.ts`.
 - On Windows, paths are case-insensitive: `backend/src/EatUp.Api/Data/` (source) is not `backend/data/` (runtime files); don't create a lowercase `data` folder inside the API project.
