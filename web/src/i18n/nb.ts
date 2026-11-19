@@ -27,6 +27,8 @@ export const nb: Strings = {
     clearSearch: 'Tøm søket',
     closeSearch: 'Lukk søket',
     noResults: (query: string) => `Fant ingen mat som passer til «${query.trim()}».`,
+    tonight: 'I kveld, kanskje?',
+    seeRecipe: 'Se oppskriften →',
   },
 
   urgency: {

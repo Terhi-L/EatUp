@@ -27,6 +27,8 @@ export const fi: Strings = {
     clearSearch: 'Tyhjennä haku',
     closeSearch: 'Sulje haku',
     noResults: (query: string) => `Haulla ”${query.trim()}” ei löytynyt ruokaa.`,
+    tonight: 'Ehkä tänä iltana?',
+    seeRecipe: 'Katso resepti →',
   },
 
   urgency: {

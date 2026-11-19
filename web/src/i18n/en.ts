@@ -27,6 +27,8 @@ export const en = {
     clearSearch: 'Clear search',
     closeSearch: 'Close search',
     noResults: (query: string) => `No food matches “${query.trim()}”.`,
+    tonight: 'Tonight, maybe?',
+    seeRecipe: 'See recipe →',
   },
 
   urgency: {

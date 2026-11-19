@@ -1,10 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
-import { api, type Suggestion } from '../../api'
+import type { Suggestion } from '../../api'
 import { strings } from '../../strings'
 import { ClockIcon, LeafIcon } from '../../icons'
+import { useSuggestions } from './useSuggestions'
 
 export function CookNowPage() {
-  const suggestions = useQuery({ queryKey: ['suggestions'], queryFn: api.suggestions })
+  const suggestions = useSuggestions()
 
   return (
     <div className="space-y-5">
