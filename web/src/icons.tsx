@@ -27,6 +27,8 @@ export const ClockIcon = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r
 export const BellIcon = (p: IconProps) => <Svg {...p}><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4" /></Svg>
 export const BarcodeIcon = (p: IconProps) => <Svg {...p}><path d="M3 7V4h3M18 4h3v3M21 17v3h-3M6 20H3v-3M7 8v8M10 8v8M13 8v8M17 8v8" /></Svg>
 export const LeafIcon = (p: IconProps) => <Svg {...p}><path d="M5 19C5 10 11 5 20 4c0 9-5 15-14 15zM5 19l8-8" /></Svg>
+export const SearchIcon = (p: IconProps) => <Svg {...p}><circle cx="11" cy="11" r="7" /><path d="M20 20l-4-4" /></Svg>
+export const CloseIcon = (p: IconProps) => <Svg {...p}><path d="M6 6l12 12M18 6L6 18" /></Svg>
 
 /** The pea-pod logo, drawn in the design's own colours. */
 export function Logo({ width = 44 }: { width?: number }) {

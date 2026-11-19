@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink, Route, Routes } from 'react-router'
 import { useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { api, type Profile } from './api'
@@ -7,6 +7,7 @@ import { browserTimeZone } from './lib/dates'
 import { profileChanges } from './lib/profileSync'
 import { syncPush } from './features/push/push'
 import { InventoryPage } from './features/inventory/InventoryPage'
+import { PhoneHeaderSearch } from './features/inventory/InventorySearch'
 import { ItemFormPage } from './features/inventory/ItemFormPage'
 import { CookNowPage } from './features/suggestions/CookNowPage'
 import { ProfilePage } from './features/profile/ProfilePage'
@@ -21,6 +22,8 @@ const tabs = () => [
 export function App() {
   const queryClient = useQueryClient()
   useLanguage() // re-renders the whole app in the new language when it changes
+  // Lives here because the phone header and the inventory page share it, and it survives editing an item.
+  const [inventorySearch, setInventorySearch] = useState('')
 
   useEffect(() => {
     syncProfile(queryClient).catch(() => {})
@@ -39,12 +42,17 @@ export function App() {
 
       <div className="mx-auto flex w-full max-w-lg min-w-0 flex-1 flex-col lg:max-w-6xl">
         <header className="px-4 pt-[calc(env(safe-area-inset-top)+18px)] pb-1.5 lg:hidden">
-          <Brand />
+          <Routes>
+            <Route path="/" element={
+              <PhoneHeaderSearch query={inventorySearch} onQueryChange={setInventorySearch}><Brand /></PhoneHeaderSearch>
+            } />
+            <Route path="*" element={<Brand />} />
+          </Routes>
         </header>
 
         <main className="flex-1 px-4 pt-2 pb-28 lg:px-10 lg:pt-8 lg:pb-12">
           <Routes>
-            <Route path="/" element={<InventoryPage />} />
+            <Route path="/" element={<InventoryPage search={inventorySearch} onSearchChange={setInventorySearch} />} />
             <Route path="/items/new" element={<ItemFormPage />} />
             <Route path="/items/:id" element={<ItemFormPage />} />
             <Route path="/cook" element={<CookNowPage />} />

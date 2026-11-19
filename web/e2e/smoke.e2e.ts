@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext } from '@playwright/test'
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 import { en as text } from '../src/i18n/en'
 import { addDays, localIsoDate } from '../src/lib/dates'
 
@@ -25,6 +25,50 @@ test('eggs about to expire are flagged, suggested for cooking and marked used', 
   await page.getByRole('button', { name: text.inventory.markUsed('Eggs') }).click()
   await expect(page.getByText('Eggs', { exact: true })).toHaveCount(0)
 })
+
+test.describe('inventory search', () => {
+  const names = ['Rømme', 'Mämmi', 'Milk']
+  const row = (page: Page, name: string) => page.getByRole('button', { name: text.inventory.markUsed(name) })
+
+  test.beforeEach(async ({ request }) => {
+    for (const name of names) await addItem(request, name)
+  })
+
+  test('the phone header search filters by name in any case and closes back to the full list', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto('/')
+    await page.getByRole('button', { name: text.inventory.search }).click()
+    const search = page.getByRole('searchbox', { name: text.inventory.search })
+
+    await search.fill('RØM')
+    await expect(row(page, 'Rømme')).toBeVisible()
+    await expect(row(page, 'Milk')).toHaveCount(0)
+
+    await search.fill('kale')
+    await expect(page.getByText(text.inventory.noResults('kale'))).toBeVisible()
+
+    await page.getByRole('button', { name: text.inventory.closeSearch }).click()
+    for (const name of names) await expect(row(page, name)).toBeVisible()
+  })
+
+  test('the desktop search box filters as you type and clears back to the full list', async ({ page }) => {
+    await page.goto('/')
+    const search = page.getByRole('searchbox', { name: text.inventory.search })
+
+    await search.pressSequentially('mäm')
+    await expect(row(page, 'Mämmi')).toBeVisible()
+    await expect(row(page, 'Rømme')).toHaveCount(0)
+
+    await page.getByRole('button', { name: text.inventory.clearSearch }).click()
+    for (const name of names) await expect(row(page, name)).toBeVisible()
+  })
+})
+
+async function addItem(request: APIRequestContext, name: string) {
+  const item = { name, ingredientKey: null, quantity: 1, unit: 'pcs', location: 'Fridge', expiryDate: addDays(localIsoDate(), 10), openedDate: null }
+  const response = await request.post('/api/items', { data: item, headers: { 'X-EatUp': '1' } })
+  expect(response.ok()).toBe(true)
+}
 
 async function removeAllItems(request: APIRequestContext) {
   const items: { id: number }[] = await (await request.get('/api/items')).json()
