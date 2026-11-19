@@ -5,6 +5,8 @@ import { api, type ConsumeOutcome, type Item, type StorageLocation, type Urgency
 import { strings, unitLabel } from '../../strings'
 import { AlarmIcon, CheckIcon, PlusIcon, TrashIcon, locationIcon, locationTone, urgencyTone } from '../../icons'
 import { nameMatches } from '../../lib/search'
+import { TonightCard } from '../suggestions/TonightCard'
+import { useSuggestions } from '../suggestions/useSuggestions'
 import { SearchField } from './InventorySearch'
 
 const urgencyOrder: Urgency[] = ['Expired', 'Today', 'Soon', 'Later']
@@ -15,12 +17,15 @@ type InventoryPageProps = { search: string; onSearchChange: (search: string) => 
 export function InventoryPage({ search, onSearchChange }: InventoryPageProps) {
   const [location, setLocation] = useState<StorageLocation | null>(null)
   const items = useQuery({ queryKey: ['items'], queryFn: () => api.items() })
+  const topSuggestion = useSuggestions().data?.[0]
 
   if (items.isPending) return null
   if (items.isError) return <p className="text-danger">{items.error.message}</p>
 
   const visible = items.data.filter((i) => (location === null || i.location === location) && nameMatches(i.name, search))
   const urgent = items.data.filter((i) => i.urgency === 'Today' || i.urgency === 'Soon')
+  // The Tonight card is desktop-only, so on a phone the row is hidden when it would hold nothing else.
+  const nudgeRowDisplay = urgent.length > 0 ? 'flex' : 'hidden lg:flex'
 
   return (
     <div className="space-y-5">
@@ -40,16 +45,10 @@ export function InventoryPage({ search, onSearchChange }: InventoryPageProps) {
         </div>
       </div>
 
-      {urgent.length > 0 && (
-        <div className="card flex -rotate-1 items-center gap-3 bg-fridge p-3.5 pl-4 lg:max-w-xl lg:-rotate-[0.6deg]">
-          <AlarmIcon size={30} className="flex-none" />
-          <div className="min-w-0 flex-1">
-            <p className="font-bold">{strings.inventory.urgentBanner(urgent.length)}</p>
-            <p className="mt-0.5 truncate text-[13px]">{strings.inventory.urgentNames(urgent.map((i) => i.name))}</p>
-          </div>
-          <Link to="/cook" className="flex-none rounded border-2 border-ink bg-white px-3 py-2.5 text-sm font-bold">
-            {strings.inventory.seeIdeas}
-          </Link>
+      {(urgent.length > 0 || topSuggestion) && (
+        <div className={`${nudgeRowDisplay} flex-col gap-5 lg:flex-row lg:items-start lg:gap-7`}>
+          {urgent.length > 0 && <UrgentBanner urgent={urgent} />}
+          {topSuggestion && <TonightCard suggestion={topSuggestion} className="hidden lg:flex lg:max-w-md lg:flex-1" />}
         </div>
       )}
 
@@ -96,6 +95,21 @@ export function InventoryPage({ search, onSearchChange }: InventoryPageProps) {
         className="btn-primary fixed right-4 bottom-[104px] z-10 h-[54px] text-[17px] sm:right-[calc(50%-15rem)] lg:hidden"
       >
         <PlusIcon /> {strings.inventory.add}
+      </Link>
+    </div>
+  )
+}
+
+function UrgentBanner({ urgent }: { urgent: Item[] }) {
+  return (
+    <div className="card flex -rotate-1 items-center gap-3 bg-fridge p-3.5 pl-4 lg:max-w-xl lg:flex-1 lg:-rotate-[0.6deg]">
+      <AlarmIcon size={30} className="flex-none" />
+      <div className="min-w-0 flex-1">
+        <p className="font-bold">{strings.inventory.urgentBanner(urgent.length)}</p>
+        <p className="mt-0.5 truncate text-[13px]">{strings.inventory.urgentNames(urgent.map((i) => i.name))}</p>
+      </div>
+      <Link to="/cook" className="flex-none rounded border-2 border-ink bg-white px-3 py-2.5 text-sm font-bold">
+        {strings.inventory.seeIdeas}
       </Link>
     </div>
   )

@@ -64,8 +64,31 @@ test.describe('inventory search', () => {
   })
 })
 
-async function addItem(request: APIRequestContext, name: string) {
-  const item = { name, ingredientKey: null, quantity: 1, unit: 'pcs', location: 'Fridge', expiryDate: addDays(localIsoDate(), 10), openedDate: null }
+test.describe('Tonight, maybe? card on desktop', () => {
+  const card = (page: Page) => page.getByRole('region', { name: text.inventory.tonight })
+
+  test('shows the top suggestion and links to Cook now', async ({ page, request }) => {
+    await addItem(request, 'Eggs', 2)
+    await page.goto('/')
+
+    await expect(card(page).getByText('Eggs')).toBeVisible()
+    await card(page).getByRole('link', { name: text.inventory.seeRecipe }).click()
+    await expect(page).toHaveURL('/cook')
+  })
+
+  test('is hidden when nothing needs cooking', async ({ page, request }) => {
+    await addItem(request, 'Milk', 10)
+    const suggestions = page.waitForResponse('**/api/suggestions')
+    await page.goto('/')
+    await suggestions
+
+    await expect(page.getByRole('button', { name: text.inventory.markUsed('Milk') })).toBeVisible()
+    await expect(card(page)).toHaveCount(0)
+  })
+})
+
+async function addItem(request: APIRequestContext, name: string, daysLeft = 10) {
+  const item = { name, ingredientKey: null, quantity: 1, unit: 'pcs', location: 'Fridge', expiryDate: addDays(localIsoDate(), daysLeft), openedDate: null }
   const response = await request.post('/api/items', { data: item, headers: { 'X-EatUp': '1' } })
   expect(response.ok()).toBe(true)
 }
