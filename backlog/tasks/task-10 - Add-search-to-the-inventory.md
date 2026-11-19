@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-19T14:36:00Z'
+updated_date: '2026-11-19T14:40:00Z'
 labels:
   - frontend
   - design
@@ -24,9 +24,9 @@ The design canvas has a search button in the phone header and a search box on de
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Phone header search button and desktop search box filter the inventory by item name as you type
-- [ ] #2 Search matches regardless of case and works with nb/fi names
-- [ ] #3 Clearing the search restores the full list; a no-results state is shown; texts exist in en, nb and fi
+- [x] #1 Phone header search button and desktop search box filter the inventory by item name as you type
+- [x] #2 Search matches regardless of case and works with nb/fi names
+- [x] #3 Clearing the search restores the full list; a no-results state is shown; texts exist in en, nb and fi
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -39,3 +39,13 @@ The design canvas has a search button in the phone header and a search box on de
 5. Strings in en/nb/fi; Search and Close icons in icons.tsx.
 6. Verify: Vitest, typecheck, e2e test for phone and desktop search.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+- Rule web/src/lib/search.ts nameMatches, test-first (search.test.ts, 5 tests): substring, case-insensitive incl. Ø/Å/Æ/Ä/Ö, NFC-normalised so decomposed å/ä match, å/ö stay distinct from a/o, blank search matches all.
+- Search text is App state shared by PhoneHeaderSearch (phone header on "/" only: search button opens the field in place of the brand; its × and Escape clear and close) and the desktop SearchField next to Add food (× and Escape clear). It survives opening an item and coming back.
+- No-results message names the search (en/nb/fi). Location chips and the search combine; the urgent banner and the All count still show the whole kitchen.
+- Evidence: e2e (npm run e2e, 3 passed): "the phone header search filters by name in any case and closes back to the full list" (RØM finds Rømme, kale shows the no-results text, closing restores all), "the desktop search box filters as you type and clears back to the full list" (mäm finds Mämmi only, clear restores all). Screenshots at 390px and 1280px checked: no header height jump.
+- npm run typecheck, npm run lint, npm test (110 xUnit, 36 Vitest) pass.
+<!-- SECTION:NOTES:END -->
