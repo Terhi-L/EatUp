@@ -1,11 +1,11 @@
 ---
 id: TASK-10
 title: Add search to the inventory
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-19T14:41:00Z'
+updated_date: '2026-11-19T14:47:00Z'
 labels:
   - frontend
   - design
@@ -50,4 +50,12 @@ The design canvas has a search button in the phone header and a search box on de
 - npm run typecheck, npm run lint, npm test (110 xUnit, 36 Vitest) pass.
 
 Agent blocked on PR #17 (https://github.com/Terhi-L/EatUp/pull/17): Qodo reviews are paused because the Qodo trial has ended, so no review will arrive. Checks all pass. Asked the user: (a) wait for Qodo credits, (b) review locally instead (this PR or all PRs while Qodo is off), or (c) treat the PR as ready without a review. Reply /agent continue <answer> on the PR to resume.
+
+User chose to continue without a Qodo review (trial ended); PR #17: https://github.com/Terhi-L/EatUp/pull/17
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+The inventory can be searched by item name: a search button in the phone header (My food only) opens a search box in place of the brand, and desktop has a search box next to Add food. Matching (web/src/lib/search.ts, unit-tested) is a case-insensitive substring match, NFC-normalised so Norwegian/Finnish letters match however they were typed, with å/ö kept distinct from a/o. Clearing (× or Escape) restores the full list; no matches shows a message in en/nb/fi. The search text lives in App state so it survives opening an item. Verified by typecheck, lint, 110 xUnit + 36 Vitest tests and two new Playwright e2e tests (phone and desktop). Merged without a Qodo review because the Qodo trial ended; the user chose to continue.
+<!-- SECTION:FINAL_SUMMARY:END -->
