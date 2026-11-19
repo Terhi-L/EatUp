@@ -22,6 +22,11 @@ export const fi: Strings = {
     urgentNames: (names: string[]) =>
       names.length <= 3 ? names.join(', ') : `${names.slice(0, 3).join(', ')} ja ${names.length - 3} muuta`,
     seeIdeas: 'Ideoita →',
+    search: 'Hae',
+    searchPlaceholder: 'Hae ruokiasi',
+    clearSearch: 'Tyhjennä haku',
+    closeSearch: 'Sulje haku',
+    noResults: (query: string) => `Haulla ”${query.trim()}” ei löytynyt ruokaa.`,
   },
 
   urgency: {

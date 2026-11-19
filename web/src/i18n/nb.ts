@@ -22,6 +22,11 @@ export const nb: Strings = {
     urgentNames: (names: string[]) =>
       names.length <= 3 ? names.join(', ') : `${names.slice(0, 3).join(', ')} og ${names.length - 3} til`,
     seeIdeas: 'Ideer →',
+    search: 'Søk',
+    searchPlaceholder: 'Søk i maten din',
+    clearSearch: 'Tøm søket',
+    closeSearch: 'Lukk søket',
+    noResults: (query: string) => `Fant ingen mat som passer til «${query.trim()}».`,
   },
 
   urgency: {

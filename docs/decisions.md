@@ -7,7 +7,7 @@ Short log of decisions and deliberate deviations from [PLAN.md](../PLAN.md). New
 The UI now follows the "EatUp" design canvas (ink outlines, hard shadows, pastel tones on grid paper, Caveat Brush + Shantell Sans, SVG icons instead of emoji). Tokens live in `web/src/index.css` (`@theme`), icons in `web/src/icons.tsx`. Not carried over from the design yet:
 
 - **No Shopping tab**: there's no shopping-list feature, so the nav has 3 tabs.
-- **No search** (phone header button, desktop search box) and **no "Tonight, maybe?" recipe card** on the desktop inventory.
+- **No search** (phone header button, desktop search box) and **no "Tonight, maybe?" recipe card** on the desktop inventory. *(Search added on 2026-11-19: it filters by item name and is kept while you edit an item.)*
 - **Desktop keeps four urgency groups** instead of merging "Gone off" and "Eat today" into one "Eat now" column.
 - **PNG app icons** (`icon-192/512`, `apple-touch-icon`) still show the old green logo; only `favicon.svg` was redrawn. *(Fixed on 2026-11-19: `npm run gen:icons` renders every PNG, plus a separate `icon-maskable-512.png`, from `favicon.svg`.)*
 

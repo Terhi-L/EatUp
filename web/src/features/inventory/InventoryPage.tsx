@@ -4,18 +4,22 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, type ConsumeOutcome, type Item, type StorageLocation, type Urgency } from '../../api'
 import { strings, unitLabel } from '../../strings'
 import { AlarmIcon, CheckIcon, PlusIcon, TrashIcon, locationIcon, locationTone, urgencyTone } from '../../icons'
+import { nameMatches } from '../../lib/search'
+import { SearchField } from './InventorySearch'
 
 const urgencyOrder: Urgency[] = ['Expired', 'Today', 'Soon', 'Later']
 const locations: StorageLocation[] = ['Fridge', 'Freezer', 'Cupboard', 'Counter']
 
-export function InventoryPage() {
+type InventoryPageProps = { search: string; onSearchChange: (search: string) => void }
+
+export function InventoryPage({ search, onSearchChange }: InventoryPageProps) {
   const [location, setLocation] = useState<StorageLocation | null>(null)
   const items = useQuery({ queryKey: ['items'], queryFn: () => api.items() })
 
   if (items.isPending) return null
   if (items.isError) return <p className="text-danger">{items.error.message}</p>
 
-  const visible = items.data.filter((i) => location === null || i.location === location)
+  const visible = items.data.filter((i) => (location === null || i.location === location) && nameMatches(i.name, search))
   const urgent = items.data.filter((i) => i.urgency === 'Today' || i.urgency === 'Soon')
 
   return (
@@ -28,9 +32,12 @@ export function InventoryPage() {
             <path d="M2 6 L188 4" stroke="var(--color-accent)" strokeWidth="5" strokeLinecap="round" />
           </svg>
         </div>
-        <Link to="/items/new" className="btn-primary hidden h-[50px] text-[17px] lg:inline-flex">
-          <PlusIcon /> {strings.inventory.add}
-        </Link>
+        <div className="hidden items-center gap-3 lg:flex">
+          <SearchField query={search} onQueryChange={onSearchChange} className="w-72" />
+          <Link to="/items/new" className="btn-primary h-[50px] text-[17px]">
+            <PlusIcon /> {strings.inventory.add}
+          </Link>
+        </div>
       </div>
 
       {urgent.length > 0 && (
@@ -61,7 +68,7 @@ export function InventoryPage() {
         })}
       </div>
 
-      {visible.length === 0 && <p className="py-8 text-center text-muted">{strings.inventory.empty}</p>}
+      {visible.length === 0 && <p className="py-8 text-center text-muted">{emptyMessage(search)}</p>}
 
       <div className="grid gap-[18px] lg:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] lg:items-start lg:gap-7">
         {urgencyOrder.map((urgency) => {
@@ -92,6 +99,10 @@ export function InventoryPage() {
       </Link>
     </div>
   )
+}
+
+function emptyMessage(search: string) {
+  return search.trim() === '' ? strings.inventory.empty : strings.inventory.noResults(search)
 }
 
 function ItemRow({ item }: { item: Item }) {

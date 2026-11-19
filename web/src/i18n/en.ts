@@ -22,6 +22,11 @@ export const en = {
     urgentNames: (names: string[]) =>
       names.length <= 3 ? names.join(', ') : `${names.slice(0, 3).join(', ')} and ${names.length - 3} more`,
     seeIdeas: 'Ideas →',
+    search: 'Search',
+    searchPlaceholder: 'Search your food',
+    clearSearch: 'Clear search',
+    closeSearch: 'Close search',
+    noResults: (query: string) => `No food matches “${query.trim()}”.`,
   },
 
   urgency: {
