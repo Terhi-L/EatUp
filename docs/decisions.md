@@ -72,3 +72,12 @@ The product owner asked for a "simple short version" of the MVP **without login*
 - **openapi-typescript runs through `npx` with a pinned TypeScript 5**, because it needs the TypeScript 5 compiler API that TypeScript 7 dropped; the project itself stays on TypeScript 7.
 - **The document is generated in Development** so the `/api/dev` endpoints are typed too. The generator runs `Program.cs` up to `app.Run()`, so startup skips migrating and seeding the database while it runs.
 - **JSON numbers are strict**: the API no longer accepts numbers sent as strings, so the generated types say `number`, not `number | string`.
+
+## 2026-11-19 · Recipe nutrition tags
+
+The weekly health feedback (PLAN.md phase 7) reads four tags per recipe from `Seed/catalog.json`. The values are estimates per serving, so the feedback can only be as precise as they are:
+
+- **One main protein per dish** (`None`, `Legumes`, `Egg`, `Dairy`, `Fish`, `Poultry`, `RedMeat`, `ProcessedMeat`). Meat or fish wins over egg or dairy in the same dish, so ham and cheese omelette counts as processed meat. Tofu counts as legumes. `None` means little protein: pasta with cream cheese, mushrooms on toast with cream and avocado on toast are `None`.
+- **Vegetable portions** follow "5 a day": about 100 g of the vegetables, fruit or berries the recipe lists, optional ones included. Potatoes don't count.
+- **Omega-3** is true for fish dishes. Plant sources such as walnuts, flax and chia count once a recipe uses them.
+- **Ultra-processed / fast food** is false for every seed recipe. It is there for future recipes and planned meals.

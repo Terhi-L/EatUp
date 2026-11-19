@@ -13,6 +13,9 @@ public enum DietType { Omnivore, Flexitarian, Pescatarian, Vegetarian, Vegan }
 /// <summary>The kind of animal product an ingredient is, used to decide diet suitability.</summary>
 public enum AnimalProduct { None, Dairy, Egg, Fish, Meat }
 
+/// <summary>A dish's main protein, for the weekly health feedback. Meat or fish wins over egg or dairy in the same dish.</summary>
+public enum ProteinSource { None, Legumes, Egg, Dairy, Fish, Poultry, RedMeat, ProcessedMeat }
+
 /// <summary>The 14 EU major allergens.</summary>
 public enum Allergen
 {

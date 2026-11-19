@@ -8,8 +8,10 @@ public static class TestCatalog
     public static Ingredient Ing(string key, AnimalProduct animal = AnimalProduct.None, params Allergen[] allergens) =>
         new(key, key, [key], "Test", allergens, animal, new() { [StorageLocation.Fridge] = 7 }, null);
 
+    public static readonly NutritionTags NoNutrition = new(ProteinSource.None, Omega3: false, VegetablePortions: 0, UltraProcessed: false);
+
     public static Recipe Rec(string key, params string[] ingredients) =>
-        new(key, key, "", 10, ingredients.Select(i => new RecipeIngredient(i.TrimEnd('?'), i.EndsWith('?'))).ToArray(), []);
+        new(key, key, "", 10, ingredients.Select(i => new RecipeIngredient(i.TrimEnd('?'), i.EndsWith('?'))).ToArray(), [], NoNutrition);
 
     public static readonly Catalog Default = new(
         [
