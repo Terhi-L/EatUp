@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { NavLink, Route, Routes } from 'react-router'
-import { useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { useQueryClient, type Query, type QueryClient } from '@tanstack/react-query'
 import { api, type Profile } from './api'
 import { language, setLanguage, strings, useLanguage } from './strings'
 import { browserTimeZone } from './lib/dates'
@@ -80,7 +80,10 @@ async function syncProfile(queryClient: QueryClient) {
   if (Object.keys(changes).length === 0) return
   queryClient.setQueryData<Profile>(['profile'], await api.updateProfile(changes))
   // Anything fetched before this save used the old language (names) or time zone (days left, months in the stats).
-  await queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] !== 'profile' })
+  // Cancel first: a refresh reuses a first load that is still running, which would keep the old answer.
+  const allButProfile = { predicate: (query: Query) => query.queryKey[0] !== 'profile' }
+  await queryClient.cancelQueries(allButProfile)
+  await queryClient.invalidateQueries(allButProfile)
 }
 
 function Brand({ large = false }: { large?: boolean }) {

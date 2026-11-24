@@ -116,7 +116,41 @@ test.describe('start-up time zone sync', () => {
       await request.patch('/api/profile', { data: { timeZone: before.timeZone }, headers })
     }
   })
+
+  test('restarts a first stats load that was still running when the time zone changed', async ({ page, request }) => {
+    const headers = { 'X-EatUp': '1' }
+    const before: { timeZone: string } = await (await request.get('/api/profile')).json()
+    await request.patch('/api/profile', { data: { timeZone: 'UTC', language: 'English' }, headers })
+    try {
+      let statsCalls = 0
+      await page.route('**/api/stats/waste', async (route) => {
+        statsCalls += 1
+        if (statsCalls > 1) return route.continue()
+        // The first load stays in flight until a fresh one starts, as when the network is slow.
+        await waitUntil(() => statsCalls > 1)
+        await route.continue().catch(() => {})
+      })
+      await page.route('**/api/profile', async (route) => {
+        if (route.request().method() !== 'PATCH') return route.continue()
+        await waitUntil(() => statsCalls > 0)
+        await route.continue()
+      })
+
+      await page.goto('/profile')
+
+      await expect(page.getByRole('heading', { name: text.waste.title })).toBeVisible()
+      expect(statsCalls).toBeGreaterThan(1)
+    } finally {
+      await page.unrouteAll({ behavior: 'ignoreErrors' })
+      await request.patch('/api/profile', { data: { timeZone: before.timeZone }, headers })
+    }
+  })
 })
+
+async function waitUntil(condition: () => boolean, timeoutMs = 15_000) {
+  const start = Date.now()
+  while (!condition() && Date.now() - start < timeoutMs) await new Promise((resolve) => setTimeout(resolve, 50))
+}
 
 test.describe('waste stats on Profile', () => {
   test('explain there is nothing yet instead of showing zeros', async ({ page }) => {
