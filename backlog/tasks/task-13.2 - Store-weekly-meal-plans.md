@@ -1,11 +1,11 @@
 ---
 id: TASK-13.2
 title: Store weekly meal plans
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-24T11:07:00Z'
+updated_date: '2026-11-24T11:15:00Z'
 labels:
   - backend
 milestone: m-3
@@ -50,4 +50,12 @@ Evidence per AC (npm test: 234 xUnit + 37 Vitest pass; typecheck + oxlint clean)
 #3 Monday weeks in the user's time zone: MealPlanningTests.A_week_starts_on_the_Monday_on_or_before_the_date, MealPlanApiTests.The_current_week_starts_on_Monday_in_the_users_time_zone (Sunday 23:30 UTC in Europe/Oslo gives the week of Monday 2026-11-30).
 #4 Migration AddMealPlans (DatabaseSetupTests.Migrations_match_the_model passes); validation covered by the API tests above plus A_meal_without_a_slot_or_date_is_rejected_instead_of_defaulting.
 Qodo local review before commit: round 1 found 3 (missing slot became breakfast, Location had no GET, concurrent first saves gave 500), all fixed test-first; round 2 resolved all 3 with none open.
+
+PR: https://github.com/Terhi-L/EatUp/pull/23. Quality gate (AGENTS.md rule 7, PR #22) applied: round 1 on 1a2f348 found 2 Medium (Rule violation: JSON attributes in the domain record; Bug: contract required unused fields), both fixed in e0e73ef; round 2 complete review on e0e73ef has 0 open findings and no Low findings.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Weekly meal plans are stored and served by the API (PLAN.md phase 7, storage only; UI is TASK-13.4). Domain/MealPlanning (tests first) defines Monday-based weeks and the recipe-or-free-text rule; MealPlan (unique week) and PlannedMeal are added by migration AddMealPlans with a check constraint; /api/meal-plans serves the current week in the user's time zone, any week by date, and CRUD for meals, with PlannedMealInput as the API request shape. Verification: 235 xUnit + 37 Vitest pass, typecheck and oxlint clean; Qodo local review (3 findings fixed before commit) and PR review (2 Medium fixed) leave no open findings. Follow-ups: translated error texts for the new fields come with TASK-13.4.
+<!-- SECTION:FINAL_SUMMARY:END -->
