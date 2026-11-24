@@ -1,4 +1,5 @@
 import type { Allergen, DietType, StorageLocation, Urgency } from '../api'
+import type { Encouragement } from '../lib/wasteStats'
 
 const locale = 'en-GB'
 
@@ -101,6 +102,22 @@ export const en = {
     timeZone: (tz: string) => `Time zone: ${tz}`,
     saved: 'Saved',
     language: 'Language',
+  },
+
+  waste: {
+    title: 'Your food',
+    thisMonth: (month: string) => `In ${month}`,
+    used: (n: number) => (n === 1 ? '1 item eaten' : `${n} items eaten`),
+    discarded: (n: number) => (n === 1 ? '1 item thrown out' : `${n} items thrown out`),
+    lastMonth: (month: string, used: number, discarded: number) => `In ${month}: ${used} eaten, ${discarded} thrown out`,
+    empty: 'Nothing here yet. Mark food as eaten or thrown out, and your month shows up here.',
+    encouragement: {
+      quietMonth: 'Nothing recorded yet this month. Mark what you eat or throw out to see it here.',
+      nothingWasted: 'Nothing thrown out this month. Brilliant!',
+      lessThanLastMonth: 'Less thrown out than last month. Keep it up!',
+      moreUsedThanWasted: 'You ate more than you threw out. Nice work!',
+      keepGoing: 'Every item you eat in time counts. Keep going!',
+    } satisfies Record<Encouragement, string>,
   },
 
   diet: {

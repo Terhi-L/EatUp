@@ -39,7 +39,10 @@ public class EatUpDb(DbContextOptions<EatUpDb> options) : DbContext(options)
         model.Entity<ConsumeEvent>(e =>
         {
             e.Property(c => c.Outcome).HasConversion<string>();
-            e.HasOne<FoodItem>().WithMany().HasForeignKey(c => c.FoodItemId).OnDelete(DeleteBehavior.SetNull);
+            // No foreign key: history outlives the item and keeps its id (item ids are never reused), so the
+            // waste stats still see one item behind several partial uses after it is deleted.
+            e.HasIndex(c => c.FoodItemId);
+            e.HasIndex(c => c.ConsumedAt);
         });
 
         model.Entity<MealPlan>(e =>

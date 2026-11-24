@@ -76,7 +76,7 @@ The product owner asked for a "simple short version" of the MVP **without login*
 ## 2026-11-12 · Waste history (TASK-7)
 
 - **Every consume stores a `ConsumeEvent`** with a snapshot of the item name, ingredient, amount, unit and outcome. A full or overshooting consume records the quantity that was left.
-- **History outlives the item.** Deleting an item or resetting demo data sets the event's item id to null instead of deleting the event.
+- **History outlives the item.** Deleting an item or resetting demo data keeps its events. *(Since 2026-11-24 the events also keep the item id: there is no foreign key, and item ids are never reused. Before that, deletes set it to null; see TASK-8 below.)*
 - **Consuming an item that is no longer active returns 409** and records nothing, so a double tap can't count waste twice. `Status` and `Quantity` are concurrency tokens, so two simultaneous consumes from different tabs or devices also end in one 409 instead of a double count.
 - **Existing Used/Discarded items were backfilled** as one full consume each, dated `StatusChangedAt`. Earlier partial uses were never stored and stay unknown.
 - **Quantity changes in the edit form are not recorded** as use or waste.
@@ -98,3 +98,11 @@ The weekly health feedback (PLAN.md phase 7) reads four tags per recipe from `Se
 - **Recipe titles are looked up when read**, in the user's language. A meal whose recipe later leaves the catalogue keeps its key and has no title.
 - **Error texts for the new fields** (`meal`, `slot`, `date`, `recipeKey`, `freeText`) are not translated yet. The planner UI adds them to the dictionaries along with its other text.
 - **A week row is created with one atomic `INSERT OR IGNORE`**, so first meals saved at the same moment (a double tap on an empty week) all land in the same week instead of colliding on its unique index.
+
+## 2026-11-24 · Waste statistics (TASK-8)
+
+- **Counts are items touched**: each item once per outcome per calendar month in the user's time zone, so an item partly used and partly thrown away counts in both (product owner's choice). Events of items deleted before 2026-11-24 lost their item id and count one each.
+- **The stats load only recent events**: from two days before last month began, filtered in SQL on the UTC text column, because EF can't compare `DateTimeOffset` on SQLite. The month split itself is exact.
+- **They live on Profile** and refresh hourly, so a page left open over the 1st moves on to the new month.
+- **Reading them needs no credential**, like the other GET endpoints (`/api/items?status=Discarded` already shows more). Access control comes with accounts (TASK-16); accepted by the product owner.
+- **Norwegian and Finnish texts** await a native speaker's review.

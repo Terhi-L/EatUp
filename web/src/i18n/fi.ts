@@ -2,6 +2,9 @@ import type { Strings } from './en'
 
 const locale = 'fi-FI'
 
+// Every Finnish month name ends in "kuu", so "in <month>" is always "<Month>ssa" (marraskuu → Marraskuussa).
+const inMonth = (month: string) => `${month.charAt(0).toUpperCase()}${month.slice(1)}ssa`
+
 // Finnish. Drafted from the English text; have a native speaker review changes.
 export const fi: Strings = {
   locale,
@@ -101,6 +104,22 @@ export const fi: Strings = {
     timeZone: (tz: string) => `Aikavyöhyke: ${tz}`,
     saved: 'Tallennettu',
     language: 'Kieli',
+  },
+
+  waste: {
+    title: 'Ruokasi',
+    thisMonth: (month: string) => inMonth(month),
+    used: (n: number) => (n === 1 ? '1 tuote syöty' : `${n} tuotetta syöty`),
+    discarded: (n: number) => (n === 1 ? '1 tuote heitetty pois' : `${n} tuotetta heitetty pois`),
+    lastMonth: (month: string, used: number, discarded: number) => `${inMonth(month)}: ${used} syöty, ${discarded} heitetty pois`,
+    empty: 'Täällä ei ole vielä mitään. Merkitse ruoka syödyksi tai poisheitetyksi, niin kuukautesi näkyy täällä.',
+    encouragement: {
+      quietMonth: 'Tässä kuussa ei ole vielä merkintöjä. Merkitse, mitä syöt tai heität pois, niin näet sen täällä.',
+      nothingWasted: 'Tässä kuussa ei ole heitetty mitään pois. Loistavaa!',
+      lessThanLastMonth: 'Vähemmän hävikkiä kuin viime kuussa. Jatka samaan malliin!',
+      moreUsedThanWasted: 'Olet syönyt enemmän kuin heittänyt pois. Hienoa!',
+      keepGoing: 'Jokainen ajoissa syöty tuote on tärkeä. Jatka samaan malliin!',
+    },
   },
 
   diet: {

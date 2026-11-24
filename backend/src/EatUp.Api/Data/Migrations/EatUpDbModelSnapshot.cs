@@ -49,6 +49,8 @@ namespace EatUp.Api.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ConsumedAt");
+
                     b.HasIndex("FoodItemId");
 
                     b.ToTable("ConsumeEvents");
@@ -235,14 +237,6 @@ namespace EatUp.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Profiles");
-                });
-
-            modelBuilder.Entity("EatUp.Api.Domain.ConsumeEvent", b =>
-                {
-                    b.HasOne("EatUp.Api.Domain.FoodItem", null)
-                        .WithMany()
-                        .HasForeignKey("FoodItemId")
-                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("EatUp.Api.Domain.PlannedMeal", b =>

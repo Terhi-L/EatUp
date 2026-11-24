@@ -20,6 +20,7 @@ export type ConsumeOutcome = Schemas['ConsumeOutcome']
 export type Language = NonNullable<Schemas['Language']>
 export type DietType = Schemas['DietType']
 export type Allergen = Schemas['Allergen']
+export type WasteSummary = Schemas['WasteSummary']
 
 export class ApiError extends Error {
   constructor(message: string, readonly status: number) {
@@ -76,6 +77,7 @@ export const api = {
   ingredients: (search: string) => unwrap(client.GET('/api/ingredients', { params: { query: { search } } })),
   product: (barcode: string) => unwrap(client.GET('/api/products/{barcode}', { params: { path: { barcode } } })),
   suggestions: () => unwrap(client.GET('/api/suggestions')),
+  wasteStats: () => unwrap(client.GET('/api/stats/waste')),
 
   vapidPublicKey: () => unwrap(client.GET('/api/push/vapid-public-key')).then((r) => r.publicKey),
   subscribe: (subscription: PushSubscriptionJSON) =>

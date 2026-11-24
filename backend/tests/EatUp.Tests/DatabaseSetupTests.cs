@@ -137,6 +137,61 @@ public sealed class DatabaseSetupTests : IDisposable
         Assert.NotNull(bread.FoodItemId);
     }
 
+    [Fact]
+    public async Task Upgrading_keeps_consume_history_and_lets_it_outlive_its_item()
+    {
+        var consumedAt = new DateTimeOffset(2026, 11, 20, 18, 0, 0, TimeSpan.Zero);
+        await using (var db = OpenDb())
+        {
+            await db.GetService<IMigrator>().MigrateAsync("20261124100549_AddMealPlans");
+            db.Items.Add(Milk());
+            await db.SaveChangesAsync();
+            var milkId = db.Items.Single().Id;
+            db.ConsumeEvents.AddRange(
+                new ConsumeEvent { FoodItemId = milkId, ItemName = "Milk", Amount = 0.25, Unit = "l", Outcome = ConsumeOutcome.Used, ConsumedAt = consumedAt },
+                new ConsumeEvent { FoodItemId = milkId, ItemName = "Milk", Amount = 0.25, Unit = "l", Outcome = ConsumeOutcome.Used, ConsumedAt = consumedAt });
+            await db.SaveChangesAsync();
+        }
+
+        await using (var db = OpenDb()) await DatabaseSetup.PrepareAsync(db, NullLogger.Instance);
+        await using (var db = OpenDb()) await db.Items.ExecuteDeleteAsync();
+
+        await using var reopened = OpenDb();
+        var events = await reopened.ConsumeEvents.ToListAsync();
+        Assert.Equal(2, events.Count);
+        Assert.All(events, e => Assert.Equal((consumedAt, true), (e.ConsumedAt, e.FoodItemId is not null)));
+    }
+
+    [Fact]
+    public async Task Rolling_back_clears_only_item_ids_whose_item_is_gone()
+    {
+        int keptId, deletedId;
+        await using (var db = OpenDb())
+        {
+            await DatabaseSetup.PrepareAsync(db, NullLogger.Instance);
+            db.Items.AddRange(Milk(), Milk());
+            await db.SaveChangesAsync();
+            (keptId, deletedId) = (db.Items.Min(i => i.Id), db.Items.Max(i => i.Id));
+            db.ConsumeEvents.AddRange(UsedMilk(keptId), UsedMilk(deletedId));
+            await db.SaveChangesAsync();
+            await db.Items.Where(i => i.Id == deletedId).ExecuteDeleteAsync();
+        }
+
+        await using (var db = OpenDb()) await db.GetService<IMigrator>().MigrateAsync("20261124100549_AddMealPlans");
+
+        await using var reopened = OpenDb();
+        var itemIds = await reopened.ConsumeEvents.OrderBy(e => e.Id).Select(e => e.FoodItemId).ToListAsync();
+        Assert.Equal([keptId, null], itemIds);
+        var brokenLinks = await reopened.Database.SqlQueryRaw<int>("SELECT COUNT(*) AS Value FROM pragma_foreign_key_check('ConsumeEvents')").SingleAsync();
+        Assert.Equal(0, brokenLinks);
+    }
+
+    private static ConsumeEvent UsedMilk(int itemId) => new()
+    {
+        FoodItemId = itemId, ItemName = "Milk", Amount = 0.5, Unit = "l", Outcome = ConsumeOutcome.Used,
+        ConsumedAt = new DateTimeOffset(2026, 11, 20, 18, 0, 0, TimeSpan.Zero),
+    };
+
     private static async Task DropTablesExceptAsync(EatUpDb db, params string[] keep)
     {
         var tables = await db.Database

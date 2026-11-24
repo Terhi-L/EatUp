@@ -87,6 +87,79 @@ test.describe('Tonight, maybe? card on desktop', () => {
   })
 })
 
+test.describe('start-up time zone sync', () => {
+  test.use({ timezoneId: 'Pacific/Kiritimati' })
+
+  test('fetches the stats again once the profile has the device time zone', async ({ page, request }) => {
+    const headers = { 'X-EatUp': '1' }
+    const before: { timeZone: string } = await (await request.get('/api/profile')).json()
+    // English is pinned so only the time zone changes; a first language save would refresh everything anyway.
+    await request.patch('/api/profile', { data: { timeZone: 'UTC', language: 'English' }, headers })
+    try {
+      const events: string[] = []
+      await page.route('**/api/profile', async (route) => {
+        if (route.request().method() !== 'PATCH') return route.continue()
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+        const response = await route.fetch()
+        events.push('patch')
+        await route.fulfill({ response })
+      })
+      await page.route('**/api/stats/waste', (route) => {
+        events.push('stats')
+        return route.continue()
+      })
+
+      await page.goto('/profile')
+
+      await expect.poll(() => events.includes('patch') && events.lastIndexOf('stats') > events.indexOf('patch')).toBe(true)
+    } finally {
+      await request.patch('/api/profile', { data: { timeZone: before.timeZone }, headers })
+    }
+  })
+})
+
+test.describe('waste stats on Profile', () => {
+  test('explain there is nothing yet instead of showing zeros', async ({ page }) => {
+    // Other tests leave history in the shared database, so this one answers the stats call itself.
+    const none = { year: 2026, month: 11, used: 0, discarded: 0 }
+    await page.route('**/api/stats/waste', (route) => route.fulfill({ json: { thisMonth: none, lastMonth: none, hasHistory: false } }))
+    await page.goto('/profile')
+
+    await expect(page.getByText(text.waste.empty)).toBeVisible()
+    await expect(page.getByText(text.waste.used(0))).toHaveCount(0)
+  })
+
+  test('refresh while the page stays open, so a new month shows up without reloading', async ({ page }) => {
+    await page.clock.install()
+    const month = { year: 2026, month: 11, used: 2, discarded: 0 }
+    let calls = 0
+    await page.route('**/api/stats/waste', (route) => {
+      calls += 1
+      return route.fulfill({ json: { thisMonth: month, lastMonth: month, hasHistory: true } })
+    })
+    await page.goto('/profile')
+    await expect(page.getByText(text.waste.used(2))).toBeVisible()
+    // The profile sync on start-up refetches everything once; count from after it settles.
+    await page.waitForLoadState("networkidle")
+    const callsBefore = calls
+
+    await page.clock.fastForward('01:00:00')
+
+    await expect.poll(() => calls).toBeGreaterThan(callsBefore)
+  })
+
+  test('count food eaten this month', async ({ page, request }) => {
+    const id = await addItem(request, 'Yoghurt')
+    const eaten = await request.post(`/api/items/${id}/consume`, { data: { outcome: 'Used' }, headers: { 'X-EatUp': '1' } })
+    expect(eaten.ok()).toBe(true)
+
+    await page.goto('/profile')
+
+    await expect(page.getByRole('heading', { name: text.waste.title })).toBeVisible()
+    await expect(page.getByText(/items? eaten/)).toBeVisible()
+  })
+})
+
 test('using an item another tab already used explains why it disappeared', async ({ page, request }) => {
   const id = await addItem(request, 'Milk')
   const markUsed = page.getByRole('button', { name: text.inventory.markUsed('Milk') })
