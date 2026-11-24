@@ -24,3 +24,5 @@ public enum Allergen
 }
 
 public enum Language { English, Norwegian, Finnish }
+
+public enum MealSlot { Breakfast, Lunch, Dinner }

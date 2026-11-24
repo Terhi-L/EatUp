@@ -89,3 +89,12 @@ The weekly health feedback (PLAN.md phase 7) reads four tags per recipe from `Se
 - **Vegetable portions** follow "5 a day": about 100 g of the vegetables, fruit or berries the recipe lists, optional ones included. Potatoes don't count.
 - **Omega-3** is true for fish dishes. Plant sources such as walnuts, flax and chia count once a recipe uses them.
 - **Ultra-processed / fast food** is false for every seed recipe. It is there for future recipes and planned meals.
+
+## 2026-11-24 · Weekly meal plans (TASK-13.2)
+
+- **Routes take any date in the week.** `/api/meal-plans/{week}` uses the Monday of that date's week, and `/api/meal-plans/current` picks this week in the user's time zone. A meal's own date must fall inside the week in the route.
+- **More than one meal per slot is allowed**, e.g. a second dinner when guests come. The planner UI (TASK-13.4) decides how to show them.
+- **A planned meal is a recipe or free text, never both or neither.** The API answers 400, and a database check constraint backs it up. Free text is trimmed and at most 200 characters.
+- **Recipe titles are looked up when read**, in the user's language. A meal whose recipe later leaves the catalogue keeps its key and has no title.
+- **Error texts for the new fields** (`meal`, `slot`, `date`, `recipeKey`, `freeText`) are not translated yet. The planner UI adds them to the dictionaries along with its other text.
+- **A week row is created with one atomic `INSERT OR IGNORE`**, so first meals saved at the same moment (a double tap on an empty week) all land in the same week instead of colliding on its unique index.

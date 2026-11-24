@@ -186,6 +186,8 @@ public static class Endpoints
             return Results.NoContent();
         }).Produces(StatusCodes.Status204NoContent);
 
+        api.MapMealPlans();
+
         // Web Push
         api.MapGet("/push/vapid-public-key", (VapidKeys keys) => new VapidPublicKeyDto(keys.PublicKey));
 

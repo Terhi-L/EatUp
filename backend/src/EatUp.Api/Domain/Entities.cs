@@ -64,3 +64,22 @@ public class ConsumeEvent
     public ConsumeOutcome Outcome { get; set; }
     public DateTimeOffset ConsumedAt { get; set; }
 }
+
+/// <summary>One week of planned meals. <see cref="WeekStart"/> is a Monday in the user's time zone.</summary>
+public class MealPlan
+{
+    public int Id { get; set; }
+    public DateOnly WeekStart { get; set; }
+    public List<PlannedMeal> Meals { get; set; } = [];
+}
+
+/// <summary>Exactly one of <see cref="RecipeKey"/> and <see cref="FreeText"/> is set.</summary>
+public class PlannedMeal
+{
+    public int Id { get; set; }
+    public int MealPlanId { get; set; }
+    public DateOnly Date { get; set; }
+    public MealSlot Slot { get; set; }
+    public string? RecipeKey { get; set; }
+    public string? FreeText { get; set; }
+}

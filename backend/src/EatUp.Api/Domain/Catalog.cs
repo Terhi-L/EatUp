@@ -51,6 +51,7 @@ public record CatalogTranslation(Dictionary<string, IngredientText> Ingredients,
 public class Catalog
 {
     private readonly Dictionary<string, Ingredient> _byKey;
+    private readonly Dictionary<string, Recipe> _recipesByKey;
     private readonly IReadOnlyDictionary<Language, CatalogTranslation> _translations;
     private readonly List<Alias> _aliases;
 
@@ -65,6 +66,7 @@ public class Catalog
         Ingredients = ingredients;
         Recipes = recipes;
         _byKey = ingredients.ToDictionary(i => i.Key, StringComparer.OrdinalIgnoreCase);
+        _recipesByKey = recipes.ToDictionary(r => r.Key, StringComparer.OrdinalIgnoreCase);
         _translations = translations ?? new Dictionary<Language, CatalogTranslation>();
 
         ThrowOnUnknownKeys();
@@ -76,6 +78,8 @@ public class Catalog
     public IReadOnlyList<Recipe> Recipes { get; }
 
     public Ingredient? Find(string? key) => key is not null && _byKey.TryGetValue(key, out var i) ? i : null;
+
+    public Recipe? FindRecipe(string? key) => key is not null && _recipesByKey.TryGetValue(key, out var r) ? r : null;
 
     /// <summary>Best catalogue match for free text in any language, e.g. "Free-range eggs" → egg, "Tine lettmelk" → milk.</summary>
     public Ingredient? Match(string name)

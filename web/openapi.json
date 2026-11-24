@@ -562,6 +562,240 @@
         }
       }
     },
+    "/api/meal-plans/current": {
+      "get": {
+        "tags": [
+          "MealPlanEndpoints"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealPlanDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meal-plans/{week}": {
+      "get": {
+        "tags": [
+          "MealPlanEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "week",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealPlanDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/meal-plans/{week}/meals/{id}": {
+      "get": {
+        "tags": [
+          "MealPlanEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "week",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMealDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "MealPlanEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "week",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlannedMealInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMealDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "MealPlanEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "week",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/meal-plans/{week}/meals": {
+      "post": {
+        "tags": [
+          "MealPlanEndpoints"
+        ],
+        "parameters": [
+          {
+            "name": "week",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlannedMealInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlannedMealDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/dev/push/test": {
       "post": {
         "tags": [
@@ -961,6 +1195,32 @@
           null
         ]
       },
+      "MealPlanDto": {
+        "required": [
+          "weekStart",
+          "meals"
+        ],
+        "type": "object",
+        "properties": {
+          "weekStart": {
+            "type": "string",
+            "format": "date"
+          },
+          "meals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlannedMealDto"
+            }
+          }
+        }
+      },
+      "MealSlot": {
+        "enum": [
+          "Breakfast",
+          "Lunch",
+          "Dinner"
+        ]
+      },
       "PantryItem": {
         "required": [
           "id",
@@ -986,6 +1246,76 @@
           "daysLeft": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "PlannedMealDto": {
+        "required": [
+          "id",
+          "date",
+          "slot",
+          "recipeKey",
+          "recipeTitle",
+          "freeText"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "slot": {
+            "$ref": "#/components/schemas/MealSlot"
+          },
+          "recipeKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "recipeTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "freeText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PlannedMealInput": {
+        "required": [
+          "date",
+          "slot"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "slot": {
+            "$ref": "#/components/schemas/MealSlot"
+          },
+          "recipeKey": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "freeText": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -1319,6 +1649,9 @@
     },
     {
       "name": "Endpoints"
+    },
+    {
+      "name": "MealPlanEndpoints"
     }
   ]
 }
