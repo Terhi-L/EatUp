@@ -277,6 +277,25 @@
         }
       }
     },
+    "/api/stats/waste": {
+      "get": {
+        "tags": [
+          "EatUp.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WasteSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ingredients": {
       "get": {
         "tags": [
@@ -1221,6 +1240,33 @@
           "Dinner"
         ]
       },
+      "MonthCounts": {
+        "required": [
+          "year",
+          "month",
+          "used",
+          "discarded"
+        ],
+        "type": "object",
+        "properties": {
+          "year": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "month": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "used": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "discarded": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "PantryItem": {
         "required": [
           "id",
@@ -1638,6 +1684,25 @@
         "properties": {
           "publicKey": {
             "type": "string"
+          }
+        }
+      },
+      "WasteSummary": {
+        "required": [
+          "thisMonth",
+          "lastMonth",
+          "hasHistory"
+        ],
+        "type": "object",
+        "properties": {
+          "thisMonth": {
+            "$ref": "#/components/schemas/MonthCounts"
+          },
+          "lastMonth": {
+            "$ref": "#/components/schemas/MonthCounts"
+          },
+          "hasHistory": {
+            "type": "boolean"
           }
         }
       }

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, type Allergen, type DietType, type Language, type Profile, type ProfileUpdate } from '../../api'
 import { language, languageNames, languages, localeOf, setLanguage, strings } from '../../strings'
 import { NotificationsCard } from '../push/NotificationsCard'
+import { WasteStatsSection } from './WasteStatsSection'
 
 const diets: DietType[] = ['Vegan', 'Vegetarian', 'Pescatarian', 'Flexitarian', 'Omnivore']
 const allergens = Object.keys(strings.allergen) as Allergen[]
@@ -48,6 +49,8 @@ export function ProfilePage() {
   return (
     <div className="space-y-6 lg:max-w-2xl">
       <h1 className="page-title">{strings.profile.title}</h1>
+
+      <WasteStatsSection />
 
       <section className="space-y-3">
         <h2 className="font-display text-[28px] leading-none font-normal">{strings.profile.notifications}</h2>

@@ -297,6 +297,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/stats/waste": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WasteSummary"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/ingredients": {
         parameters: {
             query?: never;
@@ -1097,6 +1132,16 @@ export interface components {
         };
         /** @enum {unknown} */
         MealSlot: "Breakfast" | "Lunch" | "Dinner";
+        MonthCounts: {
+            /** Format: int32 */
+            year: number;
+            /** Format: int32 */
+            month: number;
+            /** Format: int32 */
+            used: number;
+            /** Format: int32 */
+            discarded: number;
+        };
         PantryItem: {
             /** Format: int32 */
             id: number;
@@ -1197,6 +1242,11 @@ export interface components {
         Urgency: "Expired" | "Today" | "Soon" | "Later";
         VapidPublicKeyDto: {
             publicKey: string;
+        };
+        WasteSummary: {
+            thisMonth: components["schemas"]["MonthCounts"];
+            lastMonth: components["schemas"]["MonthCounts"];
+            hasHistory: boolean;
         };
     };
     responses: never;

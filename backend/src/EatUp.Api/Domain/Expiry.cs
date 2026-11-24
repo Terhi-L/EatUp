@@ -42,5 +42,8 @@ public static class Expiry
         TimeZoneInfo.ConvertTime(utcNow, ResolveTimeZone(timeZone)).DateTime;
 
     public static DateOnly LocalToday(DateTimeOffset utcNow, string timeZone) =>
-        DateOnly.FromDateTime(LocalNow(utcNow, timeZone));
+        LocalToday(utcNow, ResolveTimeZone(timeZone));
+
+    public static DateOnly LocalToday(DateTimeOffset utcNow, TimeZoneInfo zone) =>
+        DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(utcNow, zone).DateTime);
 }

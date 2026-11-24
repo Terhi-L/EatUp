@@ -137,6 +137,17 @@ public static class Endpoints
             return Results.Ok(ToDto(item, catalog, pantry.Today(await pantry.GetProfileAsync())));
         }).Produces<ItemDto>().ProducesValidationProblem().ProducesProblem(StatusCodes.Status409Conflict);
 
+        // Waste statistics: items used vs thrown away this month and last, in the user's time zone.
+        api.MapGet("/stats/waste", async (EatUpDb db, Pantry pantry, TimeProvider time) =>
+        {
+            var profile = await pantry.GetProfileAsync();
+            var now = time.GetUtcNow();
+            var since = WasteStats.EarliestNeeded(now, profile.TimeZone);
+            // EF can't compare DateTimeOffset on SQLite; consume times are stored as UTC text, which sorts by time.
+            var recent = await db.ConsumeEvents.FromSql($"SELECT * FROM ConsumeEvents WHERE ConsumedAt >= {since}").AsNoTracking().ToListAsync();
+            return WasteStats.Summarize(recent, await db.ConsumeEvents.AnyAsync(), now, profile.TimeZone);
+        });
+
         // Catalogue & suggestions
         api.MapGet("/ingredients", async (Catalog catalog, Pantry pantry, string? search) =>
             catalog.Search(search, (await pantry.GetProfileAsync()).LanguageOrDefault).Take(20));

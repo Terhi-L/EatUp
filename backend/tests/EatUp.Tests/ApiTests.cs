@@ -149,14 +149,15 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
         var reset = await AddEggsAsync(quantity: 12);
         await ConsumeAsync(deleted.Id, ConsumeOutcome.Discarded, 1);
         await ConsumeAsync(reset.Id, ConsumeOutcome.Used, 1);
-        var recorded = (await EventsAsync(_ => true)).Select(e => e.Id).ToHashSet();
+        var recorded = (await EventsAsync(_ => true)).ToDictionary(e => e.Id, e => e.FoodItemId);
 
         await _client.DeleteAsync($"/api/items/{deleted.Id}");
         await _client.PostAsync("/api/dev/reset-demo-data", null);
 
-        var kept = await EventsAsync(e => recorded.Contains(e.Id));
+        var kept = await EventsAsync(e => recorded.ContainsKey(e.Id));
         Assert.Equal(recorded.Count, kept.Count);
-        Assert.All(kept, e => Assert.Null(e.FoodItemId));
+        // Item ids are never reused, so an event keeps naming its item after the item is gone.
+        Assert.All(kept, e => Assert.Equal(recorded[e.Id], e.FoodItemId));
     }
 
     [Fact]

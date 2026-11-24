@@ -103,6 +103,22 @@ export const nb: Strings = {
     language: 'Språk',
   },
 
+  waste: {
+    title: 'Maten din',
+    thisMonth: (month: string) => `I ${month}`,
+    used: (n: number) => (n === 1 ? '1 vare spist' : `${n} varer spist`),
+    discarded: (n: number) => (n === 1 ? '1 vare kastet' : `${n} varer kastet`),
+    lastMonth: (month: string, used: number, discarded: number) => `I ${month}: ${used} spist, ${discarded} kastet`,
+    empty: 'Ingenting her ennå. Merk mat som spist eller kastet, så dukker måneden din opp her.',
+    encouragement: {
+      quietMonth: 'Ingenting registrert ennå denne måneden. Merk det du spiser eller kaster, så ser du det her.',
+      nothingWasted: 'Ingenting kastet denne måneden. Strålende!',
+      lessThanLastMonth: 'Mindre kastet enn forrige måned. Fortsett sånn!',
+      moreUsedThanWasted: 'Du har spist mer enn du har kastet. Bra jobba!',
+      keepGoing: 'Hver vare du spiser i tide teller. Fortsett!',
+    },
+  },
+
   diet: {
     Omnivore: { label: 'Altetende', hint: 'Jeg spiser alt (plantebaserte ideer kommer likevel først)' },
     Flexitarian: { label: 'Fleksitarianer', hint: 'Mest planter, kjøtt eller fisk av og til' },
