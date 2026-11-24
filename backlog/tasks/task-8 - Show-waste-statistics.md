@@ -29,6 +29,7 @@ The point of EatUp is less food waste, but users never see whether it is working
 - [ ] #2 A screen or Profile section shows them with a short encouraging line; texts exist in en, nb and fi
 - [ ] #3 With no history the screen shows an empty state, not zeros that look like failure
 - [ ] #4 Domain and endpoint tests cover month boundaries and time zones
+- [ ] #5 Counts are items touched: each item once per outcome per month, so an item partly used and partly thrown away counts in both
 <!-- AC:END -->
 
 ## Implementation Plan
