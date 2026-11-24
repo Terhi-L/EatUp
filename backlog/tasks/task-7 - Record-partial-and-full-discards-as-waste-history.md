@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-12T14:48:00Z'
+updated_date: '2026-11-24T09:41:00Z'
 labels:
   - backend
   - domain
@@ -61,6 +61,8 @@ No index on ConsumedAt: EF SQLite cannot translate DateTimeOffset comparisons, s
 Qodo review of PR #15 (8e8b00d), all 5 findings fixed: pre-migration databases (no ConsumeEvents table) are reset again instead of rejected; undefined outcomes return 400; Status and Quantity are concurrency tokens and a lost race returns 409 (folded into the unmerged AddConsumeEvents migration); the inventory row refreshes after a failed consume; 409 has a translated message (nb/fi wording written by the agent, not reviewed by a native speaker).
 
 Follow-up Qodo finding on 08aed7c fixed: the pre-migration reset now requires exactly the four EnsureCreated tables, so a foreign database with an Items table is refused, not deleted.
+
+Recovered to main in PR #20 (https://github.com/Terhi-L/EatUp/pull/20): PR #15 was merged into the stale agent/task-6-openapi-types branch after #14 had merged, so this work never reached main. Qodo review on #20 led to: consume errors shown on the inventory page (409 included), the consume endpoint declaring its 400, the edit form refreshing only after a 409 so unsaved edits survive offline failures; e2e tests cover both. One finding (event snapshot vs concurrent edit) dismissed as intentional.
 <!-- SECTION:NOTES:END -->
 
 ## Comments
