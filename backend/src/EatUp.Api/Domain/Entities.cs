@@ -51,3 +51,16 @@ public class PushSubscriptionRecord
     public required string Auth { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }
+
+/// <summary>A snapshot of one use or discard; it outlives the item, so waste history survives deletes and demo resets.</summary>
+public class ConsumeEvent
+{
+    public int Id { get; set; }
+    public int? FoodItemId { get; set; }
+    public required string ItemName { get; set; }
+    public string? IngredientKey { get; set; }
+    public double Amount { get; set; }
+    public required string Unit { get; set; }
+    public ConsumeOutcome Outcome { get; set; }
+    public DateTimeOffset ConsumedAt { get; set; }
+}

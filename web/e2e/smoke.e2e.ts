@@ -87,10 +87,43 @@ test.describe('Tonight, maybe? card on desktop', () => {
   })
 })
 
-async function addItem(request: APIRequestContext, name: string, daysLeft = 10) {
+test('using an item another tab already used explains why it disappeared', async ({ page, request }) => {
+  const id = await addItem(request, 'Milk')
+  const markUsed = page.getByRole('button', { name: text.inventory.markUsed('Milk') })
+  await page.goto('/')
+  await expect(markUsed).toBeVisible()
+
+  const otherTab = await request.post(`/api/items/${id}/consume`, { data: { outcome: 'Used' }, headers: { 'X-EatUp': '1' } })
+  expect(otherTab.ok()).toBe(true)
+  await markUsed.click()
+
+  await expect(page.getByRole('alert')).toHaveText(text.errors.byStatus[409]!)
+  await expect(markUsed).toHaveCount(0)
+})
+
+test('a save that fails offline keeps the edits in the form', async ({ page, request }) => {
+  const id = await addItem(request, 'Milk')
+  await page.goto(`/items/${id}`)
+  const name = page.getByLabel(text.form.name)
+  await name.fill('Oat milk')
+
+  await page.route('**/api/**', (route) => route.abort())
+  await page.getByRole('button', { name: text.form.save }).click()
+  await expect(page.getByText(text.errors.offline)).toBeVisible()
+  // Nothing visible happens when the form survives, so give a background refetch time to fail.
+  await page.waitForTimeout(2500)
+  await expect(name).toHaveValue('Oat milk')
+
+  await page.unroute('**/api/**')
+  await page.getByRole('button', { name: text.form.save }).click()
+  await expect(page.getByRole('button', { name: text.inventory.markUsed('Oat milk') })).toBeVisible()
+})
+
+async function addItem(request: APIRequestContext, name: string, daysLeft = 10): Promise<number> {
   const item = { name, ingredientKey: null, quantity: 1, unit: 'pcs', location: 'Fridge', expiryDate: addDays(localIsoDate(), daysLeft), openedDate: null }
   const response = await request.post('/api/items', { data: item, headers: { 'X-EatUp': '1' } })
   expect(response.ok()).toBe(true)
+  return (await response.json()).id
 }
 
 async function removeAllItems(request: APIRequestContext) {

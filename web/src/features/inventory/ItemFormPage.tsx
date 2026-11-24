@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, type ConsumeOutcome, type Ingredient, type Item, type ItemInput, type Product, type StorageLocation } from '../../api'
+import { api, ApiError, type ConsumeOutcome, type Ingredient, type Item, type ItemInput, type Product, type StorageLocation } from '../../api'
 import { storedUnit, strings, unitLabel } from '../../strings'
 import { addDays, localIsoDate } from '../../lib/dates'
 import { locationAfterOpening } from '../../lib/storage'
@@ -92,15 +92,22 @@ function ItemForm({ existing }: { existing?: Item }) {
     queryClient.invalidateQueries()
     navigate('/')
   }
+  // The 409 text says the list is up to date. Other failures keep the cache: a refetch that also
+  // fails would swap the form for an error and lose unsaved edits.
+  const refreshAfterConflict = (error: Error) => {
+    if (error instanceof ApiError && error.status === 409) queryClient.invalidateQueries()
+  }
 
   const save = useMutation({
     mutationFn: (input: ItemInput) => (existing ? api.updateItem(existing.id, input) : api.createItem(input)),
     onSuccess: done,
+    onError: refreshAfterConflict,
   })
-  const remove = useMutation({ mutationFn: () => api.deleteItem(existing!.id), onSuccess: done })
+  const remove = useMutation({ mutationFn: () => api.deleteItem(existing!.id), onSuccess: done, onError: refreshAfterConflict })
   const consume = useMutation({
     mutationFn: ({ outcome, amount }: { outcome: ConsumeOutcome; amount?: number }) => api.consume(existing!.id, outcome, amount),
     onSuccess: done,
+    onError: refreshAfterConflict,
   })
 
   const submit = (e: FormEvent) => {
