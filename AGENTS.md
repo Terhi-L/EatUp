@@ -5,7 +5,7 @@ Food-waste PWA: track what's in the fridge, get reminded before it expires, get 
 ## Setup and verification
 
 - Setup: `npm install`, then `npm run dev` (API on :5080, web on :5173 with `/api` proxied). Full guide: `GETTING_STARTED.md`.
-- Verify every change with `npm test` (xUnit + Vitest) and `npm run typecheck`. Done means both pass.
+- Verify every change with `npm test` (xUnit + Vitest) and `npm run typecheck`. Done means both pass and the quality gate (rule 7) is met.
 - Reset local data: stop the app and delete `backend/data/eatup.db`.
 
 ## Picking up work
@@ -46,6 +46,17 @@ Food-waste PWA: track what's in the fridge, get reminded before it expires, get 
 **Where:** every PR review, by Qodo, agents or people.
 **Rule:** judge a PR by its own task and the current phase in `PLAN.md` and `docs/decisions.md`. A feature the roadmap schedules for later (login, OpenAPI-generated types) is a finding only on the PR that implements it. Security and data-safety defects in what the PR builds, such as a write without the `X-EatUp` header check, are always findings. Rule 5 applies to every PR.
 **Why:** the MVP postpones roadmap work on purpose; findings that ask for it early are noise.
+
+### 7. Quality gate
+**Where:** before an agent calls a coding task done or labels a PR `agent-ready`. Uncommitted code goes through Qodo local review (`qodo-review` skill), a PR through Review Resolver (`qodo-review-resolver` skill).
+**Rule:** Qodo's severities are High (action required), Medium (remediation recommended) and Low (informational); its types are Bug, Rule violation and Requirement gap.
+- **Plan** before editing: for each finding, the fix, what else it touches, and the test that proves it. For a High finding or a fix in shared code, have a separate planning agent check the plan.
+- **Fix** every valid High or Medium finding of any type, unless the user accepts the risk with a written reason; record that reason as the finding's Qodo dismissal. Only code or test evidence makes a finding invalid, and the user settles every dispute.
+- **Flag** every Low finding for the user, Low rule violations included, and leave them unchanged.
+- **Verify:** `npm test` and `npm run typecheck` pass after the last fix. On a PR, the latest completed Qodo review covers the PR head and has no open High or Medium; if Qodo marks that review incomplete, name the commit of the last complete one.
+- **Stop** after 3 fix-and-review rounds, or after a round without progress, and report the task **NOT DONE** with the blocker and what the user needs to do.
+- **Report** each finding's type, severity and outcome (fixed, disputed or flagged, with evidence), the checks run, the reviewed commit against the head, and whether the gate is met.
+**Why:** the agent knows when work is done, while the user keeps the risk decisions and the Low findings.
 
 ## Project notes
 
