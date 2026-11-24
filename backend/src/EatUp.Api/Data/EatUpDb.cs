@@ -11,6 +11,8 @@ public class EatUpDb(DbContextOptions<EatUpDb> options) : DbContext(options)
     public DbSet<PushSubscriptionRecord> PushSubscriptions => Set<PushSubscriptionRecord>();
     public DbSet<ShoppingItem> Shopping => Set<ShoppingItem>();
     public DbSet<ConsumeEvent> ConsumeEvents => Set<ConsumeEvent>();
+    public DbSet<MealPlan> MealPlans => Set<MealPlan>();
+    public DbSet<PlannedMeal> PlannedMeals => Set<PlannedMeal>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -38,6 +40,20 @@ public class EatUpDb(DbContextOptions<EatUpDb> options) : DbContext(options)
         {
             e.Property(c => c.Outcome).HasConversion<string>();
             e.HasOne<FoodItem>().WithMany().HasForeignKey(c => c.FoodItemId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        model.Entity<MealPlan>(e =>
+        {
+            e.HasIndex(p => p.WeekStart).IsUnique();
+            e.HasMany(p => p.Meals).WithOne().HasForeignKey(m => m.MealPlanId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        model.Entity<PlannedMeal>(e =>
+        {
+            e.Property(m => m.Slot).HasConversion<string>();
+            e.Property(m => m.FreeText).HasMaxLength(MealPlanning.MaxFreeTextLength);
+            // Backs up the API validation, so a planned meal can never be both or neither.
+            e.ToTable(t => t.HasCheckConstraint("CK_PlannedMeals_RecipeOrFreeText", "(\"RecipeKey\" IS NULL) <> (\"FreeText\" IS NULL)"));
         });
 
         model.Entity<PushSubscriptionRecord>().HasIndex(s => s.Endpoint).IsUnique();

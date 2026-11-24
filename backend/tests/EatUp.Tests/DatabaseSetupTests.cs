@@ -50,8 +50,8 @@ public sealed class DatabaseSetupTests : IDisposable
             await legacy.Database.EnsureCreatedAsync();
             legacy.Items.Add(Milk());
             await legacy.SaveChangesAsync();
-            // EnsureCreated builds today's model; databases from before migrations had no ConsumeEvents table.
-            await legacy.Database.ExecuteSqlRawAsync("DROP TABLE ConsumeEvents");
+            // EnsureCreated builds today's model; databases from before migrations had only these tables.
+            await DropTablesExceptAsync(legacy, "Items", "Profiles", "PushSubscriptions", "Shopping");
         }
 
         await using (var db = OpenDb()) await DatabaseSetup.PrepareAsync(db, NullLogger.Instance);
@@ -135,6 +135,16 @@ public sealed class DatabaseSetupTests : IDisposable
         Assert.Equal(("Bread", 2.0, "pcs", ConsumeOutcome.Discarded, discardedAt),
             (bread.ItemName, bread.Amount, bread.Unit, bread.Outcome, bread.ConsumedAt));
         Assert.NotNull(bread.FoodItemId);
+    }
+
+    private static async Task DropTablesExceptAsync(EatUpDb db, params string[] keep)
+    {
+        var tables = await db.Database
+            .SqlQueryRaw<string>("SELECT name AS Value FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")
+            .ToListAsync();
+#pragma warning disable EF1003 // Table names come from sqlite_master, and identifiers can't be SQL parameters.
+        foreach (var table in tables.Except(keep)) await db.Database.ExecuteSqlRawAsync("DROP TABLE \"" + table + "\"");
+#pragma warning restore EF1003
     }
 
     public void Dispose() => Directory.Delete(_dataDir, recursive: true);

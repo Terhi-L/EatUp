@@ -103,6 +103,56 @@ namespace EatUp.Api.Data.Migrations
                     b.ToTable("Items");
                 });
 
+            modelBuilder.Entity("EatUp.Api.Domain.MealPlan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("WeekStart")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("WeekStart")
+                        .IsUnique();
+
+                    b.ToTable("MealPlans");
+                });
+
+            modelBuilder.Entity("EatUp.Api.Domain.PlannedMeal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FreeText")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("MealPlanId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RecipeKey")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Slot")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MealPlanId");
+
+                    b.ToTable("PlannedMeals", t =>
+                        {
+                            t.HasCheckConstraint("CK_PlannedMeals_RecipeOrFreeText", "(\"RecipeKey\" IS NULL) <> (\"FreeText\" IS NULL)");
+                        });
+                });
+
             modelBuilder.Entity("EatUp.Api.Domain.PushSubscriptionRecord", b =>
                 {
                     b.Property<int>("Id")
@@ -193,6 +243,20 @@ namespace EatUp.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("FoodItemId")
                         .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("EatUp.Api.Domain.PlannedMeal", b =>
+                {
+                    b.HasOne("EatUp.Api.Domain.MealPlan", null)
+                        .WithMany("Meals")
+                        .HasForeignKey("MealPlanId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EatUp.Api.Domain.MealPlan", b =>
+                {
+                    b.Navigation("Meals");
                 });
 #pragma warning restore 612, 618
         }
