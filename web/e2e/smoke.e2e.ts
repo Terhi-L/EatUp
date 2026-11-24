@@ -101,6 +101,24 @@ test('using an item another tab already used explains why it disappeared', async
   await expect(markUsed).toHaveCount(0)
 })
 
+test('a save that fails offline keeps the edits in the form', async ({ page, request }) => {
+  const id = await addItem(request, 'Milk')
+  await page.goto(`/items/${id}`)
+  const name = page.getByLabel(text.form.name)
+  await name.fill('Oat milk')
+
+  await page.route('**/api/**', (route) => route.abort())
+  await page.getByRole('button', { name: text.form.save }).click()
+  await expect(page.getByText(text.errors.offline)).toBeVisible()
+  // Nothing visible happens when the form survives, so give a background refetch time to fail.
+  await page.waitForTimeout(2500)
+  await expect(name).toHaveValue('Oat milk')
+
+  await page.unroute('**/api/**')
+  await page.getByRole('button', { name: text.form.save }).click()
+  await expect(page.getByRole('button', { name: text.inventory.markUsed('Oat milk') })).toBeVisible()
+})
+
 async function addItem(request: APIRequestContext, name: string, daysLeft = 10): Promise<number> {
   const item = { name, ingredientKey: null, quantity: 1, unit: 'pcs', location: 'Fridge', expiryDate: addDays(localIsoDate(), daysLeft), openedDate: null }
   const response = await request.post('/api/items', { data: item, headers: { 'X-EatUp': '1' } })
