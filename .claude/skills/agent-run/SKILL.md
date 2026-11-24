@@ -47,14 +47,16 @@ Rounds are counted by PR comments starting with `Agent round` (`gh pr view <n> -
 
 If the latest continue command has guidance not yet handled in an `Agent round` comment, do that first: apply it, run the checks, commit, push, comment `Agent round K` saying how you applied it, print `ROUND_K_PUSHED` and stop.
 
-1. Get Qodo's review: the PR issue comment by `qodo-code-review[bot]` whose body starts with `<h3>Code Review by Qodo`. Qodo edits this one comment after each push.
-2. If it's missing, or its `updated_at` is older than the last commit on the branch, Qodo hasn't reviewed the latest push yet: print `WAITING_QODO` and stop. If the newest of the last commit, the PR's creation and the latest continue command (if any) is more than 45 minutes old, go to **Blocked** instead.
-3. List every finding (numbered `<summary>` blocks, all severities). Skip ones you already answered in an earlier `Agent round` comment unless Qodo changed them.
-4. No new findings: go to **Ready**.
-5. Round count is already 3: go to **Blocked**.
-6. For each new finding, read the cited code and decide: **confirmed** (a real defect or rule breach) or **rejected** (wrong, out of scope for this ticket, or already handled). Don't trust the finding's suggested fix; fix the cause your own way.
-7. Fix the confirmed ones, add a test per bug where possible, run the checks (same 2-attempt limit), commit, push.
-8. Comment on the PR: `Agent round K` and a list: finding, verdict, what you changed or why you rejected it. Print `ROUND_K_PUSHED` and stop.
+The quality gate is AGENTS.md rule 7; this round applies it.
+
+1. Read Qodo's review with the `qodo-review-resolver` skill (its structured read of `review_session` and `findings`).
+2. If the session is missing, still running, or its `commit_sha` isn't the PR head (`gh pr view <n> --json headRefOid`), Qodo hasn't reviewed the latest push yet: print `WAITING_QODO` and stop. If the newest of the last commit, the PR's creation and the latest continue command (if any) is more than 45 minutes old, go to **Blocked** instead.
+3. List every open finding with its type and severity. Skip ones you already answered in an earlier `Agent round` comment unless Qodo changed them.
+4. No open High or Medium finding: go to **Ready**.
+5. Round count is already 3, or the open High/Medium findings are the same ones the last round fixed: go to **Blocked** and report the task NOT DONE.
+6. For each new High or Medium finding, read the cited code and decide: **valid** (a real defect, rule breach or requirement gap) or **disputed** (wrong or already handled, with code or test evidence). Then plan as rule 7 says, with a planning agent for High findings and fixes in shared code. Don't trust the finding's suggested fix; fix the cause your own way.
+7. Fix the valid ones, test first per bug, run the checks (same 2-attempt limit), commit, push.
+8. Comment on the PR: `Agent round K` and a list: finding, type, severity, verdict, what you changed or the evidence for a dispute, and the Low findings left for the user. Print `ROUND_K_PUSHED` and stop. If disputes are all that is left, go to **Blocked** instead and ask the user to accept each risk with a reason or have it fixed; record an accepted risk as the finding's Qodo dismissal with the user's reason.
 
 ## Checks
 
@@ -69,7 +71,7 @@ If `dotnet test` fails on locked files (the dev server is running), rerun the ba
 
 First check the PR's base: `gh pr view <n> --json baseRefName`. If it isn't `main`, go to **Blocked**, because a PR stacked on another branch merges into that branch, not `main`. Instead of a question, the comment names the branch the PR targets and asks the user to wait until that branch's PR has merged, run `gh pr edit <n> --base main` if GitHub hasn't retargeted it, and then reply `/agent continue`.
 
-Follow `backlog instructions task-finalization` on the PR branch: add a Backlog note with the PR link, a final summary, and set TASK-N to Done, then push. Merging the PR is what makes the task Done on `main`, so no follow-up PR is needed. Add PR label `agent-ready`, comment `Agent ready: checks pass, Qodo findings handled (see rounds). I won't merge. Comment /agent continue <what to change> for more work.` Print `READY: PR #n` and stop.
+Follow `backlog instructions task-finalization` on the PR branch: add a Backlog note with the PR link, a final summary, and set TASK-N to Done, then push. Merging the PR is what makes the task Done on `main`, so no follow-up PR is needed. Add PR label `agent-ready` and comment `Agent ready:` followed by the rule 7 report: each finding's type, severity and outcome, the Low findings for the user, the checks, the reviewed commit against the head, and `Gate met`. End with `I won't merge. Comment /agent continue <what to change> for more work.` Print `READY: PR #n` and stop.
 
 ## Blocked
 
