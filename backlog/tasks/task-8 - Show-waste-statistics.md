@@ -1,11 +1,11 @@
 ---
 id: TASK-8
 title: Show waste statistics
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-05T13:01:00Z'
-updated_date: '2026-11-24T12:19:00Z'
+updated_date: '2026-11-24T12:34:00Z'
 labels:
   - frontend
   - backend
@@ -53,4 +53,12 @@ Evidence per AC (npm test: 250 xUnit + 43 Vitest; Playwright 11/11; typecheck + 
 #4 Month boundaries and time zones: WasteStatsTests.Months_follow_the_users_time_zone_not_UTC, In_January_last_month_is_December_of_the_previous_year, Loading_starts_no_later_than_the_first_moment_of_last_month (Oslo, UTC+14, UTC-11), plus the API tests above.
 #5 Items touched: WasteStatsTests.An_item_used_in_several_parts_counts_once, An_item_partly_used_and_partly_thrown_away_counts_in_both, WasteStatsApiTests.Deleting_an_item_keeps_its_count.
 Qodo pre-commit review (quality gate): round 1 = 1 High + 3 Medium, round 2 = 2 new Medium, round 3 = none open; the security finding was dismissed as a risk the product owner accepted (same exposure as GET /api/items; accounts in TASK-16). Planning agent checked the High and shared-code fixes.
+
+PR: https://github.com/Terhi-L/EatUp/pull/26. Gate 4 (Qodo PR review + CI): round 1 on 0988071 = 1 Medium (an in-flight first load reused by the time-zone refresh) + 1 Low (early-month 'less than last month' praise compares a few days against a whole month); the Medium was fixed in e4885a1 after a planning-agent check (cancel before invalidating, e2e test red first). Round 2 complete review on e4885a1: no open High/Medium; the Low is left unchanged for the product owner. CI green.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Profile now shows 'Your food': items eaten and thrown out this month and last month in the user's time zone, an encouraging line, and an empty state without history (en/nb/fi). GET /api/stats/waste counts items touched per outcome (product-owner rule) from events since just before last month, filtered in SQL. Consume events keep their item id after a delete (FK dropped; migration KeepConsumeEventItemIdsAndIndexTime with a safe rollback and a ConsumedAt index), the start-up sync cancels and refreshes queries after a time-zone change, and the stats refresh hourly. Verification: 250 xUnit, 43 Vitest, 12 Playwright, typecheck, oxlint, CI green; Qodo pre-commit review passed after 3 rounds and the PR review after 2. Open for the product owner: native-speaker review of the nb/fi texts and one Low finding about early-month praise. Accepted risk: stats are readable without a credential, like the other GETs, until accounts (TASK-16).
+<!-- SECTION:FINAL_SUMMARY:END -->
