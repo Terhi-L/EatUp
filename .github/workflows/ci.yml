@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Tests, typecheck, lint and API contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Tests (xUnit + Vitest)
+        run: npm test
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      # AGENTS.md: the generated contract is committed after every endpoint change, never edited by hand.
+      # git status, not git diff: a contract file deleted from the commit comes back untracked, which diff ignores.
+      - name: API contract is up to date
+        run: |
+          npm run gen:api
+          changes="$(git status --porcelain -- web/openapi.json web/src/api-schema.d.ts)"
+          if [ -n "$changes" ]; then
+            echo "$changes"
+            echo "::error::The committed API contract differs from npm run gen:api. Run it and commit both files."
+            exit 1
+          fi
