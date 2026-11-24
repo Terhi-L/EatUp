@@ -27,8 +27,8 @@ public class MealPlanApiTests : IClassFixture<ApiTests.Factory>
     public async Task Plan_a_week_then_change_and_remove_meals()
     {
         var week = new DateOnly(2027, 2, 1);
-        var dinner = await AddAsync(week.AddDays(2), new MealChoice(week.AddDays(2), MealSlot.Dinner, "veggie-omelette", null));
-        var breakfast = await AddAsync(week.AddDays(2), new MealChoice(week.AddDays(2), MealSlot.Breakfast, null, "  Porridge  "));
+        var dinner = await AddAsync(week.AddDays(2), new PlannedMealInput(week.AddDays(2), MealSlot.Dinner, "veggie-omelette", null));
+        var breakfast = await AddAsync(week.AddDays(2), new PlannedMealInput(week.AddDays(2), MealSlot.Breakfast, null, "  Porridge  "));
         Assert.NotNull(dinner.RecipeTitle);
         Assert.Equal("Porridge", breakfast.FreeText);
 
@@ -37,7 +37,7 @@ public class MealPlanApiTests : IClassFixture<ApiTests.Factory>
         Assert.Equal([breakfast.Id, dinner.Id], plan.Meals.Select(m => m.Id)); // breakfast first, not alphabetical
 
         var changed = await _client.PutAsJsonAsync($"/api/meal-plans/{week:yyyy-MM-dd}/meals/{dinner.Id}",
-            new MealChoice(week.AddDays(4), MealSlot.Lunch, null, "Leftovers"), Json);
+            new PlannedMealInput(week.AddDays(4), MealSlot.Lunch, null, "Leftovers"), Json);
         Assert.Equal(HttpStatusCode.OK, changed.StatusCode);
         var lunch = (await changed.Content.ReadFromJsonAsync<PlannedMealDto>(Json))!;
         Assert.Equal((week.AddDays(4), MealSlot.Lunch, null, "Leftovers"), (lunch.Date, lunch.Slot, lunch.RecipeKey, lunch.FreeText));
@@ -51,7 +51,7 @@ public class MealPlanApiTests : IClassFixture<ApiTests.Factory>
     public async Task A_new_meal_can_be_read_from_its_location()
     {
         var created = await _client.PostAsJsonAsync($"/api/meal-plans/{Monday:yyyy-MM-dd}/meals",
-            new MealChoice(Wednesday, MealSlot.Dinner, null, "Fish soup"), Json);
+            new PlannedMealInput(Wednesday, MealSlot.Dinner, null, "Fish soup"), Json);
 
         var meal = await _client.GetFromJsonAsync<PlannedMealDto>(created.Headers.Location, Json);
 
@@ -64,7 +64,7 @@ public class MealPlanApiTests : IClassFixture<ApiTests.Factory>
         var week = new DateOnly(2028, 3, 6);
 
         var responses = await Task.WhenAll(Enumerable.Range(0, 10).Select(i =>
-            _client.PostAsJsonAsync($"/api/meal-plans/{week:yyyy-MM-dd}/meals", new MealChoice(week, MealSlot.Lunch, null, $"Lunch {i}"), Json)));
+            _client.PostAsJsonAsync($"/api/meal-plans/{week:yyyy-MM-dd}/meals", new PlannedMealInput(week, MealSlot.Lunch, null, $"Lunch {i}"), Json)));
 
         Assert.All(responses, r => Assert.Equal(HttpStatusCode.Created, r.StatusCode));
         Assert.Equal(10, (await GetWeekAsync(week)).Meals.Count);
@@ -87,7 +87,7 @@ public class MealPlanApiTests : IClassFixture<ApiTests.Factory>
     public async Task An_invalid_meal_is_rejected(string? recipeKey, string? freeText, string field)
     {
         var response = await _client.PostAsJsonAsync($"/api/meal-plans/{Monday:yyyy-MM-dd}/meals",
-            new MealChoice(Wednesday, MealSlot.Dinner, recipeKey, freeText), Json);
+            new PlannedMealInput(Wednesday, MealSlot.Dinner, recipeKey, freeText), Json);
 
         await AssertValidationErrorAsync(response, field);
     }
@@ -104,10 +104,20 @@ public class MealPlanApiTests : IClassFixture<ApiTests.Factory>
     }
 
     [Fact]
+    public async Task A_meal_sends_only_the_recipe_or_the_free_text_it_uses()
+    {
+        var freeText = await _client.PostAsJsonAsync($"/api/meal-plans/{Monday:yyyy-MM-dd}/meals", new { date = Wednesday, slot = "Lunch", freeText = "Soup" }, Json);
+        var recipe = await _client.PostAsJsonAsync($"/api/meal-plans/{Monday:yyyy-MM-dd}/meals", new { date = Wednesday, slot = "Dinner", recipeKey = "veggie-omelette" }, Json);
+
+        Assert.Equal(HttpStatusCode.Created, freeText.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, recipe.StatusCode);
+    }
+
+    [Fact]
     public async Task A_meal_dated_outside_the_week_is_rejected()
     {
         var response = await _client.PostAsJsonAsync($"/api/meal-plans/{Monday:yyyy-MM-dd}/meals",
-            new MealChoice(Monday.AddDays(7), MealSlot.Dinner, "veggie-omelette", null), Json);
+            new PlannedMealInput(Monday.AddDays(7), MealSlot.Dinner, "veggie-omelette", null), Json);
 
         await AssertValidationErrorAsync(response, "date");
     }
@@ -115,11 +125,11 @@ public class MealPlanApiTests : IClassFixture<ApiTests.Factory>
     [Fact]
     public async Task A_meal_is_only_found_in_its_own_week()
     {
-        var meal = await AddAsync(Monday, new MealChoice(Wednesday, MealSlot.Lunch, null, "Soup"));
+        var meal = await AddAsync(Monday, new PlannedMealInput(Wednesday, MealSlot.Lunch, null, "Soup"));
         var otherWeek = Monday.AddDays(7);
 
         var update = await _client.PutAsJsonAsync($"/api/meal-plans/{otherWeek:yyyy-MM-dd}/meals/{meal.Id}",
-            new MealChoice(otherWeek, MealSlot.Lunch, null, "Soup"), Json);
+            new PlannedMealInput(otherWeek, MealSlot.Lunch, null, "Soup"), Json);
         var delete = await _client.DeleteAsync($"/api/meal-plans/{otherWeek:yyyy-MM-dd}/meals/{meal.Id}");
 
         Assert.Equal(HttpStatusCode.NotFound, update.StatusCode);
@@ -147,12 +157,12 @@ public class MealPlanApiTests : IClassFixture<ApiTests.Factory>
         var bare = _factory.CreateClient();
 
         var response = await bare.PostAsJsonAsync($"/api/meal-plans/{Monday:yyyy-MM-dd}/meals",
-            new MealChoice(Wednesday, MealSlot.Dinner, null, "Tacos"), Json);
+            new PlannedMealInput(Wednesday, MealSlot.Dinner, null, "Tacos"), Json);
 
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    private async Task<PlannedMealDto> AddAsync(DateOnly week, MealChoice choice)
+    private async Task<PlannedMealDto> AddAsync(DateOnly week, PlannedMealInput choice)
     {
         var response = await _client.PostAsJsonAsync($"/api/meal-plans/{week:yyyy-MM-dd}/meals", choice, Json);
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);

@@ -1,9 +1,20 @@
+using System.Text.Json.Serialization;
 using EatUp.Api.Data;
 using EatUp.Api.Domain;
 using EatUp.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace EatUp.Api;
+
+/// <summary>Date and slot are required: left out, they would quietly become 0001-01-01 and breakfast.</summary>
+public record PlannedMealInput(
+    [property: JsonRequired] DateOnly Date,
+    [property: JsonRequired] MealSlot Slot,
+    string? RecipeKey = null,
+    string? FreeText = null)
+{
+    public MealChoice ToChoice() => new(Date, Slot, RecipeKey, FreeText);
+}
 
 public record PlannedMealDto(int Id, DateOnly Date, MealSlot Slot, string? RecipeKey, string? RecipeTitle, string? FreeText);
 
@@ -42,10 +53,10 @@ public static class MealPlanEndpoints
             ? Results.Ok(ToDto(meal, catalog, (await pantry.GetProfileAsync()).LanguageOrDefault))
             : Results.NotFound();
 
-    private static async Task<IResult> AddMealAsync(DateOnly week, MealChoice input, EatUpDb db, Pantry pantry, Catalog catalog)
+    private static async Task<IResult> AddMealAsync(DateOnly week, PlannedMealInput input, EatUpDb db, Pantry pantry, Catalog catalog)
     {
         var weekStart = MealPlanning.WeekStart(week);
-        var choice = MealPlanning.Normalize(input, catalog);
+        var choice = MealPlanning.Normalize(input.ToChoice(), catalog);
         if (MealPlanning.Validate(choice, weekStart, catalog) is { Count: > 0 } errors) return Results.ValidationProblem(errors);
 
         var plan = await EnsurePlanAsync(db, weekStart);
@@ -56,11 +67,11 @@ public static class MealPlanEndpoints
         return Results.Created($"/api/meal-plans/{weekStart:yyyy-MM-dd}/meals/{meal.Id}", dto);
     }
 
-    private static async Task<IResult> UpdateMealAsync(DateOnly week, int id, MealChoice input, EatUpDb db, Pantry pantry, Catalog catalog)
+    private static async Task<IResult> UpdateMealAsync(DateOnly week, int id, PlannedMealInput input, EatUpDb db, Pantry pantry, Catalog catalog)
     {
         var weekStart = MealPlanning.WeekStart(week);
         if (await MealsInWeek(db, weekStart).SingleOrDefaultAsync(m => m.Id == id) is not { } meal) return Results.NotFound();
-        var choice = MealPlanning.Normalize(input, catalog);
+        var choice = MealPlanning.Normalize(input.ToChoice(), catalog);
         if (MealPlanning.Validate(choice, weekStart, catalog) is { Count: > 0 } errors) return Results.ValidationProblem(errors);
 
         Apply(meal, choice);

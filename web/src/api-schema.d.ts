@@ -782,7 +782,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["MealChoice"];
+                    "application/json": components["schemas"]["PlannedMealInput"];
                 };
             };
             responses: {
@@ -867,7 +867,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["MealChoice"];
+                    "application/json": components["schemas"]["PlannedMealInput"];
                 };
             };
             responses: {
@@ -1090,13 +1090,6 @@ export interface components {
         ItemStatus: "Active" | "Used" | "Discarded";
         /** @enum {unknown} */
         Language: "English" | "Norwegian" | "Finnish" | null;
-        MealChoice: {
-            /** Format: date */
-            date: string;
-            slot: components["schemas"]["MealSlot"];
-            recipeKey: null | string;
-            freeText: null | string;
-        };
         MealPlanDto: {
             /** Format: date */
             weekStart: string;
@@ -1121,6 +1114,13 @@ export interface components {
             recipeKey: null | string;
             recipeTitle: null | string;
             freeText: null | string;
+        };
+        PlannedMealInput: {
+            /** Format: date */
+            date: string;
+            slot: components["schemas"]["MealSlot"];
+            recipeKey?: null | string;
+            freeText?: null | string;
         };
         ProblemDetails: {
             type?: null | string;

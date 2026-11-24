@@ -680,7 +680,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MealChoice"
+                "$ref": "#/components/schemas/PlannedMealInput"
               }
             }
           },
@@ -766,7 +766,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MealChoice"
+                "$ref": "#/components/schemas/PlannedMealInput"
               }
             }
           },
@@ -1195,36 +1195,6 @@
           null
         ]
       },
-      "MealChoice": {
-        "required": [
-          "date",
-          "slot",
-          "recipeKey",
-          "freeText"
-        ],
-        "type": "object",
-        "properties": {
-          "date": {
-            "type": "string",
-            "format": "date"
-          },
-          "slot": {
-            "$ref": "#/components/schemas/MealSlot"
-          },
-          "recipeKey": {
-            "type": [
-              "null",
-              "string"
-            ]
-          },
-          "freeText": {
-            "type": [
-              "null",
-              "string"
-            ]
-          }
-        }
-      },
       "MealPlanDto": {
         "required": [
           "weekStart",
@@ -1308,6 +1278,34 @@
             ]
           },
           "recipeTitle": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "freeText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "PlannedMealInput": {
+        "required": [
+          "date",
+          "slot"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "slot": {
+            "$ref": "#/components/schemas/MealSlot"
+          },
+          "recipeKey": {
             "type": [
               "null",
               "string"

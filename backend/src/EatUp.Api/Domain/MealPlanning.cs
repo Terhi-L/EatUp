@@ -1,14 +1,7 @@
-using System.Text.Json.Serialization;
-
 namespace EatUp.Api.Domain;
 
 /// <summary>What the user wants to eat in one slot: a catalogue recipe or free text, never both.</summary>
-/// <remarks>Date and slot are required: left out, they would quietly become 0001-01-01 and breakfast.</remarks>
-public record MealChoice(
-    [property: JsonRequired] DateOnly Date,
-    [property: JsonRequired] MealSlot Slot,
-    string? RecipeKey,
-    string? FreeText);
+public record MealChoice(DateOnly Date, MealSlot Slot, string? RecipeKey, string? FreeText);
 
 public static class MealPlanning
 {
