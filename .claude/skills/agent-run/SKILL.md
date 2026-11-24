@@ -33,13 +33,15 @@ None listed: print `IDLE` and stop. Otherwise take the first one, call it TASK-N
 ## 2. Implement
 
 1. `git switch -c agent/task-N-<short-slug>`.
-2. Read `AGENTS.md`, `backlog task view TASK-N --plain`, and `backlog instructions task-execution`. Follow that guide: set In Progress, assign `@claude`, remove the `ready-for-agent` label, record your plan.
-3. Implement against the acceptance criteria and the AGENTS.md rules (domain rules test-first, UI text in all three `web/src/i18n` dictionaries).
-4. Run the checks (below). On failure, fix and rerun; after 2 failed fix attempts, go to **Blocked**.
-5. Read `backlog instructions task-finalization`; check off each acceptance criterion only with evidence (a test name or command output), add implementation notes. Leave the task In Progress until **Ready**.
-6. Commit, push, and open the PR:
-   `gh pr create --base main --title "<task title>" --body "<what changed, AC checklist with evidence, 'Backlog: TASK-N'>"`.
-7. Print `PR_OPENED: #n` and stop. Qodo needs a few minutes.
+2. Read `AGENTS.md`, `backlog task view TASK-N --plain`, and `backlog instructions task-execution`. Follow that guide: set In Progress, assign `@claude`, remove the `ready-for-agent` label.
+3. Check the ticket with the `qodo-codebase-wisdom` skill: how the code the acceptance criteria touch works today, and whether the ticket's assumptions hold. If a criterion contradicts the code or its history, go to **Blocked** with the evidence and the question. Otherwise record your plan, citing what you found.
+4. Implement against the acceptance criteria and the AGENTS.md rules (domain rules test-first, UI text in all three `web/src/i18n` dictionaries).
+5. Run the checks (below). On failure, fix and rerun; after 2 failed fix attempts, go to **Blocked**.
+6. Review before committing with the `qodo-review` skill: all uncommitted work (staged, unstaged and untracked), with the acceptance criteria and your decisions as context. Apply AGENTS.md rule 7: fix the valid High and Medium findings, rerun the checks and the review, and carry disputed and Low findings into the PR description for the user.
+7. Read `backlog instructions task-finalization`; check off each acceptance criterion only with evidence (a test name or command output), add implementation notes. Leave the task In Progress until **Ready**.
+8. Commit, push, and open the PR:
+   `gh pr create --base main --title "<task title>" --body "<what changed, AC checklist with evidence, local review result, 'Backlog: TASK-N'>"`.
+9. Print `PR_OPENED: #n` and stop. Qodo needs a few minutes.
 
 ## 3. Review round
 
