@@ -67,6 +67,8 @@ If `dotnet test` fails on locked files (the dev server is running), rerun the ba
 
 ## Ready
 
+First check the PR's base: `gh pr view <n> --json baseRefName`. If it isn't `main`, go to **Blocked** and name the branch it targets. A PR stacked on another branch merges into that branch, not `main` (PR #15 did, and TASK-7 never shipped until PR #20).
+
 Follow `backlog instructions task-finalization` on the PR branch: add a Backlog note with the PR link, a final summary, and set TASK-N to Done, then push. Merging the PR is what makes the task Done on `main`, so no follow-up PR is needed. Add PR label `agent-ready`, comment `Agent ready: checks pass, Qodo findings handled (see rounds). I won't merge. Comment /agent continue <what to change> for more work.` Print `READY: PR #n` and stop.
 
 ## Blocked
