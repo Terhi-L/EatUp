@@ -16,6 +16,8 @@ type InventoryPageProps = { search: string; onSearchChange: (search: string) => 
 
 export function InventoryPage({ search, onSearchChange }: InventoryPageProps) {
   const [location, setLocation] = useState<StorageLocation | null>(null)
+  // Kept on the page, not the row: after a 409 the refreshed list no longer has the row.
+  const [consumeError, setConsumeError] = useState<Error | null>(null)
   const items = useQuery({ queryKey: ['items'], queryFn: () => api.items() })
   const topSuggestion = useSuggestions().data?.[0]
 
@@ -67,6 +69,8 @@ export function InventoryPage({ search, onSearchChange }: InventoryPageProps) {
         })}
       </div>
 
+      {consumeError && <p role="alert" className="text-sm text-danger">{consumeError.message}</p>}
+
       {visible.length === 0 && <p className="py-8 text-center text-muted">{emptyMessage(search)}</p>}
 
       <div className="grid gap-[18px] lg:grid-cols-[repeat(auto-fit,minmax(280px,1fr))] lg:items-start lg:gap-7">
@@ -83,7 +87,7 @@ export function InventoryPage({ search, onSearchChange }: InventoryPageProps) {
                 <div className="flex-1 border-t-2 border-ink" />
               </div>
               <ul className="card divide-y-2 divide-dashed divide-ink/25">
-                {group.map((item) => <ItemRow key={item.id} item={item} />)}
+                {group.map((item) => <ItemRow key={item.id} item={item} onConsumeSettled={setConsumeError} />)}
               </ul>
             </section>
           )
@@ -119,12 +123,17 @@ function emptyMessage(search: string) {
   return search.trim() === '' ? strings.inventory.empty : strings.inventory.noResults(search)
 }
 
-function ItemRow({ item }: { item: Item }) {
+type ItemRowProps = { item: Item; onConsumeSettled: (error: Error | null) => void }
+
+function ItemRow({ item, onConsumeSettled }: ItemRowProps) {
   const queryClient = useQueryClient()
   const consume = useMutation({
     mutationFn: (outcome: ConsumeOutcome) => api.consume(item.id, outcome),
     // Also after a failure: a 409 means another tab or device already changed this item.
-    onSettled: () => queryClient.invalidateQueries(),
+    onSettled: (_item, error) => {
+      onConsumeSettled(error)
+      queryClient.invalidateQueries()
+    },
   })
   const Icon = locationIcon[item.location]
 

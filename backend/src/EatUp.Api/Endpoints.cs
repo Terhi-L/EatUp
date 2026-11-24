@@ -135,7 +135,7 @@ public static class Endpoints
             db.ConsumeEvents.Add(Consumption.Consume(item, input.Outcome, input.Amount, time.GetUtcNow()));
             await db.SaveChangesAsync();
             return Results.Ok(ToDto(item, catalog, pantry.Today(await pantry.GetProfileAsync())));
-        }).Produces<ItemDto>().ProducesProblem(StatusCodes.Status409Conflict);
+        }).Produces<ItemDto>().ProducesValidationProblem().ProducesProblem(StatusCodes.Status409Conflict);
 
         // Catalogue & suggestions
         api.MapGet("/ingredients", async (Catalog catalog, Pantry pantry, string? search) =>

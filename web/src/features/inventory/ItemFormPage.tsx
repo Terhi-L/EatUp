@@ -88,19 +88,23 @@ function ItemForm({ existing }: { existing?: Item }) {
     setScanned(true)
   }
 
+  // Also after a failure: the 409 text tells the user the list is up to date.
+  const refresh = () => queryClient.invalidateQueries()
   const done = () => {
-    queryClient.invalidateQueries()
+    refresh()
     navigate('/')
   }
 
   const save = useMutation({
     mutationFn: (input: ItemInput) => (existing ? api.updateItem(existing.id, input) : api.createItem(input)),
     onSuccess: done,
+    onError: refresh,
   })
-  const remove = useMutation({ mutationFn: () => api.deleteItem(existing!.id), onSuccess: done })
+  const remove = useMutation({ mutationFn: () => api.deleteItem(existing!.id), onSuccess: done, onError: refresh })
   const consume = useMutation({
     mutationFn: ({ outcome, amount }: { outcome: ConsumeOutcome; amount?: number }) => api.consume(existing!.id, outcome, amount),
     onSuccess: done,
+    onError: refresh,
   })
 
   const submit = (e: FormEvent) => {
