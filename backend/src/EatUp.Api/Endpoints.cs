@@ -117,7 +117,7 @@ public static class Endpoints
             if (Apply(item, input, catalog, today) is { } error) return error;
             await db.SaveChangesAsync();
             return Results.Ok(ToDto(item, catalog, today));
-        }).Produces<ItemDto>().ProducesValidationProblem();
+        }).Produces<ItemDto>().ProducesValidationProblem().ProducesProblem(StatusCodes.Status409Conflict);
 
         api.MapDelete("/items/{id:int}", async (int id, EatUpDb db) =>
             await db.Items.Where(i => i.Id == id).ExecuteDeleteAsync() > 0 ? Results.NoContent() : Results.NotFound()).Produces(StatusCodes.Status204NoContent);

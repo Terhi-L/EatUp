@@ -9,6 +9,7 @@ using EatUp.Api.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Metadata;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
@@ -243,6 +244,17 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
         var declared = EndpointFor(method, route).Metadata.GetOrderedMetadata<IProducesResponseTypeMetadata>();
 
         Assert.Contains(declared, d => d.StatusCode == StatusCodes.Status400BadRequest && d.Type == typeof(HttpValidationProblemDetails));
+    }
+
+    // Item writes saved through EF check the item's concurrency tokens, so they can lose a race and return 409.
+    [Theory]
+    [InlineData("PUT", "/api/items/{id:int}")]
+    [InlineData("POST", "/api/items/{id:int}/consume")]
+    public void Item_writes_that_can_lose_a_race_declare_the_conflict(string method, string route)
+    {
+        var declared = EndpointFor(method, route).Metadata.GetOrderedMetadata<IProducesResponseTypeMetadata>();
+
+        Assert.Contains(declared, d => d.StatusCode == StatusCodes.Status409Conflict && d.Type == typeof(ProblemDetails));
     }
 
     private RouteEndpoint EndpointFor(string method, string route) =>
