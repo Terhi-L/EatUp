@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-24T09:44:00Z'
-updated_date: '2026-11-25T09:54:00Z'
+updated_date: '2026-11-25T09:55:00Z'
 labels:
   - backend
 dependencies: []
@@ -36,7 +36,7 @@ Qodo flagged on PR #20 that the consume endpoint returned a validation problem (
 1. Test first: one theory in ApiTests reads each endpoint's metadata and asserts it declares a 400 HttpValidationProblemDetails, covering every endpoint that returns Results.ValidationProblem (the five in AC #1 plus consume and the two meal-plan writes as guards).
 2. Add .ProducesValidationProblem() to the five endpoints.
 3. npm run gen:api; check openapi.json lists the 400s.
-4. AC #4 (409 on PUT /items/{id}): Day 12 hackathon test — left out of the first PR push on purpose to see whether Qodo flags it as a requirement gap from this task (REVIEW.md, PR #28); added in round 2.
+4. Declare the 409 conflict problem on PUT /items/{id}.
 5. npm test + npm run typecheck; PR; quality gate.
 <!-- SECTION:PLAN:END -->
 
