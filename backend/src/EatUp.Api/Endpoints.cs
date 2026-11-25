@@ -85,7 +85,7 @@ public static class Endpoints
             if (input.Language is { } language) p.Language = language;
             await db.SaveChangesAsync();
             return Results.Ok(ToDto(p));
-        }).Produces<ProfileDto>();
+        }).Produces<ProfileDto>().ProducesValidationProblem();
 
         // Items
         api.MapGet("/items", async (EatUpDb db, Pantry pantry, Catalog catalog, ItemStatus? status) =>
@@ -108,7 +108,7 @@ public static class Endpoints
             db.Items.Add(item);
             await db.SaveChangesAsync();
             return Results.Created($"/api/items/{item.Id}", ToDto(item, catalog, today));
-        }).Produces<ItemDto>(StatusCodes.Status201Created);
+        }).Produces<ItemDto>(StatusCodes.Status201Created).ProducesValidationProblem();
 
         api.MapPut("/items/{id:int}", async (int id, ItemInput input, EatUpDb db, Pantry pantry, Catalog catalog) =>
         {
@@ -117,7 +117,7 @@ public static class Endpoints
             if (Apply(item, input, catalog, today) is { } error) return error;
             await db.SaveChangesAsync();
             return Results.Ok(ToDto(item, catalog, today));
-        }).Produces<ItemDto>();
+        }).Produces<ItemDto>().ProducesValidationProblem();
 
         api.MapDelete("/items/{id:int}", async (int id, EatUpDb db) =>
             await db.Items.Where(i => i.Id == id).ExecuteDeleteAsync() > 0 ? Results.NoContent() : Results.NotFound()).Produces(StatusCodes.Status204NoContent);
@@ -152,7 +152,7 @@ public static class Endpoints
         api.MapGet("/ingredients", async (Catalog catalog, Pantry pantry, string? search) =>
             catalog.Search(search, (await pantry.GetProfileAsync()).LanguageOrDefault).Take(20));
 
-        api.MapGet("/products/{barcode}", LookUpProductAsync).Produces<ProductDto>();
+        api.MapGet("/products/{barcode}", LookUpProductAsync).Produces<ProductDto>().ProducesValidationProblem();
 
         api.MapGet("/suggestions", async (Pantry pantry, Catalog catalog, int? limit) =>
         {
@@ -177,7 +177,7 @@ public static class Endpoints
             db.Shopping.Add(item);
             await db.SaveChangesAsync();
             return Results.Created($"/api/shopping/{item.Id}", item);
-        }).Produces<ShoppingItem>().Produces<ShoppingItem>(StatusCodes.Status201Created);
+        }).Produces<ShoppingItem>().Produces<ShoppingItem>(StatusCodes.Status201Created).ProducesValidationProblem();
 
         api.MapPut("/shopping/{id:int}", async (int id, ShoppingInput input, EatUpDb db) =>
         {
