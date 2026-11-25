@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-24T09:44:00Z'
-updated_date: '2026-11-25T09:55:00Z'
+updated_date: '2026-11-25T10:36:00Z'
 labels:
   - backend
 dependencies: []
@@ -44,4 +44,6 @@ Qodo flagged on PR #20 that the consume endpoint returned a validation problem (
 
 <!-- SECTION:NOTES:BEGIN -->
 AC #1 said PUT /api/profile; the endpoint is PATCH (Endpoints.cs), so the criterion was corrected. AC #4 added from Qodo's Day 11 rerun of PR #20: only FoodItem has concurrency tokens (Status, Quantity), so PUT /items/{id} is the only undeclared write that can return 409; DELETE uses ExecuteDeleteAsync and can't.
+
+Review test (hackathon Day 12): AC #4 was left out of the first push on purpose, to check whether Qodo judges a PR against its Backlog task via REVIEW.md (PR #28). Round 1 on bb3158a flagged it as a Medium finding quoting criterion #4 from this file; the 409 was then added test-first (Item_writes_that_can_lose_a_race_declare_the_conflict, red for PUT before the fix).
 <!-- SECTION:NOTES:END -->
