@@ -7,7 +7,11 @@ using EatUp.Api.Data;
 using EatUp.Api.Domain;
 using EatUp.Api.Services;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Metadata;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -224,6 +228,38 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal(ItemStatus.Active, (await _client.GetFromJsonAsync<ItemDto>($"/api/items/{item.Id}", Json))!.Status);
     }
+
+    // Every endpoint that can return Results.ValidationProblem, so the generated client is typed with its 400.
+    [Theory]
+    [InlineData("PATCH", "/api/profile")]
+    [InlineData("POST", "/api/items")]
+    [InlineData("PUT", "/api/items/{id:int}")]
+    [InlineData("POST", "/api/items/{id:int}/consume")]
+    [InlineData("POST", "/api/shopping")]
+    [InlineData("GET", "/api/products/{barcode}")]
+    [InlineData("POST", "/api/meal-plans/{week}/meals")]
+    [InlineData("PUT", "/api/meal-plans/{week}/meals/{id:int}")]
+    public void Endpoints_that_validate_input_declare_the_validation_problem(string method, string route)
+    {
+        var declared = EndpointFor(method, route).Metadata.GetOrderedMetadata<IProducesResponseTypeMetadata>();
+
+        Assert.Contains(declared, d => d.StatusCode == StatusCodes.Status400BadRequest && d.Type == typeof(HttpValidationProblemDetails));
+    }
+
+    // Item writes saved through EF check the item's concurrency tokens, so they can lose a race and return 409.
+    [Theory]
+    [InlineData("PUT", "/api/items/{id:int}")]
+    [InlineData("POST", "/api/items/{id:int}/consume")]
+    public void Item_writes_that_can_lose_a_race_declare_the_conflict(string method, string route)
+    {
+        var declared = EndpointFor(method, route).Metadata.GetOrderedMetadata<IProducesResponseTypeMetadata>();
+
+        Assert.Contains(declared, d => d.StatusCode == StatusCodes.Status409Conflict && d.Type == typeof(ProblemDetails));
+    }
+
+    private RouteEndpoint EndpointFor(string method, string route) =>
+        _factory.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>().Single(e =>
+            e.RoutePattern.RawText == route && e.Metadata.GetMetadata<IHttpMethodMetadata>()?.HttpMethods.Contains(method) == true);
 
     [Fact]
     public async Task Profile_patch_only_changes_the_fields_sent()
