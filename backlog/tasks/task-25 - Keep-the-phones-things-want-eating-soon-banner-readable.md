@@ -1,9 +1,11 @@
 ---
 id: TASK-25
 title: Keep the phone's "things want eating soon" banner readable
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-26T16:13:00Z'
+updated_date: '2026-11-26T18:24:00Z'
 labels:
   - frontend
 milestone: m-1
