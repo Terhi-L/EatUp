@@ -12,8 +12,8 @@ description: Walk EatUp's main user flow in a real browser at phone and desktop 
 ## Steps
 
 1. **Read the ticket.** `backlog task view <id> --plain`. For each acceptance criterion a user could see, write down the screen and the size (phone, desktop or both) where it shows. Done when every visible criterion has a place. Without a task, the place list is the walk's own steps.
-2. **Extend the walk** in `web/e2e/flow-walk.walk.ts` for every place the walk doesn't reach yet: a `test.step` that does what the user does, `expect`s what they should see, then calls `screenshot(page, '<step>')`. Seed the data the screen needs through the `kitchen` list. When the ticket changes the flow on purpose, update the affected step to the new behaviour. Done when every place from step 1 ends in a screenshot.
-3. **Run** `npm run walk`. Done when both projects (phone, desktop) pass. A failing step is either the ticket's own change (update the step) or a regression (fix the code, rerun).
+2. **Extend the walk** in `web/e2e/flow-walk.walk.ts` for every place the walk doesn't reach yet: a `test.step` that does what the user does, `expect`s what they should see, then calls `screenshot(page, '<step>')`. Seed the data the screen needs through the `kitchen` list. New steps are yours to add; the existing steps are the user's picture of their app and change only after they agree (below). Done when every place from step 1 ends in a screenshot.
+3. **Run** `npm run walk`. Done when both projects (phone, desktop) pass. A failing step is fixed in the app code, then rerun. When the change is meant to alter what that step checks, ask the user first (below).
 4. **Look** at every screenshot in `web/flow-walk-results/phone/` and `web/flow-walk-results/desktop/` by opening it, checking each against the list below and the place list from step 1. Done when every screenshot has a verdict: OK, or the problem in one line.
 5. **Report** a table: step × phone × desktop, each cell OK or the problem, plus which criterion each screenshot proves. Put it in the task's implementation notes and the PR description, and give the user the folder path so they can open the screenshots themselves. Screenshots stay local (the folder is git-ignored and emptied on every walk).
 
@@ -31,4 +31,4 @@ description: Walk EatUp's main user flow in a real browser at phone and desktop 
 - The API build fails on locked files: `npm run dev` is holding them. Ask the user to stop it, then rerun.
 - A screenshot looks wrong while its step passes, and the ticket doesn't say whether that's intended. Name the screenshot and ask.
 - A step fails for a reason outside the ticket's change, and a rerun fails the same way.
-- The ticket changes the flow in a way it doesn't spell out (for example, which column an item moves to).
+- A step no longer matches because the change alters what the user does or sees, even when the ticket asks for it. Show the old and the new step side by side and what it means for the user, and change the step only after they agree.
