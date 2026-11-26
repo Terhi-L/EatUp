@@ -104,6 +104,30 @@ test('food past its date: check the best-before food, throw out the rest', async
   })
 })
 
+test('the eaten buttons show a knife and fork', async ({ page }) => {
+  await test.step('both eaten buttons on the edit screen, scrolled to as the user would', async () => {
+    await page.goto('/')
+    await row(group(page, text.urgency.Later), 'Rice').getByRole('link').click()
+    const eatenButtons = page.getByRole('button', { name: text.form.markUsed, exact: true })
+    await expect(eatenButtons).toHaveCount(2)
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
+    for (const button of await eatenButtons.all()) {
+      await expect(button.locator('svg')).toBeVisible()
+      await expectNotCovered(button, visible(page.getByRole('navigation', { name: 'Main' })))
+    }
+    // What the user sees after scrolling: a full-page capture would draw the fixed bottom bar over the page.
+    await screenshot(page, 'eaten-buttons', { fullPage: false })
+  })
+})
+
+// Visible to Playwright isn't the same as visible to the user: a fixed bar can sit on top of a button.
+async function expectNotCovered(target: Locator, cover: Locator) {
+  const [a, b] = [await target.boundingBox(), await cover.boundingBox()]
+  if (!a || !b) throw new Error('Both elements must be on screen')
+  const overlaps = a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height
+  expect(overlaps, 'covered by the navigation').toBe(false)
+}
+
 function group(page: Page, heading: string): Locator {
   return page.locator('section', { has: page.getByRole('heading', { name: heading, exact: true }) })
 }
@@ -126,9 +150,9 @@ async function eatenThisMonth(page: Page): Promise<number> {
   return stats.thisMonth.used
 }
 
-async function screenshot(page: Page, step: string) {
+async function screenshot(page: Page, step: string, { fullPage = true } = {}) {
   shotNumber += 1
   const project = test.info().project
   const file = `${String(shotNumber).padStart(2, '0')}-${step}.png`
-  await page.screenshot({ path: join(project.outputDir, project.name, file), fullPage: true })
+  await page.screenshot({ path: join(project.outputDir, project.name, file), fullPage })
 }

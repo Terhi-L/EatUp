@@ -20,6 +20,7 @@ export const BasketIcon = (p: IconProps) => <Svg {...p}><path d="M3 9h18l-2 11H5
 export const PotIcon = (p: IconProps) => <Svg {...p}><path d="M4 10h16v7a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3zM2 10h2M20 10h2M9 6c0-1 1-1 1-2M14 6c0-1 1-1 1-2" /></Svg>
 export const UserIcon = (p: IconProps) => <Svg {...p}><circle cx="12" cy="8" r="4" /><path d="M4 21c1-4 4-6 8-6s7 2 8 6" /></Svg>
 export const CheckIcon = (p: IconProps) => <Svg strokeWidth={2.6} {...p}><path d="M5 12.5l4.5 4.5L19 7" /></Svg>
+export const KnifeAndForkIcon = (p: IconProps) => <Svg {...p}><path d="M5 3v5a3 3 0 0 0 6 0V3M8 3v18M19 21V3c-2.5 1.5-4 4.5-4 8.5V14h4" /></Svg>
 export const TrashIcon = (p: IconProps) => <Svg {...p}><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" /></Svg>
 export const PlusIcon = (p: IconProps) => <Svg strokeWidth={3} {...p}><path d="M12 5v14M5 12h14" /></Svg>
 export const AlarmIcon = (p: IconProps) => <Svg strokeWidth={2} {...p}><circle cx="12" cy="13" r="7" /><path d="M12 9v4l2.5 2M4 5l3-2.5M20 5l-3-2.5" /></Svg>

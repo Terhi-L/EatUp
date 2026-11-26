@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api, type ConsumeOutcome, type ExpiryAdvice, type Item, type StorageLocation, type Urgency } from '../../api'
 import { strings, unitLabel } from '../../strings'
-import { AlarmIcon, CheckIcon, PlusIcon, TrashIcon, locationIcon, locationTone, urgencyTone } from '../../icons'
+import { AlarmIcon, KnifeAndForkIcon, PlusIcon, TrashIcon, locationIcon, locationTone, urgencyTone } from '../../icons'
 import { nameMatches } from '../../lib/search'
 import { TonightCard } from '../suggestions/TonightCard'
 import { useSuggestions } from '../suggestions/useSuggestions'
@@ -157,7 +157,7 @@ function ItemRow({ item, onConsumeSettled }: ItemRowProps) {
       </Link>
       <button className="icon-btn bg-later" aria-label={strings.inventory.markUsed(item.name)}
         disabled={consume.isPending} onClick={() => consume.mutate('Used')}>
-        <CheckIcon size={22} />
+        <KnifeAndForkIcon size={22} />
       </button>
       <button className="icon-btn" aria-label={strings.inventory.markTossed(item.name)}
         disabled={consume.isPending} onClick={() => consume.mutate('Discarded')}>
