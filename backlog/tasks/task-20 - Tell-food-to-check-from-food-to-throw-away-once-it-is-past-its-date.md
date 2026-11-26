@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-26T13:19:00Z'
-updated_date: '2026-11-26T14:20:00Z'
+updated_date: '2026-11-26T14:39:00Z'
 labels:
   - backend
   - frontend
@@ -54,10 +54,16 @@ Unchanged unless the product owner decides otherwise: suggestions never use food
 5. Web: 'Gone off' becomes 'Throw away :(' (en/nb/fi); form gets a 'The package says' Use by / Best before toggle prefilled from the catalogue match; inventory rows show 'Best before yesterday' badge + look/smell/taste advice, or the check-the-package mark; all text in en, nb, fi.
 6. Flow walk: kitchen gets a use-by item past its date so every group still shows; new test walks use-by, best-before-in-window and unknown food past their dates, the prefilled kind, and switching the unknown food to best before, at phone and desktop.
 7. docs/decisions.md entry; npm test, npm run typecheck, lint, e2e; Qodo local review (quality gate); PR.
+
+Revised after Qodo review (product owner's choice 2026-11-26): the form sends a kind only for a tap on the current name or an item that keeps its name (case-insensitive); otherwise the backend picks the default of the food it matches (web/src/lib/expiryKind.ts).
 <!-- SECTION:PLAN:END -->
 
 ## Implementation Notes
 
 <!-- SECTION:NOTES:BEGIN -->
 Implemented domain (Expiry.FreshnessOf, ExpiryKind/ExpiryAdvice, catalogue windows per storage place with validation), AddExpiryKind migration with upgrade test over every catalogue key, API input/DTO + regenerated types, form toggle, inventory badge/advice, en/nb/fi text, decisions.md entry. npm test (279 xUnit + 45 Vitest), typecheck, lint, e2e (12) and flow walk (4) pass. Builds used a redirected output folder because npm run dev held bin/.
+
+Qodo local review: round 1 (full) raised High 5f6aa18a 'Edited chicken gets unsafe eating advice' and Medium 18e2feca 'Form decides the default expiry kind in the browser'; a planning agent checked the fix plan (caught click-then-rename and trailing spaces, and that sending null makes loose matches like 'Egg salad' best before). Product owner chose to let the backend decide: people throw away good food far more often than the opposite. Round 2 resolved both and raised Medium 4f8c2d39 (case-only rename reset a chosen kind), fixed. Round 3 at fbe22fd: no open findings, coverage complete.
+
+Flow walk (npm run walk, phone + desktop; screenshots in web/flow-walk-results/): kitchen OK/OK; add-milk OK/OK (Save under the bottom bar only in the phone full-page capture, reachable); milk-added, cook-now, eggs-eaten, profile-stats OK/OK; past-date-groups OK/OK (AC3-6); past-date-kind-from-catalogue OK/OK (AC2); past-date-kimchi-best-before OK/OK and past-date-kimchi-to-check OK/OK (AC5). Kitchen seed gained Chicken -1; no existing step changed. Finnish phone check: long chip text wraps.
 <!-- SECTION:NOTES:END -->
