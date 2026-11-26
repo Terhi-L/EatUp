@@ -8,6 +8,7 @@ import { storedUnit, strings, unitLabel } from '../../strings'
 import { addDays, localIsoDate } from '../../lib/dates'
 import { locationAfterOpening } from '../../lib/storage'
 import { findTypedIngredient } from '../../lib/ingredients'
+import { formExpiryKind, type KindPick } from '../../lib/expiryKind'
 import { CheckIcon, TrashIcon, locationIcon, locationTone } from '../../icons'
 import { ScanBarcodeButton } from './ScanBarcodeButton'
 
@@ -34,8 +35,7 @@ function ItemForm({ existing }: { existing?: Item }) {
   const [location, setLocation] = useState<StorageLocation>(existing?.location ?? 'Fridge')
   const [expiryDate, setExpiryDate] = useState(existing?.expiryDate ?? '')
   const [expiryTouched, setExpiryTouched] = useState(existing !== undefined)
-  // Null until picked, so the kind follows the catalogue match while the name is typed.
-  const [chosenKind, setChosenKind] = useState<ExpiryKind | null>(existing?.expiryKind ?? null)
+  const [kindPick, setKindPick] = useState<KindPick | null>(null)
   const [opened, setOpened] = useState(existing?.openedDate != null)
   const [openedDate, setOpenedDate] = useState(existing?.openedDate ?? localIsoDate())
   const [movedOnOpening, setMovedOnOpening] = useState<StorageLocation | null>(null)
@@ -53,8 +53,7 @@ function ItemForm({ existing }: { existing?: Item }) {
     placeholderData: keepPreviousData,
   })
   const match: Ingredient | undefined = findTypedIngredient(ingredients.data, name)
-  // Food the catalogue doesn't know counts as use by, the safe guess.
-  const expiryKind: ExpiryKind = chosenKind ?? match?.expiryKind ?? 'UseBy'
+  const expiryKind = formExpiryKind(name, kindPick, existing, match)
 
   // Picking a known ingredient suggests an expiry date from its typical shelf life.
   useEffect(() => {
@@ -92,7 +91,7 @@ function ItemForm({ existing }: { existing?: Item }) {
     }
     setExpiryDate('')
     setExpiryTouched(false)
-    setChosenKind(null)
+    setKindPick(null)
     setScanned(true)
   }
 
@@ -123,12 +122,12 @@ function ItemForm({ existing }: { existing?: Item }) {
     save.mutate({
       name,
       // Unknown names fall back to the backend's own matching.
-      ingredientKey: match?.key ?? (name === existing?.name ? existing.ingredientKey : null),
+      ingredientKey: match?.key ?? (name.trim() === existing?.name ? existing.ingredientKey : null),
       quantity,
       unit: storedUnit(unit),
       location,
       expiryDate: expiryDate || null,
-      expiryKind,
+      expiryKind: expiryKind.sent,
       openedDate: opened ? openedDate : null,
     })
   }
@@ -197,7 +196,7 @@ function ItemForm({ existing }: { existing?: Item }) {
           {expiryMissing && <p className="mt-1 text-xs text-danger">{strings.scan.fillExpiry}</p>}
         </div>
 
-        <ExpiryKindField kind={expiryKind} onPick={setChosenKind} />
+        <ExpiryKindField kind={expiryKind.shown} onPick={(kind) => setKindPick({ kind, name: name.trim() })} />
 
         <div className="space-y-2">
           <label className="flex min-h-11 items-center gap-2">

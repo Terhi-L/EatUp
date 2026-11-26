@@ -206,6 +206,17 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
         Assert.Equal([ExpiryKind.BestBefore, ExpiryKind.UseBy, ExpiryKind.UseBy], [milk.ExpiryKind, kimchi.ExpiryKind, pickedUseBy.ExpiryKind]);
     }
 
+    [Fact]
+    public async Task Renaming_an_item_without_a_kind_gives_it_the_new_foods_default()
+    {
+        var milk = await AddAsync("Test milk", 5);
+
+        var renamed = await _client.PutAsJsonAsync($"/api/items/{milk.Id}",
+            new ItemInput("Test chicken", null, 1, "pcs", StorageLocation.Fridge, milk.ExpiryDate, null), Json);
+
+        Assert.Equal(ExpiryKind.UseBy, (await renamed.Content.ReadFromJsonAsync<ItemDto>(Json))!.ExpiryKind);
+    }
+
     // Three days back stays past the date but inside yogurt's fridge window in any time zone.
     [Fact]
     public async Task Food_past_its_date_says_whether_to_check_it_or_throw_it_out()
