@@ -9,7 +9,7 @@ import { addDays, localIsoDate } from '../../lib/dates'
 import { locationAfterOpening } from '../../lib/storage'
 import { findTypedIngredient } from '../../lib/ingredients'
 import { formExpiryKind, sameName, type KindPick } from '../../lib/expiryKind'
-import { CheckIcon, TrashIcon, locationIcon, locationTone } from '../../icons'
+import { KnifeAndForkIcon, TrashIcon, locationIcon, locationTone } from '../../icons'
 import { ScanBarcodeButton } from './ScanBarcodeButton'
 
 const locations: StorageLocation[] = ['Fridge', 'Freezer', 'Cupboard', 'Counter']
@@ -231,13 +231,13 @@ function ItemForm({ existing }: { existing?: Item }) {
               <button className="btn-secondary ml-auto"
                 disabled={consume.isPending || !Number.isFinite(usedAmount) || usedAmount <= 0}
                 onClick={() => consume.mutate({ outcome: 'Used', amount: usedAmount })}>
-                {strings.form.markUsed}
+                <KnifeAndForkIcon /> {strings.form.markUsed}
               </button>
             </div>
           </div>
           <div className="flex gap-2">
             <button className="btn-secondary flex-1" disabled={consume.isPending} onClick={() => consume.mutate({ outcome: 'Used' })}>
-              <CheckIcon /> {strings.form.markUsed}
+              <KnifeAndForkIcon /> {strings.form.markUsed}
             </button>
             <button className="btn-secondary flex-1" disabled={consume.isPending} onClick={() => consume.mutate({ outcome: 'Discarded' })}>
               <TrashIcon /> {strings.form.markTossed}
