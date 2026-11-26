@@ -9,6 +9,7 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "e2e": "playwright test",
+    "walk": "playwright test -c playwright.walk.config.ts",
     "lint": "oxlint --deny-warnings"
   },
   "dependencies": {
