@@ -72,7 +72,7 @@ public class ExpiryTests
         IngredientKey = ingredient?.Key,
         Location = location,
         ExpiryDate = Today.AddDays(daysLeft),
-        ExpiryKind = kind ?? ingredient?.ExpiryKind ?? ExpiryKind.UseBy,
+        ExpiryKind = kind ?? Expiry.DefaultKind(ingredient),
     };
 
     private static (int DaysLeft, Urgency Urgency, ExpiryAdvice Advice) FreshnessOf(FoodItem item, Ingredient? ingredient)
@@ -107,6 +107,29 @@ public class ExpiryTests
         opened.OpenedDate = Today.AddDays(-5);
 
         Assert.Equal((-1, Urgency.Expired, ExpiryAdvice.None), FreshnessOf(opened, Yogurt));
+    }
+
+    // Yogurt here: 3 days worth checking in the fridge, and 4 days once opened.
+    [Theory]
+    [InlineData(-1, -5, Urgency.Expired)] // opened limit on the printed date: no extra days
+    [InlineData(-2, -4, Urgency.Today)] // opened limit two days after the printed date
+    [InlineData(-3, -5, Urgency.Expired)]
+    [InlineData(-3, -3, Urgency.Today)] // opened on the printed date: the window ends before the opened limit
+    [InlineData(-4, -4, Urgency.Expired)]
+    public void Opened_food_is_worth_checking_only_until_its_opened_limit(int printedDaysLeft, int openedDaysAgo, Urgency expected)
+    {
+        var opened = Item(Yogurt, printedDaysLeft);
+        opened.OpenedDate = Today.AddDays(openedDaysAgo);
+
+        Assert.Equal(expected, FreshnessOf(opened, Yogurt).Urgency);
+    }
+
+    [Fact]
+    public void Food_nobody_picked_a_kind_for_takes_the_catalogues_or_counts_as_use_by()
+    {
+        Assert.Equal(ExpiryKind.BestBefore, Expiry.DefaultKind(Yogurt));
+        Assert.Equal(ExpiryKind.UseBy, Expiry.DefaultKind(Chicken));
+        Assert.Equal(ExpiryKind.UseBy, Expiry.DefaultKind(null));
     }
 
     [Fact]

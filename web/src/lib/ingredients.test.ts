@@ -14,6 +14,13 @@ describe('findTypedIngredient', () => {
     expect(findTypedIngredient([chickpeas], '  Chickpeas ')).toBe(chickpeas)
   })
 
+  it('treats hyphens and repeated spaces as word breaks, like the backend', () => {
+    const creamCheese = { ...chickpeas, key: 'cream-cheese', name: 'Cream cheese', aliases: ['cream cheese'] }
+
+    expect(findTypedIngredient([creamCheese], 'Cream-cheese')).toBe(creamCheese)
+    expect(findTypedIngredient([creamCheese], 'cream   cheese')).toBe(creamCheese)
+  })
+
   it('ignores partial or empty text', () => {
     expect(findTypedIngredient([chickpeas], 'chick')).toBeUndefined()
     expect(findTypedIngredient([chickpeas], '')).toBeUndefined()

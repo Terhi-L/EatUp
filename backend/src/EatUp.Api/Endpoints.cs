@@ -247,9 +247,9 @@ public static class Endpoints
             return new DailyCheckResultDto(result.Sent, result.Message?.Title, result.Message?.Body);
         });
 
-        dev.MapPost("/reset-demo-data", async (EatUpDb db, TimeProvider time) =>
+        dev.MapPost("/reset-demo-data", async (EatUpDb db, Catalog catalog, TimeProvider time) =>
         {
-            await DemoData.ResetItemsAsync(db, time);
+            await DemoData.ResetItemsAsync(db, catalog, time);
             return Results.NoContent();
         }).Produces(StatusCodes.Status204NoContent);
     }
@@ -302,7 +302,7 @@ public static class Endpoints
         item.Unit = string.IsNullOrWhiteSpace(input.Unit) ? "pcs" : input.Unit.Trim();
         item.Location = input.Location;
         item.ExpiryDate = expiry.Value;
-        item.ExpiryKind = input.ExpiryKind ?? ingredient?.ExpiryKind ?? ExpiryKind.UseBy;
+        item.ExpiryKind = input.ExpiryKind ?? Expiry.DefaultKind(ingredient);
         item.OpenedDate = input.OpenedDate;
         return null;
     }

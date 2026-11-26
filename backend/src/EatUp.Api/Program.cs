@@ -54,7 +54,7 @@ static async Task PrepareDatabaseAsync(IServiceProvider services)
     using var scope = services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<EatUpDb>();
     await DatabaseSetup.PrepareAsync(db, scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Database"));
-    await DemoData.EnsureSeededAsync(db, scope.ServiceProvider.GetRequiredService<TimeProvider>());
+    await DemoData.EnsureSeededAsync(db, scope.ServiceProvider.GetRequiredService<Catalog>(), scope.ServiceProvider.GetRequiredService<TimeProvider>());
 }
 
 public partial class Program;

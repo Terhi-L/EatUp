@@ -25,6 +25,14 @@ describe('formExpiryKind', () => {
     expect(formExpiryKind('milk', null, switchedMilk, milk)).toEqual({ shown: 'UseBy', sent: 'UseBy' })
   })
 
+  it('treats hyphens and extra spaces as the same name', () => {
+    const switchedCreamCheese = { name: 'Cream cheese', ingredientKey: 'cream-cheese', expiryKind: 'UseBy' } as Item
+
+    expect(formExpiryKind('Cream-cheese', null, switchedCreamCheese, undefined).sent).toBe('UseBy')
+    expect(formExpiryKind('Cream  cheese', null, switchedCreamCheese, undefined).sent).toBe('UseBy')
+    expect(formExpiryKind('Cream-cheese', { kind: 'UseBy', name: 'Cream cheese' }, undefined, undefined).sent).toBe('UseBy')
+  })
+
   it('sends a tap for the name it was made for', () => {
     expect(formExpiryKind('Chicken', { kind: 'BestBefore', name: 'Chicken' }, storedMilk, chicken))
       .toEqual({ shown: 'BestBefore', sent: 'BestBefore' })

@@ -114,7 +114,7 @@ The weekly health feedback (PLAN.md phase 7) reads four tags per recipe from `Se
 - **Food the catalogue doesn't know counts as use by.** Past its date it goes under "Throw away :(" with a note to check the package, even when the user picked use by on purpose.
 - **Best-before food has its window per storage place** (`checkDaysPastBestBefore` in `Seed/catalog.json`, shaped like `shelfLifeDays`), not one number per food. A place without a window gets no extra days, so dry rice in the cupboard is worth checking but cooked rice in the fridge is not.
 - **Inside its window, best-before food is `Today`** with look, smell and taste advice, so it sits under "Eat today" until TASK-12 makes that "Eat now". Past the window, or past a use-by date, it is `Expired`, shown as "Throw away :(".
-- **Opened food gets no window**: once "use within N days of opening" decides the date, past it means throw away.
+- **The window never runs past the opened limit**: once food is opened, the "use within N days of opening" date caps the days worth checking, and when that date comes first, past it means throw away.
 - **Best-before food without a catalogue window** (unknown food, or use-by food the user switched) gets 2 days.
 - **The values are cautious estimates**, listed in the TASK-20 pull request for the product owner to approve. Meat, fish, sliced ham and bagged spinach are use by.
 - **Unchanged**: suggestions and the daily reminder still never use food past its date (2026-11-02). Norwegian and Finnish texts await a native speaker's review.

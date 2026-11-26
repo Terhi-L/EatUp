@@ -240,6 +240,19 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
     }
 
     [Fact]
+    public async Task Demo_items_get_their_catalogue_kind()
+    {
+        await _client.PostAsync("/api/dev/reset-demo-data", null);
+        var catalog = _factory.Services.GetRequiredService<Catalog>();
+
+        var items = (await _client.GetFromJsonAsync<List<ItemDto>>("/api/items", Json))!;
+
+        Assert.All(items, i => Assert.Equal(catalog.Find(i.IngredientKey)?.ExpiryKind, i.ExpiryKind));
+        var yogurt = items.Single(i => i.Name == "Yogurt");
+        Assert.Equal((Urgency.Today, ExpiryAdvice.LookSmellTaste), (yogurt.Urgency, yogurt.Advice));
+    }
+
+    [Fact]
     public async Task Demo_data_produces_suggestions()
     {
         var suggestions = await _client.GetFromJsonAsync<List<SuggestionDto>>("/api/suggestions", Json);

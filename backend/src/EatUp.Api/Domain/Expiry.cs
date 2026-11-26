@@ -12,15 +12,14 @@ public static class Expiry
     public const int FallbackCheckDays = 2;
 
     /// <summary>An opened item expires at whichever comes first: the printed date or opened date + opened shelf life.</summary>
-    public static DateOnly EffectiveExpiry(FoodItem item, Ingredient? ingredient)
-    {
-        if (item.OpenedDate is { } opened && ingredient?.OpenedShelfLifeDays is { } days)
-        {
-            var openedExpiry = opened.AddDays(days);
-            return openedExpiry < item.ExpiryDate ? openedExpiry : item.ExpiryDate;
-        }
-        return item.ExpiryDate;
-    }
+    public static DateOnly EffectiveExpiry(FoodItem item, Ingredient? ingredient) =>
+        OpenedLimit(item, ingredient) is { } openedLimit && openedLimit < item.ExpiryDate ? openedLimit : item.ExpiryDate;
+
+    private static DateOnly? OpenedLimit(FoodItem item, Ingredient? ingredient) =>
+        item.OpenedDate is { } opened && ingredient?.OpenedShelfLifeDays is { } days ? opened.AddDays(days) : null;
+
+    /// <summary>The kind an item gets when nobody picked one: the catalogue's, and use by for food it doesn't know.</summary>
+    public static ExpiryKind DefaultKind(Ingredient? ingredient) => ingredient?.ExpiryKind ?? ExpiryKind.UseBy;
 
     public static int DaysLeft(DateOnly expiry, DateOnly today) => expiry.DayNumber - today.DayNumber;
 
@@ -33,18 +32,21 @@ public static class Expiry
         var expiry = EffectiveExpiry(item, ingredient);
         var daysLeft = DaysLeft(expiry, today);
         if (daysLeft >= 0) return new(expiry, daysLeft, UrgencyFor(daysLeft), ExpiryAdvice.None);
-        if (-daysLeft <= DaysWorthChecking(item, ingredient, expiry)) return new(expiry, daysLeft, Urgency.Today, ExpiryAdvice.LookSmellTaste);
+        if (-daysLeft <= DaysWorthChecking(item, ingredient)) return new(expiry, daysLeft, Urgency.Today, ExpiryAdvice.LookSmellTaste);
         return new(expiry, daysLeft, Urgency.Expired, AdviceBeforeThrowingOut(item, ingredient));
     }
 
-    private static int DaysWorthChecking(FoodItem item, Ingredient? ingredient, DateOnly effectiveExpiry)
+    // Days past the printed date; "use within N days of opening" is a limit the window never runs past.
+    private static int DaysWorthChecking(FoodItem item, Ingredient? ingredient)
     {
         if (item.ExpiryKind != ExpiryKind.BestBefore) return 0;
-        // The window is for the printed date on a closed package, not for "use within N days of opening".
-        if (effectiveExpiry < item.ExpiryDate) return 0;
-        if (ingredient?.CheckDaysPastBestBefore is not { } byLocation) return FallbackCheckDays;
-        return byLocation.GetValueOrDefault(item.Location);
+        var window = CatalogueWindow(item, ingredient);
+        if (OpenedLimit(item, ingredient) is not { } openedLimit) return window;
+        return Math.Clamp(openedLimit.DayNumber - item.ExpiryDate.DayNumber, 0, window);
     }
+
+    private static int CatalogueWindow(FoodItem item, Ingredient? ingredient) =>
+        ingredient?.CheckDaysPastBestBefore is { } byLocation ? byLocation.GetValueOrDefault(item.Location) : FallbackCheckDays;
 
     // Unknown food only counts as use by until someone reads the package, which may say best before.
     private static ExpiryAdvice AdviceBeforeThrowingOut(FoodItem item, Ingredient? ingredient) =>

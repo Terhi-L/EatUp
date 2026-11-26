@@ -1,11 +1,12 @@
 import type { ExpiryKind, Ingredient, Item } from '../api'
+import { typedWords } from './ingredients'
 
 /** A kind the user tapped in the form, for the name the item had then. */
 export type KindPick = { kind: ExpiryKind; name: string }
 
-/** Whether two names are the same food name, ignoring case and surrounding spaces as the backend does. */
+/** Whether two names are the same words, so case, spacing and hyphens don't count as a rename. */
 export function sameName(a: string, b: string): boolean {
-  return a.trim().toLowerCase() === b.trim().toLowerCase()
+  return typedWords(a) === typedWords(b)
 }
 
 /**
