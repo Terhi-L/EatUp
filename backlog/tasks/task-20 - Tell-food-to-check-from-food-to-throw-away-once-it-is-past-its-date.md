@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-26T13:19:00Z'
-updated_date: '2026-11-26T14:00:00Z'
+updated_date: '2026-11-26T14:08:00Z'
 labels:
   - backend
   - frontend
@@ -43,3 +43,15 @@ Unchanged unless the product owner decides otherwise: suggestions never use food
 - [ ] #6 Phone and desktop show the same groups and advice, and all new text is in en, nb and fi
 - [ ] #7 The flow walk covers a use-by item, a best-before item inside its window and an unknown food past their dates, at phone and desktop size
 <!-- AC:END -->
+
+## Implementation Plan
+
+<!-- SECTION:PLAN:BEGIN -->
+1. Domain (tests first): ExpiryKind {UseBy, BestBefore} and ExpiryAdvice {None, LookSmellTaste, CheckPackage}; catalogue Ingredient gets a required expiryKind and, for best-before food, checkDaysPastBestBefore per storage location (a place missing = no extra days, so cooked rice in the fridge is not 'look, smell, taste'); Catalog rejects best-before food without a window and use-by food with one. Expiry.FreshnessOf(item, ingredient, today) returns effective expiry, days left, urgency and advice: best-before past its date inside its window = Today + LookSmellTaste; past the window or use by = Expired; unknown food (no catalogue entry) use by past its date = Expired + CheckPackage. No window when the opened shelf life decided the date; best-before food the catalogue has no window for (unknown, or switched from use by) gets a 2-day fallback.
+2. Data: FoodItem.ExpiryKind stored as text; migration AddExpiryKind adds it (default UseBy) and sets BestBefore on existing items whose catalogue food is best before; upgrade test checks every catalogue key plus an unknown item keep their data.
+3. API: ItemInput.ExpiryKind optional (null = catalogue default, else use by; undefined value = 400); ItemDto gains ExpiryKind and Advice; npm run gen:api.
+4. Catalogue: cautious kind + window values for all 38 foods, listed in the PR for the product owner.
+5. Web: 'Gone off' becomes 'Throw away :(' (en/nb/fi); form gets a 'The package says' Use by / Best before toggle prefilled from the catalogue match; inventory rows show 'Best before yesterday' badge + look/smell/taste advice, or the check-the-package mark; all text in en, nb, fi.
+6. Flow walk: kitchen gets a use-by item past its date so every group still shows; new test walks use-by, best-before-in-window and unknown food past their dates, the prefilled kind, and switching the unknown food to best before, at phone and desktop.
+7. docs/decisions.md entry; npm test, npm run typecheck, lint, e2e; Qodo local review (quality gate); PR.
+<!-- SECTION:PLAN:END -->
