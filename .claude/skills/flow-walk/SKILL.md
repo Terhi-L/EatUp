@@ -28,7 +28,6 @@ description: Walk EatUp's main user flow in a real browser at phone and desktop 
 
 ## Stop and ask the user
 
-- The API build fails on locked files: `npm run dev` is holding them. Ask the user to stop it, then rerun.
 - A screenshot looks wrong while its step passes, and the ticket doesn't say whether that's intended. Name the screenshot and ask.
 - A step fails for a reason outside the ticket's change, and a rerun fails the same way.
 - A step no longer matches because the change alters what the user does or sees, even when the ticket asks for it. Show the old and the new step side by side and what it means for the user, and change the step only after they agree.

@@ -26,6 +26,11 @@ export default defineConfig({
         ASPNETCORE_URLS: apiUrl,
         ASPNETCORE_ENVIRONMENT: 'Development',
         DataDirectory: dataDirectory,
+        // Builds into this checkout's obj/e2e-bin, not bin: a running `npm run dev` holds bin (not obj), so this build
+        // can't collide with it or with another checkout. obj stays shared; moving it would recompile the old obj's generated files.
+        BaseOutputPath: 'obj/e2e-bin/',
+        // Moving the output stops the SDK excluding bin, whose .json files would otherwise be copied in as content.
+        DefaultItemExcludes: 'bin/**',
         // Explicit, so an inherited connection string can't point the test's deletes at a real database.
         ConnectionStrings__EatUp: `Data Source=${join(dataDirectory, 'eatup.db')}`,
         Push__EnableDailyJob: 'false',
