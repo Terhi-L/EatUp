@@ -22,6 +22,7 @@ describe('formExpiryKind', () => {
 
     expect(formExpiryKind('Milk', null, switchedMilk, milk)).toEqual({ shown: 'UseBy', sent: 'UseBy' })
     expect(formExpiryKind('Milk ', null, switchedMilk, milk)).toEqual({ shown: 'UseBy', sent: 'UseBy' })
+    expect(formExpiryKind('milk', null, switchedMilk, milk)).toEqual({ shown: 'UseBy', sent: 'UseBy' })
   })
 
   it('sends a tap for the name it was made for', () => {

@@ -8,7 +8,7 @@ import { storedUnit, strings, unitLabel } from '../../strings'
 import { addDays, localIsoDate } from '../../lib/dates'
 import { locationAfterOpening } from '../../lib/storage'
 import { findTypedIngredient } from '../../lib/ingredients'
-import { formExpiryKind, type KindPick } from '../../lib/expiryKind'
+import { formExpiryKind, sameName, type KindPick } from '../../lib/expiryKind'
 import { CheckIcon, TrashIcon, locationIcon, locationTone } from '../../icons'
 import { ScanBarcodeButton } from './ScanBarcodeButton'
 
@@ -122,7 +122,7 @@ function ItemForm({ existing }: { existing?: Item }) {
     save.mutate({
       name,
       // Unknown names fall back to the backend's own matching.
-      ingredientKey: match?.key ?? (name.trim() === existing?.name ? existing.ingredientKey : null),
+      ingredientKey: match?.key ?? (existing && sameName(name, existing.name) ? existing.ingredientKey : null),
       quantity,
       unit: storedUnit(unit),
       location,
