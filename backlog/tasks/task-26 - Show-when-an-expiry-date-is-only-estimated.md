@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-26T16:15:00Z'
-updated_date: '2026-11-26T17:06:00Z'
+updated_date: '2026-11-26T17:16:00Z'
 labels:
   - backend
   - frontend
@@ -56,6 +56,8 @@ Flow walk (npm run walk, phone Pixel 7 + desktop 1440x900, 6/6 passed; screensho
 Qodo local review: round 1 two Mediums. 'Generated type makes the flag required' dismissed as false_positive with the product owner (regenerating gives no diff; openapi-typescript makes defaulted fields required). 'Verified package dates stay marked estimated' fixed: any edit of the date or the new 'Matches the package' button makes it entered (product owner chose this). Round 2: resolved, nothing new; its comment pointed at the barcode-scan reset keeping the confirmed flag, fixed with a reset (no test: there are no component tests and the walk can't scan).
 
 Evidence: AC1 ExpiryTests.A_date_is_estimated_when_it_comes_from_shelf_life_rather_than_the_user and ApiTests.An_item_remembers_whether_its_date_was_estimated_until_a_date_is_entered; AC2 the same API test (PUT with a new date) plus expiryEstimate.test.ts and the walk's entered-row step; AC3 migration 20261126161710_AddExpiryEstimated (default false) and DatabaseSetupTests.Upgrading_counts_existing_dates_as_entered_and_keeps_item_data; AC4 walk screenshots at both sizes, texts in en/nb/fi (i18n key test passes); AC5 walk 6/6. dotnet test 292, Vitest 57, e2e 12, typecheck and oxlint clean; gen:api regenerated.
+
+PR review round 1 (#36, 0c6a30a, extended): 1 Medium 'Older forms mislabel estimated dates' (a cached older form doesn't send the flag, and false wiped the estimate on any edit). Fixed: ItemInput.ExpiryEstimated is now optional; without it, a stored estimate stays while the date is unchanged (Expiry.DateIsEstimated takes the stored estimate). Tests: the domain theory covers the older-form cases; ApiTests.An_older_form_without_the_estimate_flag_keeps_the_estimate_until_the_date_changes failed on the old behaviour. The generated input type is now optional, which also settles the earlier dismissed finding. dotnet test 296, Vitest 57, e2e 12, walk 6.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
