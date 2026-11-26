@@ -181,6 +181,25 @@ public sealed class DatabaseSetupTests : IDisposable
     }
 
     [Fact]
+    public async Task Upgrading_counts_existing_dates_as_entered_and_keeps_item_data()
+    {
+        await using (var db = OpenDb())
+        {
+            await db.GetService<IMigrator>().MigrateAsync("20261126141249_AddExpiryKind");
+            await InsertOldItemAsync(db, "Milk", "milk");
+            await InsertOldItemAsync(db, "Kimchi", null);
+        }
+
+        await using (var db = OpenDb()) await DatabaseSetup.PrepareAsync(db, NullLogger.Instance);
+
+        await using var reopened = OpenDb();
+        var items = await reopened.Items.ToListAsync();
+        Assert.Equal(2, items.Count);
+        Assert.All(items, i => Assert.False(i.ExpiryEstimated));
+        Assert.All(items, i => Assert.Equal((2.0, new DateOnly(2026, 11, 10), ExpiryKind.UseBy), (i.Quantity, i.ExpiryDate, i.ExpiryKind)));
+    }
+
+    [Fact]
     public async Task Rolling_back_clears_only_item_ids_whose_item_is_gone()
     {
         int keptId, deletedId;

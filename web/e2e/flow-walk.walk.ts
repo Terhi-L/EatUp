@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import type { ExpiryKind } from '../src/api'
 import { en as text } from '../src/i18n/en'
+import { addDays, localIsoDate } from '../src/lib/dates'
 import { addItem, removeAllItems } from './kitchen'
 
 // Every inventory column has something in it. Chicken is use by, so it is to throw away; the yoghurt is
@@ -65,6 +66,48 @@ test('the main loop: see the kitchen, add food, cook, eat it, see the month', as
     await expect(page.getByRole('heading', { name: text.waste.title })).toBeVisible()
     await expect(page.getByText(text.waste.used(eatenBefore + 1), { exact: true })).toBeVisible()
     await screenshot(page, 'profile-stats')
+  })
+})
+
+test('an estimated date says to check the package until a date is entered', async ({ page, request }) => {
+  // No date sent, so the API fills in carrots' typical shelf life.
+  const carrots = { name: 'Carrots', ingredientKey: null, quantity: 1, unit: 'pcs', location: 'Fridge', expiryDate: null, openedDate: null }
+  expect((await request.post('/api/items', { data: carrots, headers: { 'X-EatUp': '1' } })).ok()).toBe(true)
+  const carrotsRow = page.getByRole('listitem').filter({ has: page.getByText('Carrots', { exact: true }) })
+
+  await test.step('the row says the date is estimated', async () => {
+    await page.goto('/')
+    await expect(carrotsRow.getByText(text.inventory.estimated)).toBeVisible()
+    await screenshot(page, 'estimated-row')
+  })
+
+  await test.step('the edit screen keeps the shelf-life hint for the estimated date', async () => {
+    await carrotsRow.getByRole('link').click()
+    await expect(page.getByText(text.form.expiryHint)).toBeVisible()
+    await screenshot(page, 'estimated-edit')
+  })
+
+  await test.step('entering the date from the package makes it entered', async () => {
+    await page.getByLabel(text.form.expiry).fill(addDays(localIsoDate(), 12))
+    await expect(page.getByText(text.form.expiryHint)).toHaveCount(0)
+    await page.getByRole('button', { name: text.form.save }).click()
+    await expect(page.getByRole('button', { name: text.inventory.markUsed('Carrots') })).toBeVisible()
+    await expect(carrotsRow.getByText(text.inventory.estimated)).toHaveCount(0)
+    await screenshot(page, 'entered-row')
+  })
+
+  await test.step('a package that shows the suggested date confirms it with one tap', async () => {
+    const cucumber = { ...carrots, name: 'Cucumber' }
+    expect((await request.post('/api/items', { data: cucumber, headers: { 'X-EatUp': '1' } })).ok()).toBe(true)
+    const cucumberRow = page.getByRole('listitem').filter({ has: page.getByText('Cucumber', { exact: true }) })
+    await page.goto('/')
+    await cucumberRow.getByRole('link').click()
+    await page.getByRole('button', { name: text.form.matchesPackage }).click()
+    await expect(page.getByText(text.form.expiryHint)).toHaveCount(0)
+    await screenshot(page, 'matches-package')
+    await page.getByRole('button', { name: text.form.save }).click()
+    await expect(page.getByRole('button', { name: text.inventory.markUsed('Cucumber') })).toBeVisible()
+    await expect(cucumberRow.getByText(text.inventory.estimated)).toHaveCount(0)
   })
 })
 

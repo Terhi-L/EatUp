@@ -217,6 +217,23 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
         Assert.Equal(ExpiryKind.UseBy, (await renamed.Content.ReadFromJsonAsync<ItemDto>(Json))!.ExpiryKind);
     }
 
+    [Fact]
+    public async Task An_item_remembers_whether_its_date_was_estimated_until_a_date_is_entered()
+    {
+        var defaulted = await PostItemAsync(new ItemInput("Test milk", null, 1, "l", StorageLocation.Fridge, null, null));
+        var suggested = await PostItemAsync(new ItemInput("Test milk", null, 1, "l", StorageLocation.Fridge, defaulted.ExpiryDate, null, ExpiryEstimated: true));
+        var entered = await PostItemAsync(new ItemInput("Test milk", null, 1, "l", StorageLocation.Fridge, defaulted.ExpiryDate, null));
+
+        var redated = await _client.PutAsJsonAsync($"/api/items/{suggested.Id}",
+            new ItemInput("Test milk", null, 1, "l", StorageLocation.Fridge, suggested.ExpiryDate.AddDays(2), null), Json);
+
+        Assert.Equal([true, true, false], [defaulted.ExpiryEstimated, suggested.ExpiryEstimated, entered.ExpiryEstimated]);
+        Assert.False((await redated.Content.ReadFromJsonAsync<ItemDto>(Json))!.ExpiryEstimated);
+    }
+
+    private async Task<ItemDto> PostItemAsync(ItemInput input) =>
+        (await (await _client.PostAsJsonAsync("/api/items", input, Json)).Content.ReadFromJsonAsync<ItemDto>(Json))!;
+
     // Three days back stays past the date but inside yogurt's fridge window in any time zone.
     [Fact]
     public async Task Food_past_its_date_says_whether_to_check_it_or_throw_it_out()

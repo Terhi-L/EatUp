@@ -124,6 +124,17 @@ public class ExpiryTests
         Assert.Equal(expected, FreshnessOf(opened, Yogurt).Urgency);
     }
 
+    [Theory]
+    [InlineData(false, false, true)] // no date sent: the shelf-life default is filled in
+    [InlineData(true, true, true)] // the form's untouched suggestion
+    [InlineData(true, false, false)] // a date the user entered
+    public void A_date_is_estimated_when_it_comes_from_shelf_life_rather_than_the_user(bool dateSent, bool sentAsSuggestion, bool expected)
+    {
+        DateOnly? sent = dateSent ? Today.AddDays(5) : null;
+
+        Assert.Equal(expected, Expiry.DateIsEstimated(sent, sentAsSuggestion));
+    }
+
     [Fact]
     public void Food_nobody_picked_a_kind_for_takes_the_catalogues_or_counts_as_use_by()
     {

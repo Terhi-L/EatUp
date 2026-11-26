@@ -32,6 +32,7 @@ export const en = {
     seeRecipe: 'See recipe →',
     lookSmellTaste: 'Look, smell and taste before you eat it.',
     checkPackage: 'Check the package first: if it says best before, change it.',
+    estimated: 'Estimated date: check the package',
   },
 
   urgency: {
@@ -58,6 +59,7 @@ export const en = {
     location: 'Where is it kept?',
     expiry: 'Best before / use by',
     expiryHint: 'Suggested from typical shelf life. Check the package!',
+    matchesPackage: 'Matches the package',
     kindLegend: 'The package says',
     kind: { UseBy: 'Use by', BestBefore: 'Best before' } satisfies Record<ExpiryKind, string>,
     kindHint: {

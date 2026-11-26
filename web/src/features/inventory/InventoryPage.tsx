@@ -153,6 +153,7 @@ function ItemRow({ item, onConsumeSettled }: ItemRowProps) {
           {strings.location[item.location]}
           {item.openedDate && ` · ${strings.inventory.opened}`}
         </span>
+        {item.expiryEstimated && <span className="text-[13px] text-muted">{strings.inventory.estimated}</span>}
         <AdviceLine advice={item.advice} />
       </Link>
       <button className="icon-btn bg-later" aria-label={strings.inventory.markUsed(item.name)}

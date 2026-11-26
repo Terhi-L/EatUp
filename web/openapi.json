@@ -1182,6 +1182,7 @@
           "location",
           "expiryDate",
           "expiryKind",
+          "expiryEstimated",
           "openedDate",
           "effectiveExpiry",
           "daysLeft",
@@ -1220,6 +1221,9 @@
           },
           "expiryKind": {
             "$ref": "#/components/schemas/ExpiryKind"
+          },
+          "expiryEstimated": {
+            "type": "boolean"
           },
           "openedDate": {
             "type": [
@@ -1301,6 +1305,10 @@
                 "$ref": "#/components/schemas/ExpiryKind"
               }
             ]
+          },
+          "expiryEstimated": {
+            "type": "boolean",
+            "default": false
           }
         }
       },
