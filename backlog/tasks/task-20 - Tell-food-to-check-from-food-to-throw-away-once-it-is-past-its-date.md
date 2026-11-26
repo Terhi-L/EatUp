@@ -1,10 +1,11 @@
 ---
 id: TASK-20
 title: Tell food to check from food to throw away once it is past its date
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-26T13:19:00Z'
-updated_date: '2026-11-26T13:22:00Z'
+updated_date: '2026-11-26T14:00:00Z'
 labels:
   - backend
   - frontend
