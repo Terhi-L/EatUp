@@ -26,6 +26,8 @@ export default defineConfig({
         ASPNETCORE_URLS: apiUrl,
         ASPNETCORE_ENVIRONMENT: 'Development',
         DataDirectory: dataDirectory,
+        // Its own build output, so a running `npm run dev` that holds the API's bin folder can't fail this build.
+        BaseOutputPath: join(tmpdir(), 'eatup-e2e-api-bin') + '/',
         // Explicit, so an inherited connection string can't point the test's deletes at a real database.
         ConnectionStrings__EatUp: `Data Source=${join(dataDirectory, 'eatup.db')}`,
         Push__EnableDailyJob: 'false',
