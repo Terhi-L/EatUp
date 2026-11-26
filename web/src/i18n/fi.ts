@@ -34,6 +34,7 @@ export const fi: Strings = {
     seeRecipe: 'Katso resepti →',
     lookSmellTaste: 'Katso, haista ja maista ennen kuin syöt.',
     checkPackage: 'Tarkista pakkaus ensin: jos siinä lukee parasta ennen, muuta se.',
+    estimated: 'Arvioitu päiväys: tarkista pakkaus',
   },
 
   urgency: {
@@ -60,6 +61,7 @@ export const fi: Strings = {
     location: 'Missä sitä säilytetään?',
     expiry: 'Parasta ennen / viimeinen käyttöpäivä',
     expiryHint: 'Ehdotettu tavallisen säilyvyyden mukaan. Tarkista pakkaus!',
+    matchesPackage: 'Sama kuin pakkauksessa',
     kindLegend: 'Pakkauksessa lukee',
     kind: { UseBy: 'Viimeinen käyttöpäivä', BestBefore: 'Parasta ennen' },
     kindHint: {

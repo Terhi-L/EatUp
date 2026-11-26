@@ -68,6 +68,9 @@ namespace EatUp.Api.Data.Migrations
                     b.Property<DateOnly>("ExpiryDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("ExpiryEstimated")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("ExpiryKind")
                         .IsRequired()
                         .HasColumnType("TEXT");

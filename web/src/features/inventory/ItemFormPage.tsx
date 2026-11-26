@@ -8,6 +8,7 @@ import { storedUnit, strings, unitLabel } from '../../strings'
 import { addDays, localIsoDate } from '../../lib/dates'
 import { locationAfterOpening } from '../../lib/storage'
 import { findTypedIngredient } from '../../lib/ingredients'
+import { sentExpiryEstimated } from '../../lib/expiryEstimate'
 import { formExpiryKind, sameName, type KindPick } from '../../lib/expiryKind'
 import { KnifeAndForkIcon, TrashIcon, locationIcon, locationTone } from '../../icons'
 import { ScanBarcodeButton } from './ScanBarcodeButton'
@@ -35,6 +36,7 @@ function ItemForm({ existing }: { existing?: Item }) {
   const [location, setLocation] = useState<StorageLocation>(existing?.location ?? 'Fridge')
   const [expiryDate, setExpiryDate] = useState(existing?.expiryDate ?? '')
   const [expiryTouched, setExpiryTouched] = useState(existing !== undefined)
+  const [dateConfirmed, setDateConfirmed] = useState(false)
   const [kindPick, setKindPick] = useState<KindPick | null>(null)
   const [opened, setOpened] = useState(existing?.openedDate != null)
   const [openedDate, setOpenedDate] = useState(existing?.openedDate ?? localIsoDate())
@@ -54,6 +56,11 @@ function ItemForm({ existing }: { existing?: Item }) {
   })
   const match: Ingredient | undefined = findTypedIngredient(ingredients.data, name)
   const expiryKind = formExpiryKind(name, kindPick, existing, match)
+  const expiryEstimated = sentExpiryEstimated(existing, expiryDate, expiryTouched, dateConfirmed)
+  const confirmDate = () => {
+    setExpiryTouched(true)
+    setDateConfirmed(true)
+  }
 
   // Picking a known ingredient suggests an expiry date from its typical shelf life.
   useEffect(() => {
@@ -91,6 +98,7 @@ function ItemForm({ existing }: { existing?: Item }) {
     }
     setExpiryDate('')
     setExpiryTouched(false)
+    setDateConfirmed(false)
     setKindPick(null)
     setScanned(true)
   }
@@ -128,6 +136,7 @@ function ItemForm({ existing }: { existing?: Item }) {
       location,
       expiryDate: expiryDate || null,
       expiryKind: expiryKind.sent,
+      expiryEstimated,
       openedDate: opened ? openedDate : null,
     })
   }
@@ -191,8 +200,11 @@ function ItemForm({ existing }: { existing?: Item }) {
         <div>
           <label className="label" htmlFor="expiry">{strings.form.expiry}</label>
           <input id="expiry" className={`input ${expiryMissing ? 'border-danger' : ''}`} type="date" value={expiryDate}
-            onChange={(e) => { setExpiryDate(e.target.value); setExpiryTouched(true) }} />
-          {match && !expiryTouched && <p className="mt-1 text-xs text-muted">{strings.form.expiryHint}</p>}
+            onChange={(e) => { setExpiryDate(e.target.value); confirmDate() }} />
+          {((match && !expiryTouched) || (existing && expiryEstimated)) && <p className="mt-1 text-xs text-muted">{strings.form.expiryHint}</p>}
+          {expiryEstimated && (
+            <button type="button" className="mt-1 text-xs font-bold underline" onClick={confirmDate}>{strings.form.matchesPackage}</button>
+          )}
           {expiryMissing && <p className="mt-1 text-xs text-danger">{strings.scan.fillExpiry}</p>}
         </div>
 

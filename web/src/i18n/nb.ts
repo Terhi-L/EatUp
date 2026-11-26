@@ -31,6 +31,7 @@ export const nb: Strings = {
     seeRecipe: 'Se oppskriften →',
     lookSmellTaste: 'Se, lukt og smak før du spiser den.',
     checkPackage: 'Sjekk pakken først: står det best før, endre det.',
+    estimated: 'Anslått dato: sjekk pakken',
   },
 
   urgency: {
@@ -57,6 +58,7 @@ export const nb: Strings = {
     location: 'Hvor oppbevares det?',
     expiry: 'Best før / siste forbruksdag',
     expiryHint: 'Foreslått ut fra vanlig holdbarhet. Sjekk pakken!',
+    matchesPackage: 'Stemmer med pakken',
     kindLegend: 'På pakken står det',
     kind: { UseBy: 'Siste forbruksdag', BestBefore: 'Best før' },
     kindHint: {

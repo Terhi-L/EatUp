@@ -11,6 +11,8 @@ public class FoodItem
     public StorageLocation Location { get; set; }
     public DateOnly ExpiryDate { get; set; }
     public ExpiryKind ExpiryKind { get; set; }
+    /// <summary>The date came from typical shelf life, not from the package.</summary>
+    public bool ExpiryEstimated { get; set; }
     public DateOnly? OpenedDate { get; set; }
     public ItemStatus Status { get; set; } = ItemStatus.Active;
     public DateTimeOffset CreatedAt { get; set; }
