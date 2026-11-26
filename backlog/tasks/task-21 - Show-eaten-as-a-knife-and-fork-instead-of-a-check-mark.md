@@ -1,9 +1,11 @@
 ---
 id: TASK-21
 title: Show eaten as a knife and fork instead of a check mark
-status: To Do
-assignee: []
+status: In Progress
+assignee:
+  - '@claude'
 created_date: '2026-11-26T13:31:00Z'
+updated_date: '2026-11-26T15:57:00Z'
 labels:
   - frontend
   - design
