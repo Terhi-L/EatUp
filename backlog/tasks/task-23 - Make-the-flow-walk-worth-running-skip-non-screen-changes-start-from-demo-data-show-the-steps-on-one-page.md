@@ -6,6 +6,7 @@ title: >-
 status: To Do
 assignee: []
 created_date: '2026-11-26T15:01:00Z'
+updated_date: '2026-11-26T15:27:00Z'
 labels:
   - frontend
 milestone: m-1
@@ -23,7 +24,7 @@ The first real flow walk (TASK-20, PR #32) passed and confirmed the main loop at
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 The flow-walk skill says when to walk (a change to anything a user sees) and when to skip it (backend-only or docs changes), and the agent states which applies before it starts
+- [ ] #1 The flow-walk skill says when to walk (a change to anything a user sees) and when to skip it (backend-only or docs changes), the agent states which applies before it starts, and AGENTS.md points every session to the skill for changes on screen
 - [ ] #2 A walk step starts from the demo data a new user gets (after a demo reset) and screenshots the kitchen at phone and desktop size
 - [ ] #3 Every walk writes one page, web/flow-walk-results/index.html, that shows each step's phone and desktop screenshots side by side under the step name, and opens in a browser without a server
 - [ ] #4 The skill's report gives the user the path to that page
