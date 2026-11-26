@@ -23,3 +23,4 @@ backend/data/
 # Playwright
 web/test-results/
 web/playwright-report/
+web/flow-walk-results/

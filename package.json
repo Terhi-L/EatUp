@@ -10,6 +10,7 @@
     "build": "dotnet build backend && npm run build -w web",
     "typecheck": "npm run typecheck -w web",
     "e2e": "npm run e2e -w web",
+    "walk": "npm run walk -w web",
     "lint": "npm run lint -w web",
     "gen:api": "node scripts/gen-api.mjs",
     "gen:icons": "node scripts/gen-icons.mjs"

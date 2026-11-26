@@ -9,5 +9,5 @@
     "react/purity": "off",
     "react/set-state-in-effect": "off"
   },
-  "ignorePatterns": ["dist", "dev-dist", "test-results", "playwright-report"]
+  "ignorePatterns": ["dist", "dev-dist", "test-results", "playwright-report", "flow-walk-results"]
 }
