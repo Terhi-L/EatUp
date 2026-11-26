@@ -1,7 +1,7 @@
 ---
 id: TASK-20
 title: Tell food to check from food to throw away once it is past its date
-status: In Progress
+status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-26T13:19:00Z'
@@ -35,13 +35,13 @@ Unchanged unless the product owner decides otherwise: suggestions never use food
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 Each catalogue food has an expiry kind (use by or best before), and each best-before food has how many days past its date it is still worth checking; the PR lists every value for the product owner to approve
-- [ ] #2 The add and edit form shows the expiry kind prefilled from the catalogue and lets the user switch it; existing items get their catalogue default through a migration that keeps their data
-- [ ] #3 A use-by item past its date, or a best-before item past its window, shows under "Throw away :("
-- [ ] #4 A best-before item past its date but inside its window stays with the food to eat and shows advice to look, smell and taste before eating it
-- [ ] #5 A food the catalogue does not know is treated as use by: past its date it shows under "Throw away :(" with a mark to check the package first, since the user can switch it to best before
-- [ ] #6 Phone and desktop show the same groups and advice, and all new text is in en, nb and fi
-- [ ] #7 The flow walk covers a use-by item, a best-before item inside its window and an unknown food past their dates, at phone and desktop size
+- [x] #1 Each catalogue food has an expiry kind (use by or best before), and each best-before food has how many days past its date it is still worth checking; the PR lists every value for the product owner to approve
+- [x] #2 The add and edit form shows the expiry kind prefilled from the catalogue and lets the user switch it; existing items get their catalogue default through a migration that keeps their data
+- [x] #3 A use-by item past its date, or a best-before item past its window, shows under "Throw away :("
+- [x] #4 A best-before item past its date but inside its window stays with the food to eat and shows advice to look, smell and taste before eating it
+- [x] #5 A food the catalogue does not know is treated as use by: past its date it shows under "Throw away :(" with a mark to check the package first, since the user can switch it to best before
+- [x] #6 Phone and desktop show the same groups and advice, and all new text is in en, nb and fi
+- [x] #7 The flow walk covers a use-by item, a best-before item inside its window and an unknown food past their dates, at phone and desktop size
 <!-- AC:END -->
 
 ## Implementation Plan
@@ -67,3 +67,9 @@ Qodo local review: round 1 (full) raised High 5f6aa18a 'Edited chicken gets unsa
 
 Flow walk (npm run walk, phone + desktop; screenshots in web/flow-walk-results/): kitchen OK/OK; add-milk OK/OK (Save under the bottom bar only in the phone full-page capture, reachable); milk-added, cook-now, eggs-eaten, profile-stats OK/OK; past-date-groups OK/OK (AC3-6); past-date-kind-from-catalogue OK/OK (AC2); past-date-kimchi-best-before OK/OK and past-date-kimchi-to-check OK/OK (AC5). Kitchen seed gained Chicken -1; no existing step changed. Finnish phone check: long chip text wraps.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+Food past its date is now split by expiry kind. Each catalogue food is use by or best before, and best-before food has cautious days worth checking per storage place (listed in the PR for approval; none for cooked rice in the fridge). Items store their kind: the backend picks the catalogue default unless the user taps one in the form; the AddExpiryKind migration gave existing items theirs. Use-by food, or best-before food past its window, shows under 'Throw away :('; best-before food inside its window stays under 'Eat today' with a 'Best before yesterday' badge and look/smell/taste advice; unknown food counts as use by and asks to check the package. Opened food gets no window, and best-before food without a catalogue window gets 2 days. Suggestions and the reminder still skip food past its date. Verified: 280 xUnit + 50 Vitest, typecheck, lint, 12 e2e and the flow walk at phone and desktop; Qodo local review clean after 3 rounds. Follow-ups: product owner approves the catalogue values in the PR; nb/fi texts await native review; TASK-12 renames 'Eat today' to 'Eat now'.
+<!-- SECTION:FINAL_SUMMARY:END -->
