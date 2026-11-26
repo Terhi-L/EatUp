@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-26T13:19:00Z'
-updated_date: '2026-11-26T14:08:00Z'
+updated_date: '2026-11-26T14:20:00Z'
 labels:
   - backend
   - frontend
@@ -55,3 +55,9 @@ Unchanged unless the product owner decides otherwise: suggestions never use food
 6. Flow walk: kitchen gets a use-by item past its date so every group still shows; new test walks use-by, best-before-in-window and unknown food past their dates, the prefilled kind, and switching the unknown food to best before, at phone and desktop.
 7. docs/decisions.md entry; npm test, npm run typecheck, lint, e2e; Qodo local review (quality gate); PR.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Implemented domain (Expiry.FreshnessOf, ExpiryKind/ExpiryAdvice, catalogue windows per storage place with validation), AddExpiryKind migration with upgrade test over every catalogue key, API input/DTO + regenerated types, form toggle, inventory badge/advice, en/nb/fi text, decisions.md entry. npm test (279 xUnit + 45 Vitest), typecheck, lint, e2e (12) and flow walk (4) pass. Builds used a redirected output folder because npm run dev held bin/.
+<!-- SECTION:NOTES:END -->
