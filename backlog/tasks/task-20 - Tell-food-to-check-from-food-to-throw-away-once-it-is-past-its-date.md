@@ -5,7 +5,7 @@ status: Done
 assignee:
   - '@claude'
 created_date: '2026-11-26T13:19:00Z'
-updated_date: '2026-11-26T14:39:00Z'
+updated_date: '2026-11-26T15:17:00Z'
 labels:
   - backend
   - frontend
@@ -66,6 +66,8 @@ Implemented domain (Expiry.FreshnessOf, ExpiryKind/ExpiryAdvice, catalogue windo
 Qodo local review: round 1 (full) raised High 5f6aa18a 'Edited chicken gets unsafe eating advice' and Medium 18e2feca 'Form decides the default expiry kind in the browser'; a planning agent checked the fix plan (caught click-then-rename and trailing spaces, and that sending null makes loose matches like 'Egg salad' best before). Product owner chose to let the backend decide: people throw away good food far more often than the opposite. Round 2 resolved both and raised Medium 4f8c2d39 (case-only rename reset a chosen kind), fixed. Round 3 at fbe22fd: no open findings, coverage complete.
 
 Flow walk (npm run walk, phone + desktop; screenshots in web/flow-walk-results/): kitchen OK/OK; add-milk OK/OK (Save under the bottom bar only in the phone full-page capture, reachable); milk-added, cook-now, eggs-eaten, profile-stats OK/OK; past-date-groups OK/OK (AC3-6); past-date-kind-from-catalogue OK/OK (AC2); past-date-kimchi-best-before OK/OK and past-date-kimchi-to-check OK/OK (AC5). Kitchen seed gained Chicken -1; no existing step changed. Finnish phone check: long chip text wraps.
+
+PR #32 hosted Qodo review (extended, complete at 41e4ef2) raised 3 High and 2 Medium. Fixed (plan checked by a planning agent): demo items now get their catalogue kind (3cd47d0d); the best-before window is capped at the opened limit instead of only skipped when opening decides the date (96ec06c4, decisions.md updated); Expiry.DefaultKind holds the default kind (6b2fb99a); sameName uses the catalogue's word normalisation, so hyphens and extra spaces don't reset a chosen kind (1984364c). Dismissed as intentional on the product owner's decision: 5f633b04 'Users see use by but save best before'. Checks after the fixes: 287 xUnit + 52 Vitest, typecheck, lint, e2e 12, walk 4 pass.
 <!-- SECTION:NOTES:END -->
 
 ## Final Summary
