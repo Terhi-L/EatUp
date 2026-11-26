@@ -19,9 +19,9 @@ description: Walk EatUp's main user flow in a real browser at phone and desktop 
 
 ## What to look for
 
-- **Cut off:** text clipped, overlapping, or running off the screen; a long word (Finnish!) breaking the layout.
+- **Cut off:** text clipped, overlapping, or running off the screen.
 - **Hidden:** a button or link under the bottom bar or the floating Add food button.
-- **Wrong words:** a raw key like `inventory.add`, English on a Norwegian or Finnish screen, a date in the wrong format.
+- **Wrong words:** a raw key like `inventory.add`, or a date in the wrong format. The walk runs in English; when a step you added switches to Norwegian or Finnish, also English left behind and long Finnish words breaking the layout.
 - **Wrong place:** an item in a column that doesn't match its days left; a count that doesn't match the list.
 - **Empty:** a blank card, a missing icon, a zero where a "nothing yet" message belongs.
 - **The promise:** what the ticket says the user will see is actually there, at the size it names.
