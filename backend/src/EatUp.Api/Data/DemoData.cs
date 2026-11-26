@@ -6,15 +6,15 @@ namespace EatUp.Api.Data;
 /// <summary>Creates the single profile and a fridge full of demo items, with dates relative to today.</summary>
 public static class DemoData
 {
-    public static async Task EnsureSeededAsync(EatUpDb db, TimeProvider time)
+    public static async Task EnsureSeededAsync(EatUpDb db, Catalog catalog, TimeProvider time)
     {
         if (await db.Profiles.AnyAsync()) return;
         db.Profiles.Add(new UserProfile { TimeZone = TimeZoneInfo.Local.Id });
         await db.SaveChangesAsync();
-        await ResetItemsAsync(db, time);
+        await ResetItemsAsync(db, catalog, time);
     }
 
-    public static async Task ResetItemsAsync(EatUpDb db, TimeProvider time)
+    public static async Task ResetItemsAsync(EatUpDb db, Catalog catalog, TimeProvider time)
     {
         await db.Items.ExecuteDeleteAsync();
 
@@ -27,6 +27,7 @@ public static class DemoData
         {
             Name = name, IngredientKey = key, Quantity = qty, Unit = unit, Location = location,
             ExpiryDate = today.AddDays(days),
+            ExpiryKind = Expiry.DefaultKind(catalog.Find(key)),
             OpenedDate = openedDaysAgo is { } d ? today.AddDays(-d) : null,
             CreatedAt = now,
         };

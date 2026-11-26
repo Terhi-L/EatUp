@@ -1115,6 +1115,10 @@ export interface components {
         EndpointInput: {
             endpoint: string;
         };
+        /** @enum {unknown} */
+        ExpiryAdvice: "None" | "LookSmellTaste" | "CheckPackage";
+        /** @enum {unknown} */
+        ExpiryKind: "UseBy" | "BestBefore";
         HealthDto: {
             status: string;
         };
@@ -1142,6 +1146,10 @@ export interface components {
             /** Format: int32 */
             openedShelfLifeDays: null | number;
             openedLocation?: null | components["schemas"]["StorageLocation"];
+            expiryKind: components["schemas"]["ExpiryKind"];
+            checkDaysPastBestBefore?: null | {
+                [key: string]: number;
+            };
         };
         ItemDto: {
             /** Format: int32 */
@@ -1154,6 +1162,7 @@ export interface components {
             location: components["schemas"]["StorageLocation"];
             /** Format: date */
             expiryDate: string;
+            expiryKind: components["schemas"]["ExpiryKind"];
             /** Format: date */
             openedDate: null | string;
             /** Format: date */
@@ -1161,6 +1170,7 @@ export interface components {
             /** Format: int32 */
             daysLeft: number;
             urgency: components["schemas"]["Urgency"];
+            advice: components["schemas"]["ExpiryAdvice"];
             status: components["schemas"]["ItemStatus"];
         };
         ItemInput: {
@@ -1174,6 +1184,7 @@ export interface components {
             expiryDate: null | string;
             /** Format: date */
             openedDate: null | string;
+            expiryKind?: null | components["schemas"]["ExpiryKind"];
         };
         /** @enum {unknown} */
         ItemStatus: "Active" | "Used" | "Discarded";

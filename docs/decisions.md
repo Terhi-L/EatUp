@@ -106,3 +106,15 @@ The weekly health feedback (PLAN.md phase 7) reads four tags per recipe from `Se
 - **They live on Profile** and refresh hourly, so a page left open over the 1st moves on to the new month.
 - **Reading them needs no credential**, like the other GET endpoints (`/api/items?status=Discarded` already shows more). Access control comes with accounts (TASK-16); accepted by the product owner.
 - **Norwegian and Finnish texts** await a native speaker's review.
+
+## 2026-11-26 · Use by and best before (TASK-20)
+
+- **Each item stores its expiry kind**, use by or best before. The form prefills it from the catalogue and the user can switch it; the `AddExpiryKind` migration gave existing items their catalogue kind. PLAN.md's third kind, `Estimated`, is not built.
+- **The backend picks the default kind.** The form sends a kind only when the user taps one, or for an item that keeps its name, so a renamed item takes its new food's kind. Otherwise the backend's name matching decides, loose matches included ("Egg salad" → egg, best before), even where the form previewed use by. Product owner's choice: people throw away good food because of a best-before date far more often than the opposite, and judging food past best before is the user's own responsibility.
+- **Food the catalogue doesn't know counts as use by.** Past its date it goes under "Throw away :(" with a note to check the package, even when the user picked use by on purpose.
+- **Best-before food has its window per storage place** (`checkDaysPastBestBefore` in `Seed/catalog.json`, shaped like `shelfLifeDays`), not one number per food. A place without a window gets no extra days, so dry rice in the cupboard is worth checking but cooked rice in the fridge is not.
+- **Inside its window, best-before food is `Today`** with look, smell and taste advice, so it sits under "Eat today" until TASK-12 makes that "Eat now". Past the window, or past a use-by date, it is `Expired`, shown as "Throw away :(".
+- **The window never runs past the opened limit**: once food is opened, the "use within N days of opening" date caps the days worth checking, and when that date comes first, past it means throw away.
+- **Best-before food without a catalogue window** (unknown food, or use-by food the user switched) gets 2 days.
+- **The values are cautious estimates**, listed in the TASK-20 pull request for the product owner to approve. Meat, fish, sliced ham and bagged spinach are use by.
+- **Unchanged**: suggestions and the daily reminder still never use food past its date (2026-11-02). Norwegian and Finnish texts await a native speaker's review.

@@ -20,6 +20,7 @@ public class EatUpDb(DbContextOptions<EatUpDb> options) : DbContext(options)
         {
             e.Property(i => i.Location).HasConversion<string>();
             e.Property(i => i.Status).HasConversion<string>();
+            e.Property(i => i.ExpiryKind).HasConversion<string>();
             e.HasIndex(i => new { i.Status, i.ExpiryDate });
             // A consume that loaded the item before another one saved must not count the same food twice.
             e.Property(i => i.Status).IsConcurrencyToken();

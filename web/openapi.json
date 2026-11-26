@@ -1026,6 +1026,19 @@
           }
         }
       },
+      "ExpiryAdvice": {
+        "enum": [
+          "None",
+          "LookSmellTaste",
+          "CheckPackage"
+        ]
+      },
+      "ExpiryKind": {
+        "enum": [
+          "UseBy",
+          "BestBefore"
+        ]
+      },
       "HealthDto": {
         "required": [
           "status"
@@ -1091,7 +1104,8 @@
           "allergens",
           "animal",
           "shelfLifeDays",
-          "openedShelfLifeDays"
+          "openedShelfLifeDays",
+          "expiryKind"
         ],
         "type": "object",
         "properties": {
@@ -1142,6 +1156,19 @@
                 "$ref": "#/components/schemas/StorageLocation"
               }
             ]
+          },
+          "expiryKind": {
+            "$ref": "#/components/schemas/ExpiryKind"
+          },
+          "checkDaysPastBestBefore": {
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            }
           }
         }
       },
@@ -1154,10 +1181,12 @@
           "unit",
           "location",
           "expiryDate",
+          "expiryKind",
           "openedDate",
           "effectiveExpiry",
           "daysLeft",
           "urgency",
+          "advice",
           "status"
         ],
         "type": "object",
@@ -1189,6 +1218,9 @@
             "type": "string",
             "format": "date"
           },
+          "expiryKind": {
+            "$ref": "#/components/schemas/ExpiryKind"
+          },
           "openedDate": {
             "type": [
               "null",
@@ -1206,6 +1238,9 @@
           },
           "urgency": {
             "$ref": "#/components/schemas/Urgency"
+          },
+          "advice": {
+            "$ref": "#/components/schemas/ExpiryAdvice"
           },
           "status": {
             "$ref": "#/components/schemas/ItemStatus"
@@ -1256,6 +1291,16 @@
               "string"
             ],
             "format": "date"
+          },
+          "expiryKind": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ExpiryKind"
+              }
+            ]
           }
         }
       },

@@ -29,10 +29,12 @@ export const nb: Strings = {
     noResults: (query: string) => `Fant ingen mat som passer til «${query.trim()}».`,
     tonight: 'I kveld, kanskje?',
     seeRecipe: 'Se oppskriften →',
+    lookSmellTaste: 'Se, lukt og smak før du spiser den.',
+    checkPackage: 'Sjekk pakken først: står det best før, endre det.',
   },
 
   urgency: {
-    Expired: 'Gått ut',
+    Expired: 'Kast :(',
     Today: 'Spis i dag',
     Soon: 'Innen 2 dager',
     Later: 'Senere',
@@ -55,6 +57,12 @@ export const nb: Strings = {
     location: 'Hvor oppbevares det?',
     expiry: 'Best før / siste forbruksdag',
     expiryHint: 'Foreslått ut fra vanlig holdbarhet. Sjekk pakken!',
+    kindLegend: 'På pakken står det',
+    kind: { UseBy: 'Siste forbruksdag', BestBefore: 'Best før' },
+    kindHint: {
+      UseBy: 'Ikke trygt å spise etter denne datoen.',
+      BestBefore: 'Ofte god etter datoen: se, lukt og smak først.',
+    },
     opened: 'Den er åpnet',
     openedOn: 'Åpnet',
     movedOnOpening: (place: string) => `Flyttet til ${place.toLowerCase()}: oppbevares der etter åpning.`,
@@ -179,4 +187,6 @@ export const nb: Strings = {
     if (days === 1) return 'I morgen'
     return `Om ${days} dager`
   },
+
+  pastBestBefore: (days: number) => (days === -1 ? 'Best før i går' : `Best før for ${-days} dager siden`),
 }

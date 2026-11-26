@@ -26,6 +26,15 @@ describe('daysLeft label', () => {
   })
 })
 
+describe('pastBestBefore label', () => {
+  it.each([
+    [-1, 'Best before yesterday'],
+    [-3, 'Best before 3 days ago'],
+  ])('%i → %s', (days, label) => {
+    expect(strings.pastBestBefore(days)).toBe(label)
+  })
+})
+
 describe('urlBase64ToUint8Array', () => {
   it('decodes url-safe base64 without padding', () => {
     expect(Array.from(urlBase64ToUint8Array('-_8'))).toEqual([0xfb, 0xff])

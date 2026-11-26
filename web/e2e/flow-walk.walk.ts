@@ -1,10 +1,13 @@
 import { join } from 'node:path'
 import { expect, test, type Locator, type Page } from '@playwright/test'
+import type { ExpiryKind } from '../src/api'
 import { en as text } from '../src/i18n/en'
 import { addItem, removeAllItems } from './kitchen'
 
-// One item per urgency group, so every inventory column has something in it.
+// Every inventory column has something in it. Chicken is use by, so it is to throw away; the yoghurt is
+// best before and still worth a check, so it sits with the food to eat today.
 const kitchen = [
+  { name: 'Chicken', daysLeft: -1 },
   { name: 'Yoghurt', daysLeft: -1 },
   { name: 'Bread', daysLeft: 0 },
   { name: 'Eggs', daysLeft: 2 },
@@ -64,6 +67,54 @@ test('the main loop: see the kitchen, add food, cook, eat it, see the month', as
     await screenshot(page, 'profile-stats')
   })
 })
+
+test('food past its date: check the best-before food, throw out the rest', async ({ page, request }) => {
+  await addItem(request, 'Kimchi', -1)
+  const throwAway = group(page, text.urgency.Expired)
+  const eatToday = group(page, text.urgency.Today)
+
+  await test.step('use-by and unknown food are to throw away, best-before food to eat after a check', async () => {
+    await page.goto('/')
+    await expect(row(throwAway, 'Chicken')).toBeVisible()
+    await expect(row(throwAway, 'Chicken').getByText(text.inventory.checkPackage)).toHaveCount(0)
+    await expect(row(throwAway, 'Kimchi').getByText(text.inventory.checkPackage)).toBeVisible()
+    await expect(row(eatToday, 'Yoghurt').getByText(text.pastBestBefore(-1))).toBeVisible()
+    await expect(row(eatToday, 'Yoghurt').getByText(text.inventory.lookSmellTaste)).toBeVisible()
+    await screenshot(page, 'past-date-groups')
+  })
+
+  await test.step('the add form takes the expiry kind from the catalogue', async () => {
+    await visible(page.getByRole('link', { name: text.inventory.add })).click()
+    await page.getByLabel(text.form.name).fill('Pasta')
+    await expect(kindButton(page, 'BestBefore')).toHaveAttribute('aria-pressed', 'true')
+    await screenshot(page, 'past-date-kind-from-catalogue')
+    await page.getByLabel(text.form.name).fill('Chicken')
+    await expect(kindButton(page, 'UseBy')).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  await test.step('switching the unknown food to best before moves it to the food to eat after a check', async () => {
+    await visible(page.getByRole('link', { name: text.nav.food })).click()
+    await row(throwAway, 'Kimchi').getByRole('link').click()
+    await expect(kindButton(page, 'UseBy')).toHaveAttribute('aria-pressed', 'true')
+    await kindButton(page, 'BestBefore').click()
+    await screenshot(page, 'past-date-kimchi-best-before')
+    await page.getByRole('button', { name: text.form.save }).click()
+    await expect(row(eatToday, 'Kimchi').getByText(text.inventory.lookSmellTaste)).toBeVisible()
+    await screenshot(page, 'past-date-kimchi-to-check')
+  })
+})
+
+function group(page: Page, heading: string): Locator {
+  return page.locator('section', { has: page.getByRole('heading', { name: heading, exact: true }) })
+}
+
+function row(section: Locator, name: string): Locator {
+  return section.getByRole('listitem').filter({ has: section.page().getByText(name, { exact: true }) })
+}
+
+function kindButton(page: Page, kind: ExpiryKind): Locator {
+  return page.getByRole('button', { name: text.form.kind[kind], exact: true })
+}
 
 // Phone and desktop render some links twice (bottom bar and sidebar, floating and header button).
 function visible(locator: Locator): Locator {

@@ -8,10 +8,13 @@ namespace EatUp.Api;
 
 public record ItemDto(
     int Id, string Name, string? IngredientKey, double Quantity, string Unit, StorageLocation Location,
-    DateOnly ExpiryDate, DateOnly? OpenedDate, DateOnly EffectiveExpiry, int DaysLeft, Urgency Urgency, ItemStatus Status);
+    DateOnly ExpiryDate, ExpiryKind ExpiryKind, DateOnly? OpenedDate, DateOnly EffectiveExpiry, int DaysLeft, Urgency Urgency,
+    ExpiryAdvice Advice, ItemStatus Status);
 
+/// <summary>A missing expiry kind comes from the catalogue, and unknown food counts as use by.</summary>
 public record ItemInput(
-    string Name, string? IngredientKey, double Quantity, string Unit, StorageLocation Location, DateOnly? ExpiryDate, DateOnly? OpenedDate);
+    string Name, string? IngredientKey, double Quantity, string Unit, StorageLocation Location, DateOnly? ExpiryDate, DateOnly? OpenedDate,
+    ExpiryKind? ExpiryKind = null);
 
 public record ConsumeInput(ConsumeOutcome Outcome, double? Amount);
 
@@ -244,9 +247,9 @@ public static class Endpoints
             return new DailyCheckResultDto(result.Sent, result.Message?.Title, result.Message?.Body);
         });
 
-        dev.MapPost("/reset-demo-data", async (EatUpDb db, TimeProvider time) =>
+        dev.MapPost("/reset-demo-data", async (EatUpDb db, Catalog catalog, TimeProvider time) =>
         {
-            await DemoData.ResetItemsAsync(db, time);
+            await DemoData.ResetItemsAsync(db, catalog, time);
             return Results.NoContent();
         }).Produces(StatusCodes.Status204NoContent);
     }
@@ -286,6 +289,8 @@ public static class Endpoints
     private static IResult? Apply(FoodItem item, ItemInput input, Catalog catalog, DateOnly today)
     {
         if (string.IsNullOrWhiteSpace(input.Name)) return Results.ValidationProblem(new Dictionary<string, string[]> { ["name"] = ["Name is required."] });
+        if (input.ExpiryKind is { } kind && !Enum.IsDefined(kind))
+            return Results.ValidationProblem(new Dictionary<string, string[]> { ["expiryKind"] = ["Unknown expiry kind."] });
 
         var ingredient = catalog.Find(input.IngredientKey) ?? catalog.Match(input.Name);
         var expiry = input.ExpiryDate ?? (ingredient is null ? null : Expiry.DefaultExpiry(ingredient, input.Location, today));
@@ -297,15 +302,16 @@ public static class Endpoints
         item.Unit = string.IsNullOrWhiteSpace(input.Unit) ? "pcs" : input.Unit.Trim();
         item.Location = input.Location;
         item.ExpiryDate = expiry.Value;
+        item.ExpiryKind = input.ExpiryKind ?? Expiry.DefaultKind(ingredient);
         item.OpenedDate = input.OpenedDate;
         return null;
     }
 
     private static ItemDto ToDto(FoodItem i, Catalog catalog, DateOnly today)
     {
-        var effective = Expiry.EffectiveExpiry(i, catalog.Find(i.IngredientKey));
-        var days = Expiry.DaysLeft(effective, today);
-        return new ItemDto(i.Id, i.Name, i.IngredientKey, i.Quantity, i.Unit, i.Location, i.ExpiryDate, i.OpenedDate, effective, days, Expiry.UrgencyFor(days), i.Status);
+        var freshness = Expiry.FreshnessOf(i, catalog.Find(i.IngredientKey), today);
+        return new ItemDto(i.Id, i.Name, i.IngredientKey, i.Quantity, i.Unit, i.Location, i.ExpiryDate, i.ExpiryKind, i.OpenedDate,
+            freshness.EffectiveExpiry, freshness.DaysLeft, freshness.Urgency, freshness.Advice, i.Status);
     }
 
     private static ProfileDto ToDto(UserProfile p) => new(p.Diet, p.Allergens, p.NotificationTime, p.TimeZone, p.NotificationsEnabled, p.Language);

@@ -32,10 +32,12 @@ export const fi: Strings = {
     noResults: (query: string) => `Haulla ”${query.trim()}” ei löytynyt ruokaa.`,
     tonight: 'Ehkä tänä iltana?',
     seeRecipe: 'Katso resepti →',
+    lookSmellTaste: 'Katso, haista ja maista ennen kuin syöt.',
+    checkPackage: 'Tarkista pakkaus ensin: jos siinä lukee parasta ennen, muuta se.',
   },
 
   urgency: {
-    Expired: 'Vanhentunut',
+    Expired: 'Heitä pois :(',
     Today: 'Syö tänään',
     Soon: '2 päivän sisällä',
     Later: 'Myöhemmin',
@@ -58,6 +60,12 @@ export const fi: Strings = {
     location: 'Missä sitä säilytetään?',
     expiry: 'Parasta ennen / viimeinen käyttöpäivä',
     expiryHint: 'Ehdotettu tavallisen säilyvyyden mukaan. Tarkista pakkaus!',
+    kindLegend: 'Pakkauksessa lukee',
+    kind: { UseBy: 'Viimeinen käyttöpäivä', BestBefore: 'Parasta ennen' },
+    kindHint: {
+      UseBy: 'Ei turvallista syödä päiväyksen jälkeen.',
+      BestBefore: 'Usein hyvää päiväyksen jälkeenkin: katso, haista ja maista ensin.',
+    },
     opened: 'Se on avattu',
     openedOn: 'Avattu',
     movedOnOpening: (place: string) => `Siirretty: ${place}. Säilytä siellä avaamisen jälkeen.`,
@@ -182,4 +190,6 @@ export const fi: Strings = {
     if (days === 1) return 'Huomenna'
     return `${days} päivän päästä`
   },
+
+  pastBestBefore: (days: number) => (days === -1 ? 'Parasta ennen eilen' : `Parasta ennen ${-days} päivää sitten`),
 }
