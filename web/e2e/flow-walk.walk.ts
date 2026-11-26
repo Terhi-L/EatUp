@@ -112,7 +112,7 @@ test('the eaten buttons show a knife and fork', async ({ page }) => {
     await expect(eatenButtons).toHaveCount(2)
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight))
     for (const button of await eatenButtons.all()) {
-      await expect(button.locator('svg')).toBeVisible()
+      await expect(button.locator('svg[data-icon="knife-and-fork"]')).toBeVisible()
       await expectNotCovered(button, visible(page.getByRole('navigation', { name: 'Main' })))
     }
     // What the user sees after scrolling: a full-page capture would draw the fixed bottom bar over the page.
