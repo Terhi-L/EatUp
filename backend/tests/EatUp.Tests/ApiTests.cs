@@ -231,6 +231,19 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
         Assert.False((await redated.Content.ReadFromJsonAsync<ItemDto>(Json))!.ExpiryEstimated);
     }
 
+    [Fact]
+    public async Task An_older_form_without_the_estimate_flag_keeps_the_estimate_until_the_date_changes()
+    {
+        var milk = await PostItemAsync(new ItemInput("Test milk", null, 1, "l", StorageLocation.Fridge, null, null));
+        var withoutFlag = new { name = "Test milk", ingredientKey = (string?)null, quantity = 2, unit = "l", location = "Fridge", expiryDate = milk.ExpiryDate, openedDate = (DateOnly?)null };
+
+        var renamedAmount = await (await _client.PutAsJsonAsync($"/api/items/{milk.Id}", withoutFlag, Json)).Content.ReadFromJsonAsync<ItemDto>(Json);
+        var redated = await (await _client.PutAsJsonAsync($"/api/items/{milk.Id}", withoutFlag with { expiryDate = milk.ExpiryDate.AddDays(1) }, Json)).Content.ReadFromJsonAsync<ItemDto>(Json);
+
+        Assert.True(renamedAmount!.ExpiryEstimated);
+        Assert.False(redated!.ExpiryEstimated);
+    }
+
     private async Task<ItemDto> PostItemAsync(ItemInput input) =>
         (await (await _client.PostAsJsonAsync("/api/items", input, Json)).Content.ReadFromJsonAsync<ItemDto>(Json))!;
 

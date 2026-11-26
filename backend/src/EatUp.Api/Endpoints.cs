@@ -13,11 +13,11 @@ public record ItemDto(
 
 /// <summary>
 /// A missing expiry kind comes from the catalogue, and unknown food counts as use by. ExpiryEstimated says the date sent is
-/// the form's untouched shelf-life suggestion; a missing date is estimated anyway.
+/// the form's untouched shelf-life suggestion; a missing date is estimated anyway, and a missing flag keeps a stored estimate.
 /// </summary>
 public record ItemInput(
     string Name, string? IngredientKey, double Quantity, string Unit, StorageLocation Location, DateOnly? ExpiryDate, DateOnly? OpenedDate,
-    ExpiryKind? ExpiryKind = null, bool ExpiryEstimated = false);
+    ExpiryKind? ExpiryKind = null, bool? ExpiryEstimated = null);
 
 public record ConsumeInput(ConsumeOutcome Outcome, double? Amount);
 
@@ -299,6 +299,7 @@ public static class Endpoints
         var expiry = input.ExpiryDate ?? (ingredient is null ? null : Expiry.DefaultExpiry(ingredient, input.Location, today));
         if (expiry is null) return Results.ValidationProblem(new Dictionary<string, string[]> { ["expiryDate"] = ["Expiry date is required."] });
 
+        var estimatedDateBefore = item.ExpiryEstimated ? item.ExpiryDate : (DateOnly?)null;
         item.Name = input.Name.Trim();
         item.IngredientKey = ingredient?.Key;
         item.Quantity = input.Quantity > 0 ? input.Quantity : 1;
@@ -306,7 +307,7 @@ public static class Endpoints
         item.Location = input.Location;
         item.ExpiryDate = expiry.Value;
         item.ExpiryKind = input.ExpiryKind ?? Expiry.DefaultKind(ingredient);
-        item.ExpiryEstimated = Expiry.DateIsEstimated(input.ExpiryDate, input.ExpiryEstimated);
+        item.ExpiryEstimated = Expiry.DateIsEstimated(input.ExpiryDate, input.ExpiryEstimated, estimatedDateBefore);
         item.OpenedDate = input.OpenedDate;
         return null;
     }

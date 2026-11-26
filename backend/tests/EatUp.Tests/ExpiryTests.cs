@@ -124,15 +124,20 @@ public class ExpiryTests
         Assert.Equal(expected, FreshnessOf(opened, Yogurt).Urgency);
     }
 
+    // Dates are days from today; null means not sent. estimatedBefore is the stored date while it is still an estimate.
     [Theory]
-    [InlineData(false, false, true)] // no date sent: the shelf-life default is filled in
-    [InlineData(true, true, true)] // the form's untouched suggestion
-    [InlineData(true, false, false)] // a date the user entered
-    public void A_date_is_estimated_when_it_comes_from_shelf_life_rather_than_the_user(bool dateSent, bool sentAsSuggestion, bool expected)
+    [InlineData(null, null, null, true)] // no date sent: the shelf-life default is filled in
+    [InlineData(5, true, null, true)] // the form's untouched suggestion
+    [InlineData(5, false, null, false)] // a date the user entered
+    [InlineData(5, null, null, false)] // an older form that doesn't send the flag, on a typed date
+    [InlineData(5, null, 5, true)] // an older form saving other edits keeps the estimate
+    [InlineData(7, null, 5, false)] // an older form that changed the date
+    public void A_date_is_estimated_when_it_comes_from_shelf_life_rather_than_the_user(
+        int? sentDays, bool? sentAsSuggestion, int? estimatedBeforeDays, bool expected)
     {
-        DateOnly? sent = dateSent ? Today.AddDays(5) : null;
+        DateOnly? Day(int? days) => days is { } d ? Today.AddDays(d) : null;
 
-        Assert.Equal(expected, Expiry.DateIsEstimated(sent, sentAsSuggestion));
+        Assert.Equal(expected, Expiry.DateIsEstimated(Day(sentDays), sentAsSuggestion, Day(estimatedBeforeDays)));
     }
 
     [Fact]

@@ -21,8 +21,12 @@ public static class Expiry
     /// <summary>The kind an item gets when nobody picked one: the catalogue's, and use by for food it doesn't know.</summary>
     public static ExpiryKind DefaultKind(Ingredient? ingredient) => ingredient?.ExpiryKind ?? ExpiryKind.UseBy;
 
-    /// <summary>A date is a shelf-life estimate when none was sent (the default fills it in) or the form sent its untouched suggestion.</summary>
-    public static bool DateIsEstimated(DateOnly? sentDate, bool sentAsSuggestion) => sentDate is null || sentAsSuggestion;
+    /// <summary>
+    /// A date is a shelf-life estimate when none was sent (the default fills it in) or the form sent its untouched suggestion.
+    /// A form that doesn't send the flag (an older cached version) keeps a stored estimate while the date stays the same.
+    /// </summary>
+    public static bool DateIsEstimated(DateOnly? sentDate, bool? sentAsSuggestion, DateOnly? estimatedDateBefore) =>
+        sentDate is null || (sentAsSuggestion ?? sentDate == estimatedDateBefore);
 
     public static int DaysLeft(DateOnly expiry, DateOnly today) => expiry.DayNumber - today.DayNumber;
 

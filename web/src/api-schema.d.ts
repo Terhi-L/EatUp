@@ -1186,8 +1186,7 @@ export interface components {
             /** Format: date */
             openedDate: null | string;
             expiryKind?: null | components["schemas"]["ExpiryKind"];
-            /** @default false */
-            expiryEstimated: boolean;
+            expiryEstimated?: null | boolean;
         };
         /** @enum {unknown} */
         ItemStatus: "Active" | "Used" | "Discarded";
