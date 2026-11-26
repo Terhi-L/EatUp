@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, type ConsumeOutcome, type Item, type StorageLocation, type Urgency } from '../../api'
+import { api, type ConsumeOutcome, type ExpiryAdvice, type Item, type StorageLocation, type Urgency } from '../../api'
 import { strings, unitLabel } from '../../strings'
 import { AlarmIcon, CheckIcon, PlusIcon, TrashIcon, locationIcon, locationTone, urgencyTone } from '../../icons'
 import { nameMatches } from '../../lib/search'
@@ -143,7 +143,7 @@ function ItemRow({ item, onConsumeSettled }: ItemRowProps) {
         <span className="flex flex-wrap items-center gap-2">
           <span className="text-[17px] font-bold">{item.name}</span>
           <span className={`-rotate-2 rounded-[3px] border-[1.5px] border-ink px-2 py-0.5 text-xs font-bold whitespace-nowrap ${urgencyTone[item.urgency]}`}>
-            {strings.daysLeft(item.daysLeft)}
+            {expiryLabel(item)}
           </span>
         </span>
         <span className="flex items-center gap-1.5 text-[13px] text-muted">
@@ -153,6 +153,7 @@ function ItemRow({ item, onConsumeSettled }: ItemRowProps) {
           {strings.location[item.location]}
           {item.openedDate && ` · ${strings.inventory.opened}`}
         </span>
+        <AdviceLine advice={item.advice} />
       </Link>
       <button className="icon-btn bg-later" aria-label={strings.inventory.markUsed(item.name)}
         disabled={consume.isPending} onClick={() => consume.mutate('Used')}>
@@ -164,4 +165,14 @@ function ItemRow({ item, onConsumeSettled }: ItemRowProps) {
       </button>
     </li>
   )
+}
+
+function expiryLabel(item: Item) {
+  return item.advice === 'LookSmellTaste' ? strings.pastBestBefore(item.daysLeft) : strings.daysLeft(item.daysLeft)
+}
+
+function AdviceLine({ advice }: { advice: ExpiryAdvice }) {
+  if (advice === 'None') return null
+  const text = advice === 'LookSmellTaste' ? strings.inventory.lookSmellTaste : strings.inventory.checkPackage
+  return <span className="text-[13px] leading-snug font-bold">{text}</span>
 }

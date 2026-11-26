@@ -1,7 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { api, ApiError, type ConsumeOutcome, type Ingredient, type Item, type ItemInput, type Product, type StorageLocation } from '../../api'
+import {
+  api, ApiError, type ConsumeOutcome, type ExpiryKind, type Ingredient, type Item, type ItemInput, type Product, type StorageLocation,
+} from '../../api'
 import { storedUnit, strings, unitLabel } from '../../strings'
 import { addDays, localIsoDate } from '../../lib/dates'
 import { locationAfterOpening } from '../../lib/storage'
@@ -10,6 +12,7 @@ import { CheckIcon, TrashIcon, locationIcon, locationTone } from '../../icons'
 import { ScanBarcodeButton } from './ScanBarcodeButton'
 
 const locations: StorageLocation[] = ['Fridge', 'Freezer', 'Cupboard', 'Counter']
+const expiryKinds: ExpiryKind[] = ['UseBy', 'BestBefore']
 
 export function ItemFormPage() {
   const { id } = useParams()
@@ -31,6 +34,8 @@ function ItemForm({ existing }: { existing?: Item }) {
   const [location, setLocation] = useState<StorageLocation>(existing?.location ?? 'Fridge')
   const [expiryDate, setExpiryDate] = useState(existing?.expiryDate ?? '')
   const [expiryTouched, setExpiryTouched] = useState(existing !== undefined)
+  // Null until picked, so the kind follows the catalogue match while the name is typed.
+  const [chosenKind, setChosenKind] = useState<ExpiryKind | null>(existing?.expiryKind ?? null)
   const [opened, setOpened] = useState(existing?.openedDate != null)
   const [openedDate, setOpenedDate] = useState(existing?.openedDate ?? localIsoDate())
   const [movedOnOpening, setMovedOnOpening] = useState<StorageLocation | null>(null)
@@ -48,6 +53,8 @@ function ItemForm({ existing }: { existing?: Item }) {
     placeholderData: keepPreviousData,
   })
   const match: Ingredient | undefined = findTypedIngredient(ingredients.data, name)
+  // Food the catalogue doesn't know counts as use by, the safe guess.
+  const expiryKind: ExpiryKind = chosenKind ?? match?.expiryKind ?? 'UseBy'
 
   // Picking a known ingredient suggests an expiry date from its typical shelf life.
   useEffect(() => {
@@ -85,6 +92,7 @@ function ItemForm({ existing }: { existing?: Item }) {
     }
     setExpiryDate('')
     setExpiryTouched(false)
+    setChosenKind(null)
     setScanned(true)
   }
 
@@ -120,6 +128,7 @@ function ItemForm({ existing }: { existing?: Item }) {
       unit: storedUnit(unit),
       location,
       expiryDate: expiryDate || null,
+      expiryKind,
       openedDate: opened ? openedDate : null,
     })
   }
@@ -188,6 +197,8 @@ function ItemForm({ existing }: { existing?: Item }) {
           {expiryMissing && <p className="mt-1 text-xs text-danger">{strings.scan.fillExpiry}</p>}
         </div>
 
+        <ExpiryKindField kind={expiryKind} onPick={setChosenKind} />
+
         <div className="space-y-2">
           <label className="flex min-h-11 items-center gap-2">
             <input type="checkbox" className="size-5 accent-ink" checked={opened} onChange={(e) => toggleOpened(e.target.checked)} />
@@ -239,5 +250,25 @@ function ItemForm({ existing }: { existing?: Item }) {
         </div>
       )}
     </div>
+  )
+}
+
+type ExpiryKindFieldProps = { kind: ExpiryKind; onPick: (kind: ExpiryKind) => void }
+
+function ExpiryKindField({ kind, onPick }: ExpiryKindFieldProps) {
+  return (
+    <fieldset>
+      <legend className="label">{strings.form.kindLegend}</legend>
+      <div className="grid grid-cols-2 gap-2">
+        {expiryKinds.map((k) => (
+          <button type="button" key={k} aria-pressed={kind === k}
+            className={`chip min-h-11 justify-center py-1 text-center whitespace-normal ${kind === k ? 'chip-on' : 'chip-off'}`}
+            onClick={() => onPick(k)}>
+            {strings.form.kind[k]}
+          </button>
+        ))}
+      </div>
+      <p className="mt-1 text-xs text-muted">{strings.form.kindHint[kind]}</p>
+    </fieldset>
   )
 }

@@ -1,4 +1,4 @@
-import type { Allergen, DietType, StorageLocation, Urgency } from '../api'
+import type { Allergen, DietType, ExpiryKind, StorageLocation, Urgency } from '../api'
 import type { Encouragement } from '../lib/wasteStats'
 
 const locale = 'en-GB'
@@ -30,10 +30,12 @@ export const en = {
     noResults: (query: string) => `No food matches “${query.trim()}”.`,
     tonight: 'Tonight, maybe?',
     seeRecipe: 'See recipe →',
+    lookSmellTaste: 'Look, smell and taste before you eat it.',
+    checkPackage: 'Check the package first: if it says best before, change it.',
   },
 
   urgency: {
-    Expired: 'Gone off',
+    Expired: 'Throw away :(',
     Today: 'Eat today',
     Soon: 'Within 2 days',
     Later: 'Later',
@@ -56,6 +58,12 @@ export const en = {
     location: 'Where is it kept?',
     expiry: 'Best before / use by',
     expiryHint: 'Suggested from typical shelf life. Check the package!',
+    kindLegend: 'The package says',
+    kind: { UseBy: 'Use by', BestBefore: 'Best before' } satisfies Record<ExpiryKind, string>,
+    kindHint: {
+      UseBy: 'Not safe to eat after this date.',
+      BestBefore: 'Often fine after this date: look, smell and taste first.',
+    } satisfies Record<ExpiryKind, string>,
     opened: "It's opened",
     openedOn: 'Opened on',
     movedOnOpening: (place: string) => `Moved to ${place}: keep it there once opened.`,
@@ -182,6 +190,9 @@ export const en = {
     if (days === 1) return 'Tomorrow'
     return `In ${days} days`
   },
+
+  /** Label for best-before food past its date that is still worth checking; days is negative. */
+  pastBestBefore: (days: number) => (days === -1 ? 'Best before yesterday' : `Best before ${-days} days ago`),
 }
 
 export type Strings = typeof en

@@ -10,6 +10,7 @@ public class FoodItem
     public string Unit { get; set; } = "pcs";
     public StorageLocation Location { get; set; }
     public DateOnly ExpiryDate { get; set; }
+    public ExpiryKind ExpiryKind { get; set; }
     public DateOnly? OpenedDate { get; set; }
     public ItemStatus Status { get; set; } = ItemStatus.Active;
     public DateTimeOffset CreatedAt { get; set; }

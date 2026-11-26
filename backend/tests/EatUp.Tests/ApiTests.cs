@@ -189,6 +189,45 @@ public class ApiTests : IClassFixture<ApiTests.Factory>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    private async Task<ItemDto> AddAsync(string name, int daysFromNow, ExpiryKind? kind = null)
+    {
+        var expiry = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(daysFromNow);
+        var response = await _client.PostAsJsonAsync("/api/items", new ItemInput(name, null, 1, "pcs", StorageLocation.Fridge, expiry, null, kind), Json);
+        return (await response.Content.ReadFromJsonAsync<ItemDto>(Json))!;
+    }
+
+    [Fact]
+    public async Task The_expiry_kind_comes_from_the_catalogue_unless_one_is_picked()
+    {
+        var milk = await AddAsync("Test milk", 5);
+        var kimchi = await AddAsync("Kimchi", 5);
+        var pickedUseBy = await AddAsync("Test milk", 5, ExpiryKind.UseBy);
+
+        Assert.Equal([ExpiryKind.BestBefore, ExpiryKind.UseBy, ExpiryKind.UseBy], [milk.ExpiryKind, kimchi.ExpiryKind, pickedUseBy.ExpiryKind]);
+    }
+
+    // Three days back stays past the date but inside yogurt's fridge window in any time zone.
+    [Fact]
+    public async Task Food_past_its_date_says_whether_to_check_it_or_throw_it_out()
+    {
+        var yogurt = await AddAsync("Test yogurt", -3);
+        var chicken = await AddAsync("Test chicken", -3);
+        var kimchi = await AddAsync("Kimchi", -3);
+
+        Assert.Equal((Urgency.Today, ExpiryAdvice.LookSmellTaste), (yogurt.Urgency, yogurt.Advice));
+        Assert.Equal((Urgency.Expired, ExpiryAdvice.None), (chicken.Urgency, chicken.Advice));
+        Assert.Equal((Urgency.Expired, ExpiryAdvice.CheckPackage), (kimchi.Urgency, kimchi.Advice));
+    }
+
+    [Fact]
+    public async Task An_undefined_expiry_kind_is_rejected()
+    {
+        var response = await _client.PostAsJsonAsync("/api/items",
+            new { name = "Test milk", quantity = 1, unit = "l", location = "Fridge", expiryKind = 99 });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     [Fact]
     public async Task Demo_data_produces_suggestions()
     {

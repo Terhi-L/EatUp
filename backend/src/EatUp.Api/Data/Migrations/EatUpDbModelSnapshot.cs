@@ -68,6 +68,10 @@ namespace EatUp.Api.Data.Migrations
                     b.Property<DateOnly>("ExpiryDate")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ExpiryKind")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("IngredientKey")
                         .HasColumnType("TEXT");
 

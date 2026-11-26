@@ -5,6 +5,7 @@ import { findTypedIngredient } from './ingredients'
 const chickpeas: Ingredient = {
   key: 'chickpeas', name: 'Kikerter', aliases: ['chickpeas', 'kikerter', 'kikherneet'],
   category: 'Dry goods', allergens: [], animal: 'None', shelfLifeDays: { Cupboard: 365 }, openedShelfLifeDays: null, openedLocation: 'Fridge',
+  expiryKind: 'BestBefore', checkDaysPastBestBefore: { Cupboard: 180 },
 }
 
 describe('findTypedIngredient', () => {

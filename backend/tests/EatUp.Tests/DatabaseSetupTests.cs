@@ -144,9 +144,7 @@ public sealed class DatabaseSetupTests : IDisposable
         await using (var db = OpenDb())
         {
             await db.GetService<IMigrator>().MigrateAsync("20261124100549_AddMealPlans");
-            db.Items.Add(Milk());
-            await db.SaveChangesAsync();
-            var milkId = db.Items.Single().Id;
+            var milkId = await InsertOldItemAsync(db, "Milk", "milk");
             db.ConsumeEvents.AddRange(
                 new ConsumeEvent { FoodItemId = milkId, ItemName = "Milk", Amount = 0.25, Unit = "l", Outcome = ConsumeOutcome.Used, ConsumedAt = consumedAt },
                 new ConsumeEvent { FoodItemId = milkId, ItemName = "Milk", Amount = 0.25, Unit = "l", Outcome = ConsumeOutcome.Used, ConsumedAt = consumedAt });
@@ -160,6 +158,26 @@ public sealed class DatabaseSetupTests : IDisposable
         var events = await reopened.ConsumeEvents.ToListAsync();
         Assert.Equal(2, events.Count);
         Assert.All(events, e => Assert.Equal((consumedAt, true), (e.ConsumedAt, e.FoodItemId is not null)));
+    }
+
+    [Fact]
+    public async Task Upgrading_gives_every_item_its_catalogue_expiry_kind_and_keeps_its_data()
+    {
+        var catalog = Catalog.Load(Path.Combine(AppContext.BaseDirectory, "Seed", "catalog.json"));
+        await using (var db = OpenDb())
+        {
+            await db.GetService<IMigrator>().MigrateAsync("20261124120724_KeepConsumeEventItemIdsAndIndexTime");
+            foreach (var key in catalog.Ingredients.Select(i => i.Key)) await InsertOldItemAsync(db, key, key);
+            await InsertOldItemAsync(db, "Kimchi", null);
+        }
+
+        await using (var db = OpenDb()) await DatabaseSetup.PrepareAsync(db, NullLogger.Instance);
+
+        await using var reopened = OpenDb();
+        var items = await reopened.Items.ToListAsync();
+        Assert.Equal(catalog.Ingredients.Count + 1, items.Count);
+        Assert.All(items, i => Assert.Equal(catalog.Find(i.IngredientKey)?.ExpiryKind ?? ExpiryKind.UseBy, i.ExpiryKind));
+        Assert.All(items, i => Assert.Equal((2.0, new DateOnly(2026, 11, 10)), (i.Quantity, i.ExpiryDate)));
     }
 
     [Fact]
@@ -191,6 +209,16 @@ public sealed class DatabaseSetupTests : IDisposable
         FoodItemId = itemId, ItemName = "Milk", Amount = 0.5, Unit = "l", Outcome = ConsumeOutcome.Used,
         ConsumedAt = new DateTimeOffset(2026, 11, 20, 18, 0, 0, TimeSpan.Zero),
     };
+
+    // SQL, not EF: an older schema lacks columns today's model has.
+    private static async Task<int> InsertOldItemAsync(EatUpDb db, string name, string? ingredientKey)
+    {
+        await db.Database.ExecuteSqlAsync($"""
+            INSERT INTO Items (Name, IngredientKey, Quantity, Unit, Location, ExpiryDate, Status, CreatedAt)
+            VALUES ({name}, {ingredientKey}, 2, 'pcs', 'Fridge', '2026-11-10', 'Active', '2026-11-01')
+            """);
+        return await db.Database.SqlQueryRaw<int>("SELECT MAX(Id) AS Value FROM Items").SingleAsync();
+    }
 
     private static async Task DropTablesExceptAsync(EatUpDb db, params string[] keep)
     {

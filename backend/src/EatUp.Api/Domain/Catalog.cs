@@ -12,7 +12,11 @@ public record Ingredient(
     AnimalProduct Animal,
     Dictionary<StorageLocation, int> ShelfLifeDays,
     int? OpenedShelfLifeDays,
-    StorageLocation? OpenedLocation = null);
+    StorageLocation? OpenedLocation = null,
+    // JsonRequired: a forgotten kind would otherwise load as use by and send good food to the bin unnoticed.
+    [property: JsonRequired] ExpiryKind ExpiryKind = ExpiryKind.UseBy,
+    // Best-before food only: days past its date still worth a look, smell and taste, by where it is kept.
+    Dictionary<StorageLocation, int>? CheckDaysPastBestBefore = null);
 
 public record RecipeIngredient(string Key, bool Optional = false);
 
@@ -71,6 +75,7 @@ public class Catalog
 
         ThrowOnUnknownKeys();
         ThrowOnUntaggedRecipes();
+        ThrowOnUnclearExpiry();
         _aliases =ingredients.SelectMany(AliasesOf).Where(a => a.Words.Length > 0).ToList();
     }
 
@@ -168,6 +173,21 @@ public class Catalog
         if (untagged.Count > 0)
             throw new InvalidOperationException($"Recipes without nutrition tags: {string.Join(", ", untagged)}");
     }
+
+    private void ThrowOnUnclearExpiry()
+    {
+        var unclear = Ingredients.Where(i => !HasClearExpiry(i)).Select(i => i.Key).ToList();
+        if (unclear.Count > 0)
+            throw new InvalidOperationException(
+                $"Best-before food needs days worth checking above zero, and use-by food none: {string.Join(", ", unclear)}");
+    }
+
+    private static bool HasClearExpiry(Ingredient ingredient) => ingredient.ExpiryKind switch
+    {
+        ExpiryKind.BestBefore => ingredient.CheckDaysPastBestBefore is { Count: > 0 } days && days.Values.All(d => d > 0),
+        ExpiryKind.UseBy => ingredient.CheckDaysPastBestBefore is null,
+        _ => false,
+    };
 
     public static Catalog Load(string path)
     {

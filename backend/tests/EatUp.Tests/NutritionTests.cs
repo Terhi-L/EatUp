@@ -90,7 +90,7 @@ public class NutritionTests
         var path = Path.Combine(directory.FullName, "catalog.json");
         File.WriteAllText(path, $$"""
             {
-              "ingredients": [{ "key": "egg", "name": "Egg", "aliases": [], "category": "Eggs", "allergens": [], "animal": "Egg",
+              "ingredients": [{ "key": "egg", "name": "Egg", "aliases": [], "category": "Eggs", "allergens": [], "animal": "Egg", "expiryKind": "UseBy",
                                 "shelfLifeDays": { "Fridge": 28 }, "openedShelfLifeDays": null }],
               "recipes": [{ "key": "omelette", "title": "Omelette", "description": "", "minutes": 10,
                             "ingredients": [{ "key": "egg" }], "steps": [], "nutrition": {{nutritionJson}} }]
