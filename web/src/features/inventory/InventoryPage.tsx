@@ -110,7 +110,7 @@ function UrgentBanner({ urgent }: { urgent: Item[] }) {
       <AlarmIcon size={30} className="flex-none" />
       <div className="min-w-0 flex-1">
         <p className="font-bold">{strings.inventory.urgentBanner(urgent.length)}</p>
-        <p className="mt-0.5 truncate text-[13px]">{strings.inventory.urgentNames(urgent.map((i) => i.name))}</p>
+        <p className="mt-0.5 text-[13px] break-words">{strings.inventory.urgentNames(urgent.map((i) => i.name))}</p>
       </div>
       <Link to="/cook" className="flex-none rounded border-2 border-ink bg-white px-3 py-2.5 text-sm font-bold">
         {strings.inventory.seeIdeas}

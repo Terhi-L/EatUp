@@ -111,6 +111,19 @@ test('an estimated date says to check the package until a date is entered', asyn
   })
 })
 
+test('the "eating soon" banner shows every name in full', async ({ page, request }) => {
+  // With the kitchen's yoghurt, bread and eggs: four urgent items, the case the ticket names.
+  await addItem(request, 'Mushrooms', 0)
+
+  await test.step('four things want eating soon, and none of the names is cut off', async () => {
+    await page.goto('/')
+    const names = page.getByText(/ and 1 more$/)
+    await expect(names).toBeVisible()
+    expect(await names.evaluate((line) => line.scrollWidth <= line.clientWidth), 'names cut off').toBe(true)
+    await screenshot(page, 'urgent-banner')
+  })
+})
+
 test('food past its date: check the best-before food, throw out the rest', async ({ page, request }) => {
   await addItem(request, 'Kimchi', -1)
   const throwAway = group(page, text.urgency.Expired)
