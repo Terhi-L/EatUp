@@ -5,7 +5,7 @@ status: In Progress
 assignee:
   - '@claude'
 created_date: '2026-11-26T16:15:00Z'
-updated_date: '2026-11-26T16:16:00Z'
+updated_date: '2026-11-26T17:06:00Z'
 labels:
   - backend
   - frontend
@@ -40,3 +40,18 @@ When the user does not type the date from the package, EatUp fills one in from t
 4. Web: lib helper for what the form sends (new item: the untouched suggestion; existing item: keeps its estimate until the date changes), Vitest first; the row shows 'Estimated date: check the package'; the edit screen keeps the shelf-life hint for a kept estimate; en/nb/fi.
 5. Flow walk step for an item with an estimated date; checks; Qodo local review; PR.
 <!-- SECTION:PLAN:END -->
+
+## Implementation Notes
+
+<!-- SECTION:NOTES:BEGIN -->
+Flow walk (npm run walk, phone Pixel 7 + desktop 1440x900, 6/6 passed; screenshots in web/flow-walk-results/):
+| Step | Phone | Desktop | Proves |
+|---|---|---|---|
+| kitchen, add-milk, milk-added, cook-now, eggs-eaten, profile-stats | OK | OK | main loop unchanged; milk added through the untouched suggestion now shows the estimated line (AC1) |
+| estimated-row | OK | OK | AC1, AC4: carrots added without a date say 'Estimated date: check the package' |
+| estimated-edit | OK | OK | AC4: the edit screen keeps the shelf-life hint, with 'Matches the package' |
+| entered-row | OK | OK | AC2: a new date makes it entered |
+| matches-package | OK | OK | confirming a date that matches the package makes it entered |
+| past-date-* | OK apart from the known TASK-24 hint and TASK-25 banner | OK apart from TASK-24 | - |
+Qodo local review: round 1 two Mediums. 'Generated type makes the flag required' dismissed as false_positive with the product owner (regenerating gives no diff; openapi-typescript makes defaulted fields required). 'Verified package dates stay marked estimated' fixed: any edit of the date or the new 'Matches the package' button makes it entered (product owner chose this). Round 2: resolved, nothing new; its comment pointed at the barcode-scan reset keeping the confirmed flag, fixed with a reset (no test: there are no component tests and the walk can't scan).
+<!-- SECTION:NOTES:END -->
